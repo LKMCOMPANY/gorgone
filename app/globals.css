@@ -116,7 +116,149 @@
   * {
     @apply border-border outline-ring/50;
   }
+  
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Professional Typography Scale */
+  :root {
+    /* Animation Variables */
+    --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
+    
+    /* Spacing Scale - Harmonious */
+    --spacing-section: 3rem; /* 48px - Between major sections */
+    --spacing-container: 2rem; /* 32px - Container padding */
+    --spacing-card: 1.5rem; /* 24px - Card internal padding */
+    --spacing-element: 1rem; /* 16px - Between elements */
+    --spacing-compact: 0.75rem; /* 12px - Compact spacing */
+    --spacing-tight: 0.5rem; /* 8px - Tight spacing */
+    
+    /* Typography Scale */
+    --font-size-xs: 0.75rem; /* 12px */
+    --font-size-sm: 0.875rem; /* 14px */
+    --font-size-base: 1rem; /* 16px */
+    --font-size-lg: 1.125rem; /* 18px */
+    --font-size-xl: 1.25rem; /* 20px */
+    --font-size-2xl: 1.5rem; /* 24px */
+    --font-size-3xl: 1.875rem; /* 30px */
+    --font-size-4xl: 2.25rem; /* 36px */
+    
+    /* Line Heights */
+    --line-height-tight: 1.25;
+    --line-height-normal: 1.5;
+    --line-height-relaxed: 1.75;
+    
+    /* Shadows - Subtle and Professional */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.07), 0 4px 6px -4px rgb(0 0 0 / 0.05);
+    
+    /* Card Styles */
+    --card-hover-border: oklch(0.54 0.22 285 / 0.15);
+    --card-hover-shadow: 0 8px 16px -4px rgb(0 0 0 / 0.08);
+  }
+
+  .dark {
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.3);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5), 0 4px 6px -4px rgb(0 0 0 / 0.4);
+    --card-hover-border: oklch(0.62 0.24 285 / 0.25);
+    --card-hover-shadow: 0 8px 16px -4px rgb(0 0 0 / 0.6);
+  }
+}
+
+@layer components {
+  /* Professional Card Component */
+  .card-interactive {
+    @apply rounded-lg border bg-card transition-all duration-[250ms];
+    @apply hover:border-[var(--card-hover-border)] hover:shadow-[var(--card-hover-shadow)];
+  }
+
+  /* Link Component */
+  .link-primary {
+    @apply text-foreground transition-colors duration-[150ms];
+    @apply hover:text-primary;
+  }
+
+  /* Subtle Animations */
+  .animate-in {
+    animation: fadeIn var(--transition-base) ease-out;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+
+@layer utilities {
+  /* Typography Utilities */
+  .text-display {
+    font-size: var(--font-size-4xl);
+    line-height: var(--line-height-tight);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  .text-heading-1 {
+    font-size: var(--font-size-3xl);
+    line-height: var(--line-height-tight);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  .text-heading-2 {
+    font-size: var(--font-size-2xl);
+    line-height: var(--line-height-tight);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  .text-heading-3 {
+    font-size: var(--font-size-xl);
+    line-height: var(--line-height-normal);
+    font-weight: 600;
+  }
+
+  .text-body {
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-normal);
+  }
+
+  .text-body-sm {
+    font-size: var(--font-size-sm);
+    line-height: var(--line-height-normal);
+  }
+
+  .text-caption {
+    font-size: var(--font-size-xs);
+    line-height: var(--line-height-normal);
+    color: oklch(from var(--muted-foreground) l c h / 0.8);
+  }
+
+  /* Spacing Utilities */
+  .section-spacing {
+    margin-bottom: var(--spacing-section);
+  }
+
+  .container-padding {
+    padding: var(--spacing-container);
+  }
+
+  .card-padding {
+    padding: var(--spacing-card);
   }
 }

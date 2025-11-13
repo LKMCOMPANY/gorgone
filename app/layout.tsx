@@ -1,5 +1,6 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "@/lib/providers/theme-provider";
+import { Toaster } from "@/components/ui/sonner";
 import { baseMetadata } from "@/lib/metadata";
 import "./globals.css";
 
@@ -34,6 +35,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           {children}
+          <Toaster position="top-right" richColors />
         </ThemeProvider>
       </body>
     </html>

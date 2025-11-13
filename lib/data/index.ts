@@ -5,6 +5,20 @@
 
 import type { ApiResponse, MonitoringData, Metrics } from "@/types";
 
+// Re-export client management functions
+export {
+  getAllClients,
+  getClientById,
+  getClientWithStats,
+  createClient,
+  updateClient,
+  deleteClient,
+  hardDeleteClient,
+  getClientUsers,
+  assignUserToClient,
+  removeUserFromClient,
+} from "./clients";
+
 /**
  * Fetch monitoring data
  */

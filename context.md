@@ -84,30 +84,251 @@ This includes:
 
 ## Design System
 
-### Color Palette
+**CRITICAL**: Gorgone uses a professional, government-grade design system. ALL components MUST use CSS variables and utility classes - NEVER hardcode values.
 
-- **Background**: White (light) / Black (#0A0A0A in dark)
-- **Foreground**: Black (light) / White (dark)
-- **Accent**: #7550ff (purple) - main brand color
+### 🎨 Color System
 
-### Theme
+**Base Colors** (defined in `globals.css` using OKLCH):
+- **Primary**: `oklch(0.54 0.22 285)` (purple) - Brand color, CTA buttons
+- **Background**: `oklch(1 0 0)` (light) / `oklch(0.145 0 0)` (dark)
+- **Foreground**: `oklch(0.145 0 0)` (light) / `oklch(0.985 0 0)` (dark)
+- **Muted**: For secondary text and backgrounds
+- **Border**: Subtle borders using `oklch` with transparency
+- **Destructive**: For error states and destructive actions
 
-- Full dark/light mode support
-- CSS variables in `globals.css` using OKLCH
-- Mobile-first responsive system
+**Usage Rules**:
+- ✅ Use Tailwind classes: `bg-background`, `text-foreground`, `border-border`
+- ✅ Use CSS variables: `var(--background)`, `var(--foreground)`
+- ❌ NEVER hardcode: `#ffffff`, `rgb(255,255,255)`, or color names
 
-### Typography
+### ✍️ Typography System
 
-- **Sans**: Geist Sans
-- **Mono**: Geist Mono
-- **Components**: Use Shadcn typography components (`TypographyH1`, `TypographyH2`, `TypographyP`, etc.)
-- **Consistency**: Never hardcode text styles, always use typography components
+**Font Stack**:
+- **Sans**: Geist Sans (primary)
+- **Mono**: Geist Mono (code)
+- Font features: Ligatures enabled, optimized rendering
 
-### Loading States
+**Type Scale** (use utility classes):
+```css
+.text-display     → 36px / 700 / -0.02em (hero headings)
+.text-heading-1   → 30px / 700 / -0.01em (page titles)
+.text-heading-2   → 24px / 600 / -0.01em (section titles)
+.text-heading-3   → 20px / 600 (subsections)
+.text-body        → 16px / 400 (normal text)
+.text-body-sm     → 14px / 400 (compact text)
+.text-caption     → 12px / 400 (meta info, reduced opacity)
+```
 
-- **No global loaders**: Avoid duplicate loading states
-- **Component-level skeletons**: Use Shadcn skeleton component on specific sections
-- **Graceful degradation**: Show skeletons while data loads
+**Typography Rules**:
+- ✅ Use custom utility classes: `text-heading-1`, `text-body-sm`, `text-caption`
+- ✅ Pair with semantic HTML: `<h1 className="text-heading-1">`, `<p className="text-body">`
+- ❌ NEVER hardcode font sizes: `text-[18px]` or `text-lg` for headings
+- ❌ NEVER use old Shadcn typography components (`TypographyH1`, `TypographyP`)
+
+### 📐 Spacing System
+
+**Harmonious Scale** (CSS variables):
+```css
+--spacing-section:    48px  (between major page sections)
+--spacing-container:  32px  (main container padding)
+--spacing-card:       24px  (card internal padding)
+--spacing-element:    16px  (between elements)
+--spacing-compact:    12px  (compact layouts)
+--spacing-tight:      8px   (minimal spacing)
+```
+
+**Usage**:
+- ✅ Use utility classes: `.card-padding`, `.container-padding`
+- ✅ Use Tailwind spacing: `space-y-6`, `gap-4`, `mb-8`
+- ✅ Consistent: Prefer 4px increments (1, 1.5, 2, 3, 4, 6, 8, 12, 16, 24, 32, 48)
+- ❌ NEVER random values: `mt-[13px]` or `gap-[19px]`
+
+### 🎭 Animation & Transitions
+
+**Subtle & Professional** - All animations follow easing curves:
+
+**Transition Speeds**:
+```css
+--transition-fast:  150ms  (hover, simple state changes)
+--transition-base:  250ms  (default, most interactions)
+--transition-slow:  350ms  (complex transitions, page loads)
+```
+
+**Easing**: `cubic-bezier(0.4, 0, 0.2, 1)` (smooth deceleration)
+
+**Common Patterns**:
+```css
+/* Hover transitions */
+transition-colors duration-[150ms]
+
+/* Focus states */
+transition-shadow duration-[150ms] focus-visible:shadow-[var(--shadow-sm)]
+
+/* Card interactions */
+transition-all duration-[250ms]
+
+/* Page load */
+.animate-in  → fade in + translate up (250ms)
+```
+
+**Rules**:
+- ✅ Use CSS variables: `duration-[var(--transition-fast)]`
+- ✅ Subtle: Micro-interactions only, no flashy animations
+- ✅ Performance: Use `transform` and `opacity` when possible
+- ❌ NEVER long durations: > 400ms feels sluggish
+
+### 🃏 Card System
+
+**Professional Interactive Cards**:
+
+**Base Style**:
+```tsx
+<div className="card-interactive">
+  {/* Content */}
+</div>
+```
+
+**What it does**:
+- Subtle border color change on hover
+- Soft shadow on hover (depth without distraction)
+- Smooth 250ms transition
+- Theme-aware (different shadows for dark mode)
+
+**Card Variations**:
+```tsx
+// Standard content card
+<Card className="card-padding">  → 24px internal padding
+
+// Interactive list item
+<div className="card-interactive flex p-4"> → hover effects + flex
+
+// Form container
+<Card className="card-padding space-y-6"> → form field spacing
+```
+
+**Rules**:
+- ✅ Use `.card-interactive` for hoverable cards
+- ✅ Use `.card-padding` for consistent internal spacing
+- ✅ Combine with layout classes: `flex`, `grid`, `space-y-*`
+- ❌ NEVER hardcode padding in cards: Use `.card-padding`
+
+### 🔗 Link System
+
+**Consistent Link Behavior**:
+
+```tsx
+<Link href="/path" className="link-primary">
+  Link Text
+</Link>
+```
+
+**What it does**:
+- Default: foreground color
+- Hover: primary color
+- Fast 150ms transition
+- No underline by default (add if needed)
+
+**Rules**:
+- ✅ Use `.link-primary` for all navigation links
+- ✅ Add `font-medium` for emphasis
+- ✅ Combine with other utilities as needed
+- ❌ NEVER hardcode hover colors
+
+### 📦 Component Patterns
+
+**Input Fields**:
+```tsx
+<Input
+  className="h-10 transition-shadow duration-[150ms] focus-visible:shadow-[var(--shadow-sm)]"
+/>
+```
+- Fixed height: `h-10` (40px)
+- Focus shadow for depth
+- Consistent across all forms
+
+**Empty States**:
+```tsx
+<div className="py-16 text-center">
+  <p className="text-body-sm text-muted-foreground">
+    No items found
+  </p>
+</div>
+```
+- Generous padding: `py-16`
+- Muted text for less importance
+- Centered alignment
+
+**Page Headers**:
+```tsx
+<div className="mb-8 space-y-1.5">
+  <h1 className="text-heading-1">Page Title</h1>
+  <p className="text-body-sm text-muted-foreground">
+    Description text
+  </p>
+</div>
+```
+- Consistent spacing: `mb-8` after header
+- Title + description pattern
+- Reduced opacity for descriptions
+
+### 🎬 Page Load Pattern
+
+**Fade-in Animation** (all pages):
+```tsx
+<div className="animate-in" style={{ animationDelay: "50ms" }}>
+  {/* Page content */}
+</div>
+```
+
+**Effect**: Subtle fade + 4px translate up, 250ms duration
+
+### 🌓 Dark Mode
+
+**Automatic Theme Support**:
+- All CSS variables have light + dark variants
+- Shadows adapt (darker in dark mode)
+- Border opacity changes automatically
+- No manual theme checking needed in components
+
+**Rules**:
+- ✅ Use semantic color names: `bg-background`, `text-foreground`
+- ✅ CSS variables handle theme switching automatically
+- ❌ NEVER check theme manually in components
+
+### ✅ Design System Checklist
+
+When creating new components:
+
+- [ ] Use CSS variable-based colors (no hardcoded colors)
+- [ ] Use typography utility classes (`.text-heading-*`, `.text-body*`)
+- [ ] Use spacing system (`.card-padding`, consistent `space-y-*`)
+- [ ] Add subtle transitions (`duration-[150ms]` or `duration-[250ms]`)
+- [ ] Use `.card-interactive` for hoverable cards
+- [ ] Use `.link-primary` for links
+- [ ] Add `.animate-in` to page containers
+- [ ] Input fields: `h-10` + focus shadow
+- [ ] Test in both light and dark mode
+- [ ] Verify responsive behavior (mobile-first)
+
+### 🚫 Anti-Patterns (DO NOT DO)
+
+❌ Hardcoded colors: `bg-white`, `text-black`, `#7550ff`  
+❌ Random font sizes: `text-[17px]`, `text-lg` for headings  
+❌ Inconsistent spacing: `mt-[13px]`, `gap-[19px]`  
+❌ Old components: `<TypographyH1>`, `<TypographyP>`  
+❌ Long animations: `duration-500`, `duration-1000`  
+❌ Hardcoded transitions: `hover:bg-gray-100`  
+❌ Manual theme checks: `{theme === 'dark' ? ... : ...}`  
+❌ No hover states on interactive elements  
+
+### 🎯 Quality Standards
+
+This design system ensures:
+- **Consistency**: Same patterns everywhere
+- **Accessibility**: Proper contrast, focus states
+- **Performance**: GPU-accelerated animations
+- **Maintainability**: Change once, applies everywhere
+- **Professionalism**: Government/enterprise-grade quality
 
 ## Main Features
 

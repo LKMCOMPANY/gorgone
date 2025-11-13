@@ -19,7 +19,7 @@ export default async function DashboardLayout({
   return (
     <SidebarProvider defaultOpen={true}>
       <div className="flex min-h-screen w-full">
-        <DashboardSidebar />
+        <DashboardSidebar userRole={user.role} />
         <SidebarInset className="flex flex-col w-full">
           <DashboardHeader user={user} />
           <main className="flex-1 p-4 sm:p-6 lg:p-8">{children}</main>

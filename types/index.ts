@@ -6,12 +6,29 @@
 // User roles
 export type UserRole = "super_admin" | "admin" | "operator" | "manager";
 
+// Client (Operation) type
+export interface Client {
+  id: string;
+  name: string;
+  description: string | null;
+  is_active: boolean;
+  created_at: string;
+  created_by: string | null;
+  updated_at: string;
+}
+
+// Client with user count
+export interface ClientWithStats extends Client {
+  user_count: number;
+}
+
 // Database profile type
 export interface Profile {
   id: string;
   email: string;
   role: UserRole;
   organization: string | null;
+  client_id: string | null;
   created_at: string;
   created_by: string | null;
   updated_at: string;
@@ -23,7 +40,19 @@ export interface User {
   email: string;
   role: UserRole;
   organization: string | null;
+  client_id: string | null;
   created_at: string;
+}
+
+// Client user (user with profile info and client relationship)
+export interface ClientUser {
+  id: string;
+  email: string;
+  role: UserRole;
+  organization: string | null;
+  client_id: string;
+  created_at: string;
+  updated_at: string;
 }
 
 // Authentication types

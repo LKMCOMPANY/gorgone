@@ -4,7 +4,7 @@
 
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import type { User } from "@/types";
+import type { User, Profile } from "@/types";
 
 /**
  * Get current user from server-side
@@ -40,12 +40,52 @@ export async function getCurrentUser(): Promise<User | null> {
       email: profile.email,
       role: profile.role,
       organization: profile.organization,
+      client_id: profile.client_id,
       created_at: profile.created_at,
     };
   } catch (err) {
     // Log unexpected errors in production for monitoring
     if (process.env.NODE_ENV === "production") {
       console.error("[Auth] Failed to get current user:", err);
+    }
+    return null;
+  }
+}
+
+/**
+ * Get user profile (extended version)
+ */
+export async function getUserProfile(): Promise<Profile | null> {
+  try {
+    // Use regular client to check authentication
+    const supabase = await createServerClient();
+
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (!user || userError) {
+      return null;
+    }
+
+    // Use admin client to get profile (bypasses RLS)
+    const adminClient = createAdminClient();
+    const { data: profile, error: profileError } = await adminClient
+      .from("profiles")
+      .select("*")
+      .eq("id", user.id)
+      .single();
+
+    if (!profile || profileError) {
+      return null;
+    }
+
+    return profile;
+  } catch (err) {
+    // Log unexpected errors in production for monitoring
+    if (process.env.NODE_ENV === "production") {
+      console.error("[Auth] Failed to get user profile:", err);
     }
     return null;
   }
