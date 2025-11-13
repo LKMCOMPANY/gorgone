@@ -172,14 +172,70 @@ The project includes a `render.yaml` file that automatically configures deployme
 - Once deployed, get the Render URL
 - Configure `NEXT_PUBLIC_APP_URL` with this URL
 
+## Authentication & Authorization
+
+### Supabase Auth Integration
+
+The application uses **Supabase Auth** with the new API keys system (not legacy JWT keys):
+- **Publishable key**: `NEXT_PUBLIC_SUPABASE_ANON_KEY` (client-side)
+- **Secret key**: `SUPABASE_SERVICE_ROLE_KEY` (server-side)
+
+### User Roles
+
+Four hierarchical roles are supported:
+1. **Super Admin**: Full access, can create/delete clients and their data
+2. **Admin**: Can access all client spaces as a visitor
+3. **Operator**: Can view client spaces and all zones (except settings)
+4. **Manager**: Can view client spaces and all zones (except settings)
+
+### Database Schema
+
+**`public.profiles` table**:
+- `id` (UUID, FK to auth.users)
+- `email` (unique)
+- `role` (user role)
+- `organization` (company name)
+- `created_at`, `created_by`, `updated_at`
+
+**RLS Policies**:
+- Users can view their own profile
+- Super admins can manage all profiles
+- RLS is **enabled** on `public.profiles`
+- RLS is **disabled** on `auth.*` tables (managed by Supabase)
+
+### Auth Implementation
+
+**Files**:
+- `lib/supabase/client.ts`: Browser client
+- `lib/supabase/server.ts`: Server Components client
+- `lib/supabase/admin.ts`: Admin client (bypasses RLS)
+- `lib/auth/permissions.ts`: Role hierarchy and permissions
+- `lib/auth/utils.ts`: Auth helper functions
+- `components/auth/login-form.tsx`: Login form component
+- `app/login/page.tsx`: Login page
+- `app/actions/auth.ts`: Server actions (logout)
+- `middleware.ts`: Route protection and redirects
+
+**Protected Routes**:
+- `/dashboard/*` → Requires authentication
+- `/login`, `/` → Redirects to dashboard if authenticated
+
+### User Creation
+
+Users are created manually by Super Admins via the Admin API:
+- No email confirmation required initially
+- Username/password provided directly to clients
+- User creation triggers automatic profile creation (via DB trigger)
+
 ## Next Steps
 
-1. Implement authentication with Supabase Auth
-2. Create database schemas
-3. Implement QStash workers for monitoring
-4. Create monitoring and analytics pages
-5. Implement Redis cache
-6. Testing and performance optimizations
+1. ✅ Authentication implemented with Supabase Auth
+2. ✅ Database schema created with RLS
+3. **Create admin page to manage users** (add/edit/delete clients)
+4. Implement QStash workers for monitoring
+5. Create monitoring and analytics pages
+6. Implement Redis cache
+7. Testing and performance optimizations
 
 ## Important Notes
 

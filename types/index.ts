@@ -3,21 +3,34 @@
  * Social media monitoring platform
  */
 
-// User types
+// User roles
+export type UserRole = "super_admin" | "admin" | "operator" | "manager";
+
+// Database profile type
+export interface Profile {
+  id: string;
+  email: string;
+  role: UserRole;
+  organization: string | null;
+  created_at: string;
+  created_by: string | null;
+  updated_at: string;
+}
+
+// User type (combination of auth.users + profiles)
 export interface User {
   id: string;
   email: string;
-  name: string;
-  role: "admin" | "user" | "viewer";
-  createdAt: Date;
-  updatedAt: Date;
+  role: UserRole;
+  organization: string | null;
+  created_at: string;
 }
 
 // Authentication types
 export interface AuthSession {
   user: User;
-  token: string;
-  expiresAt: Date;
+  accessToken: string;
+  refreshToken: string;
 }
 
 // Monitoring data types

@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ROUTES } from "@/lib/constants";
 
 export default function Home() {
   return (
@@ -9,7 +8,7 @@ export default function Home() {
         <h1 className="text-7xl font-bold tracking-tight text-foreground sm:text-8xl md:text-9xl">
           GORGONE
         </h1>
-        <Link href={ROUTES.DASHBOARD}>
+        <Link href="/login">
           <Button size="lg" className="text-base sm:text-lg px-6 sm:px-8">
             Login
           </Button>

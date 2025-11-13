@@ -1,0 +1,88 @@
+/**
+ * Authentication utility functions
+ */
+
+import { createClient as createServerClient } from "@/lib/supabase/server";
+import type { User } from "@/types";
+
+/**
+ * Get current user from server-side
+ */
+export async function getCurrentUser(): Promise<User | null> {
+  const supabase = await createServerClient();
+
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  if (!session?.user) {
+    return null;
+  }
+
+  // Get profile with role
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", session.user.id)
+    .single();
+
+  if (!profile) {
+    return null;
+  }
+
+  return {
+    id: profile.id,
+    email: profile.email,
+    role: profile.role,
+    organization: profile.organization,
+    created_at: profile.created_at,
+  };
+}
+
+/**
+ * Generate a strong random password
+ */
+export function generatePassword(length: number = 16): string {
+  const charset =
+    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
+  let password = "";
+  
+  // Ensure at least one of each type
+  password += "ABCDEFGHIJKLMNOPQRSTUVWXYZ"[Math.floor(Math.random() * 26)];
+  password += "abcdefghijklmnopqrstuvwxyz"[Math.floor(Math.random() * 26)];
+  password += "0123456789"[Math.floor(Math.random() * 10)];
+  password += "!@#$%^&*"[Math.floor(Math.random() * 8)];
+  
+  // Fill the rest
+  for (let i = password.length; i < length; i++) {
+    password += charset[Math.floor(Math.random() * charset.length)];
+  }
+  
+  // Shuffle the password
+  return password.split('').sort(() => Math.random() - 0.5).join('');
+}
+
+/**
+ * Generate a readable strong password
+ * Format: Word1234!
+ */
+export function generateReadablePassword(): string {
+  const words = [
+    "Alpha",
+    "Beta",
+    "Gamma",
+    "Delta",
+    "Echo",
+    "Foxtrot",
+    "Golf",
+    "Hotel",
+    "India",
+    "Juliet",
+  ];
+  const numbers = Math.floor(1000 + Math.random() * 9000);
+  const special = ["!", "@", "#", "$", "%"][Math.floor(Math.random() * 5)];
+
+  const word = words[Math.floor(Math.random() * words.length)];
+  return `${word}${numbers}${special}`;
+}
+
