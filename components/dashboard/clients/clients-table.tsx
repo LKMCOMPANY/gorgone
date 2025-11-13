@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import type { ClientWithStats } from "@/types";
 import { getClientsAction, deleteClientAction } from "@/app/actions/clients";
 import { formatDate } from "@/lib/utils";
+import { ClientsTableSkeleton } from "./clients-table-skeleton";
 
 export function ClientsTable() {
   const router = useRouter();
@@ -79,7 +80,7 @@ export function ClientsTable() {
   }
 
   if (loading) {
-    return null;
+    return <ClientsTableSkeleton />;
   }
 
   return (

@@ -30,6 +30,7 @@ import {
 import { ClientUsersList } from "./client-users-list";
 import { CreateUserDialog } from "./create-user-dialog";
 import { formatDate } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface ClientDetailsProps {
   clientId: string;
@@ -47,6 +48,7 @@ export function ClientDetails({
   );
   const [users, setUsers] = useState<ClientUser[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadingUsers, setLoadingUsers] = useState(true);
   const [showCreateUserDialog, setShowCreateUserDialog] = useState(false);
 
   useEffect(() => {
@@ -55,10 +57,13 @@ export function ClientDetails({
 
   async function loadUsers() {
     try {
+      setLoadingUsers(true);
       const data = await getClientUsersAction(clientId);
       setUsers(data);
     } catch (error) {
       console.error("Failed to load users:", error);
+    } finally {
+      setLoadingUsers(false);
     }
   }
 
@@ -219,11 +224,19 @@ export function ClientDetails({
             </Dialog>
           </div>
 
-          <ClientUsersList
-            users={users}
-            onUserUpdated={loadUsers}
-            onUserDeleted={loadUsers}
-          />
+          {loadingUsers ? (
+            <div className="space-y-2.5">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <Skeleton key={i} className="h-24 w-full" />
+              ))}
+            </div>
+          ) : (
+            <ClientUsersList
+              users={users}
+              onUserUpdated={loadUsers}
+              onUserDeleted={loadUsers}
+            />
+          )}
         </div>
       </Card>
     </div>
