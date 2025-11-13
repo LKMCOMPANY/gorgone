@@ -1,18 +1,55 @@
 # Loading States & Skeletons - Best Practices
 
 **Status**: ✅ Implemented  
-**Last Updated**: November 2025
+**Last Updated**: November 13, 2025  
+**Animation**: Elegant shimmer wave (not pulse)
 
 ---
 
 ## 🎯 Philosophy
 
-Gorgone follows **Shadcn UI best practices** for loading states:
+Gorgone follows **Shadcn UI best practices** for loading states with an elegant twist:
 
 1. **Always visible**: Loading states should never be "invisible" (no `null` returns)
 2. **Mirror structure**: Skeletons should match the exact layout of loaded content
-3. **Smooth transitions**: Use the design system's animation utilities
-4. **User feedback**: Users should always know something is happening
+3. **Elegant shimmer**: Subtle wave animation (not harsh pulse)
+4. **Smooth transitions**: Use the design system's animation utilities
+5. **User feedback**: Users should always know something is happening
+
+### 🌊 Shimmer Animation
+
+Gorgone uses a **sophisticated shimmer wave** instead of the default `animate-pulse`:
+
+**Why Shimmer > Pulse**:
+- ❌ **Pulse**: Too violent, aggressive, distracting
+- ✅ **Shimmer**: Subtle, elegant, professional, modern
+
+**Technical Details**:
+```css
+.skeleton-shimmer {
+  /* Light mode: 40% base, 15% wave */
+  background: oklch(from var(--muted) l c h / 0.4);
+  animation: shimmer 2s ease-in-out infinite;
+}
+
+.dark .skeleton-shimmer {
+  /* Dark mode: 20% base, 8% wave (softer) */
+  background: oklch(from var(--muted) l c h / 0.2);
+}
+```
+
+**Visual Effect**:
+```
+Light: ████░░░░░░░  →  ░░░░████░░░  →  ░░░░░░░░████
+Dark:  ███░░░░░░░░  →  ░░░░███░░░  →  ░░░░░░░░███
+       Base 40%        Wave 15%       Smooth sweep
+```
+
+**Benefits**:
+- 🎨 Minimal visual noise
+- 🏢 Government-grade professionalism
+- ✨ Modern "premium app" aesthetic
+- 🌓 Perfect in light and dark mode
 
 ---
 

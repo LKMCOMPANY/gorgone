@@ -1,8 +1,10 @@
 # Gorgone Design System
 
-**Version**: 2.0  
-**Last Updated**: November 2025  
+**Version**: 2.1  
+**Last Updated**: November 13, 2025  
 **Status**: ✅ Production Ready
+
+**Latest**: Elegant shimmer skeleton animation (v2.1)
 
 ---
 
@@ -169,6 +171,74 @@ export default function Page() {
 
 **Effect**: Fade in + 4px translate up, 250ms duration
 
+### Skeleton Loading Animation
+
+**Elegant Shimmer Effect**:
+
+Gorgone uses a sophisticated shimmer wave animation for loading states, not the harsh `animate-pulse`:
+
+```tsx
+<Skeleton className="h-10 w-full" />
+```
+
+**Design Characteristics**:
+- **Wave animation**: Smooth gradient sweep left-to-right (2s loop)
+- **Ultra-subtle**: Low opacity for minimal distraction
+- **Theme-aware**: Automatically adapts to light/dark mode
+- **GPU-accelerated**: Uses `transform` for performance
+
+**Technical Details**:
+
+```css
+/* Light Mode */
+.skeleton-shimmer {
+  background: oklch(from var(--muted) l c h / 0.4);  /* 40% base */
+  /* Shimmer gradient: 0% → 15% → 0% opacity */
+  animation: shimmer 2s ease-in-out infinite;
+}
+
+/* Dark Mode (softer) */
+.dark .skeleton-shimmer {
+  background: oklch(from var(--muted) l c h / 0.2);  /* 20% base */
+  /* Shimmer gradient: 0% → 8% → 0% opacity */
+}
+```
+
+**Visual Effect**:
+```
+Light: ████░░░░░░░  →  ░░░░████░░░  →  ░░░░░░░░████
+Dark:  ███░░░░░░░░  →  ░░░░███░░░  →  ░░░░░░░░███
+       (40% base)     (15% wave)     (smooth sweep)
+```
+
+**Benefits**:
+- ✅ Professional, minimal visual noise
+- ✅ Better than pulse (not distracting)
+- ✅ Modern "premium app" feel
+- ✅ Works perfectly in light and dark mode
+
+**Usage**:
+```tsx
+// Always show skeleton during loading
+if (loading) {
+  return <MySkeleton />;  // ✅ NOT null
+}
+
+// Skeleton component structure
+export function MySkeleton() {
+  return (
+    <Card className="card-padding">
+      <Skeleton className="h-10 w-full max-w-sm" />  {/* Search */}
+      <div className="space-y-2.5">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <Skeleton key={i} className="h-20 w-full" />
+        ))}
+      </div>
+    </Card>
+  );
+}
+```
+
 ---
 
 ## 🃏 Card System
@@ -260,17 +330,53 @@ export default function Page() {
 </div>
 ```
 
-### Loading State
+### Loading State (Skeletons)
+
+**Always visible, never null**:
 
 ```tsx
 import { Skeleton } from "@/components/ui/skeleton";
 
-<div className="space-y-2.5">
-  {Array.from({ length: 3 }).map((_, i) => (
-    <Skeleton key={i} className="h-20 w-full" />
-  ))}
-</div>
+// ✅ Show skeleton during loading
+if (loading) {
+  return <MySkeleton />;
+}
+
+// ❌ DON'T return null
+// if (loading) return null;
+
+// Skeleton structure (matches loaded content)
+export function MySkeleton() {
+  return (
+    <Card className="card-padding">
+      <div className="space-y-5">
+        {/* Search bar */}
+        <Skeleton className="h-10 w-full max-w-sm" />
+        
+        {/* List items */}
+        <div className="space-y-2.5">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="flex gap-3 rounded-lg border p-4">
+              <Skeleton className="h-10 w-10 rounded-full" />  {/* Avatar */}
+              <div className="flex-1 space-y-2">
+                <Skeleton className="h-5 w-[160px]" />  {/* Title */}
+                <Skeleton className="h-3 w-[120px]" />  {/* Subtitle */}
+              </div>
+              <Skeleton className="h-6 w-[60px] rounded-full" />  {/* Badge */}
+            </div>
+          ))}
+        </div>
+      </div>
+    </Card>
+  );
+}
 ```
+
+**Key Points**:
+- Uses elegant shimmer animation (not pulse)
+- Matches exact layout of loaded content
+- Responsive (hide/show elements like real content)
+- Always visible during loading states
 
 ### Status Toggle
 
@@ -345,6 +451,20 @@ When creating new components:
 ### Animations
 ❌ `duration-500`, `duration-1000`, no transitions  
 ✅ `duration-[150ms]`, `duration-[250ms]`
+
+### Skeletons
+❌ `animate-pulse`, returning `null` during loading  
+✅ `.skeleton-shimmer`, always show skeleton component
+
+❌ Generic skeleton that doesn't match content:
+```tsx
+<Skeleton className="h-64 w-full" />
+```
+
+✅ Detailed skeleton matching exact layout:
+```tsx
+<MySkeleton />  {/* Structured with proper spacing */}
+```
 
 ### Cards
 ❌ `p-6`, `hover:bg-gray-50`  
