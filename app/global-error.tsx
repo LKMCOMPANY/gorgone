@@ -16,16 +16,24 @@ export default function GlobalError({
   return (
     <html>
       <body>
-        <div style={{
-          display: "flex",
-          minHeight: "100vh",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: "1rem",
-          textAlign: "center",
-        }}>
-          <h1 style={{ fontSize: "2rem", fontWeight: "bold", marginBottom: "1rem" }}>
+        <div
+          style={{
+            display: "flex",
+            minHeight: "100vh",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "1rem",
+            textAlign: "center",
+          }}
+        >
+          <h1
+            style={{
+              fontSize: "2rem",
+              fontWeight: "bold",
+              marginBottom: "1rem",
+            }}
+          >
             Critical Error
           </h1>
           <p style={{ marginBottom: "2rem", color: "#666" }}>
@@ -49,4 +57,3 @@ export default function GlobalError({
     </html>
   );
 }
-

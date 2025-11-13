@@ -3,40 +3,52 @@
  */
 
 import { createClient as createServerClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import type { User } from "@/types";
 
 /**
  * Get current user from server-side
  */
 export async function getCurrentUser(): Promise<User | null> {
-  const supabase = await createServerClient();
+  try {
+    // Use regular client to check authentication
+    const supabase = await createServerClient();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
 
-  if (!user) {
+    if (!user || userError) {
+      return null;
+    }
+
+    // Use admin client to get profile (bypasses RLS)
+    const adminClient = createAdminClient();
+    const { data: profile, error: profileError } = await adminClient
+      .from("profiles")
+      .select("*")
+      .eq("id", user.id)
+      .single();
+
+    if (!profile || profileError) {
+      return null;
+    }
+
+    return {
+      id: profile.id,
+      email: profile.email,
+      role: profile.role,
+      organization: profile.organization,
+      created_at: profile.created_at,
+    };
+  } catch (err) {
+    // Log unexpected errors in production for monitoring
+    if (process.env.NODE_ENV === "production") {
+      console.error("[Auth] Failed to get current user:", err);
+    }
     return null;
   }
-
-  // Get profile with role
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", user.id)
-    .single();
-
-  if (!profile) {
-    return null;
-  }
-
-  return {
-    id: profile.id,
-    email: profile.email,
-    role: profile.role,
-    organization: profile.organization,
-    created_at: profile.created_at,
-  };
 }
 
 /**
@@ -46,20 +58,23 @@ export function generatePassword(length: number = 16): string {
   const charset =
     "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
   let password = "";
-  
+
   // Ensure at least one of each type
   password += "ABCDEFGHIJKLMNOPQRSTUVWXYZ"[Math.floor(Math.random() * 26)];
   password += "abcdefghijklmnopqrstuvwxyz"[Math.floor(Math.random() * 26)];
   password += "0123456789"[Math.floor(Math.random() * 10)];
   password += "!@#$%^&*"[Math.floor(Math.random() * 8)];
-  
+
   // Fill the rest
   for (let i = password.length; i < length; i++) {
     password += charset[Math.floor(Math.random() * charset.length)];
   }
-  
+
   // Shuffle the password
-  return password.split('').sort(() => Math.random() - 0.5).join('');
+  return password
+    .split("")
+    .sort(() => Math.random() - 0.5)
+    .join("");
 }
 
 /**
@@ -85,4 +100,3 @@ export function generateReadablePassword(): string {
   const word = words[Math.floor(Math.random() * words.length)];
   return `${word}${numbers}${special}`;
 }
-

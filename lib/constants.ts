@@ -29,4 +29,3 @@ export const USER_ROLES = {
   USER: "user",
   VIEWER: "viewer",
 } as const;
-

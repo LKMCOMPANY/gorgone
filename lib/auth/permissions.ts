@@ -82,4 +82,3 @@ export function getRoleName(role: UserRole): string {
   };
   return roleNames[role];
 }
-

@@ -29,10 +29,7 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
     await logout();
   };
 
-  const initials = user.email
-    .split("@")[0]
-    .substring(0, 2)
-    .toUpperCase();
+  const initials = user.email.split("@")[0].substring(0, 2).toUpperCase();
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -54,7 +51,7 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
 
         <div className="flex items-center gap-2">
           <ThemeToggle />
-          
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="rounded-full">
@@ -66,7 +63,9 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuLabel>
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">{user.email}</p>
+                  <p className="text-sm font-medium leading-none">
+                    {user.email}
+                  </p>
                   <p className="text-xs leading-none text-muted-foreground">
                     {getRoleName(user.role)}
                   </p>
@@ -84,4 +83,3 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
     </header>
   );
 }
-

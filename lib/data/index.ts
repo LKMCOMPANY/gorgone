@@ -8,7 +8,9 @@ import type { ApiResponse, MonitoringData, Metrics } from "@/types";
 /**
  * Fetch monitoring data
  */
-export async function getMonitoringData(): Promise<ApiResponse<MonitoringData[]>> {
+export async function getMonitoringData(): Promise<
+  ApiResponse<MonitoringData[]>
+> {
   try {
     // TODO: Implement fetching logic from Supabase
     return {
@@ -46,4 +48,3 @@ export async function getMetrics(): Promise<ApiResponse<Metrics>> {
     };
   }
 }
-

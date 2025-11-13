@@ -40,7 +40,10 @@ export default function Error({
         </div>
         <div className="flex gap-4 justify-center">
           <Button onClick={reset}>Try Again</Button>
-          <Button variant="outline" onClick={() => window.location.href = "/"}>
+          <Button
+            variant="outline"
+            onClick={() => (window.location.href = "/")}
+          >
             Go Home
           </Button>
         </div>
@@ -48,4 +51,3 @@ export default function Error({
     </div>
   );
 }
-

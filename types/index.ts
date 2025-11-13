@@ -54,4 +54,3 @@ export type ApiResponse<T> = {
   error?: string;
   status: "success" | "error";
 };
-

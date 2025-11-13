@@ -17,7 +17,9 @@ class Logger {
       message,
       level,
       timestamp: new Date().toISOString(),
-      ...(data && typeof data === "object" ? { data: data as Record<string, unknown> } : {}),
+      ...(data && typeof data === "object"
+        ? { data: data as Record<string, unknown> }
+        : {}),
     };
   }
 
@@ -34,7 +36,7 @@ class Logger {
   error(message: string, error?: unknown) {
     const log = this.formatLog("error", message, error);
     console.error(`[ERROR] ${log.message}`, log.data || "");
-    
+
     // In production, send to error tracking service (Sentry, etc.)
     if (process.env.NODE_ENV === "production") {
       // TODO: Implement error tracking
@@ -50,4 +52,3 @@ class Logger {
 }
 
 export const logger = new Logger();
-

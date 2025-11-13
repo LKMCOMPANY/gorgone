@@ -4,6 +4,7 @@ Enterprise-grade social media monitoring platform for large organizations and go
 
 ## ✨ Features
 
+- 🔐 Supabase Auth with role-based permissions
 - 🎨 Modern, minimalist UI with dark/light mode
 - 📱 Fully responsive (mobile-first)
 - 🔒 Security headers & middleware
@@ -53,12 +54,32 @@ npm run format:check # Check code formatting
 npm run type-check   # Run TypeScript type checking
 ```
 
+## 🔐 Authentication
+
+The app uses **Supabase Auth** with role-based access control:
+
+**User Roles:**
+
+- **Super Admin**: Full access, can create/delete clients
+- **Admin**: Access all client spaces (read-only)
+- **Operator**: Access client spaces and zones (no settings)
+- **Manager**: Access client spaces and zones (no settings)
+
+**Default Credentials:**
+
+- Email: `lkm@gorgone.io`
+- Password: `Langusta`
+- Role: Super Admin
+
+Users are manually created by Super Admins via the admin panel.
+
 ## 🔐 Environment Variables
 
 See `env.template` for the complete list. Required variables:
 
 - `NEXT_PUBLIC_SUPABASE_URL` - Supabase project URL
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Supabase anonymous key
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Supabase publishable key
+- `SUPABASE_SERVICE_ROLE_KEY` - Supabase secret key (server-side only)
 - `UPSTASH_REDIS_REST_URL` - Upstash Redis REST URL
 - `UPSTASH_REDIS_REST_TOKEN` - Upstash Redis token
 - `QSTASH_TOKEN` - QStash token

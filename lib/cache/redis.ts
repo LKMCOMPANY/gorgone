@@ -29,4 +29,3 @@ export async function setCached<T>(
 export async function invalidateCache(key: string): Promise<void> {
   // TODO: Implement with Upstash Redis
 }
-

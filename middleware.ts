@@ -30,28 +30,11 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  // Get authenticated user
+  // Refresh session - this is required for Server Components
+  // IMPORTANT: Avoid writing logic between createServerClient and getUser()
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
-  const isLoginPage = request.nextUrl.pathname === "/login";
-  const isHomePage = request.nextUrl.pathname === "/";
-  const isDashboard = request.nextUrl.pathname.startsWith("/dashboard");
-
-  // Redirect to login if accessing dashboard without authentication
-  if (isDashboard && !user) {
-    const redirectUrl = request.nextUrl.clone();
-    redirectUrl.pathname = "/login";
-    return NextResponse.redirect(redirectUrl);
-  }
-
-  // Redirect to dashboard if accessing login/home while authenticated
-  if ((isLoginPage || isHomePage) && user) {
-    const redirectUrl = request.nextUrl.clone();
-    redirectUrl.pathname = "/dashboard";
-    return NextResponse.redirect(redirectUrl);
-  }
 
   // Security headers
   supabaseResponse.headers.set("X-DNS-Prefetch-Control", "on");
@@ -90,4 +73,3 @@ export const config = {
     "/((?!_next/static|_next/image|favicon.ico|.*\\.svg|.*\\.png|.*\\.jpg|.*\\.jpeg|.*\\.gif|.*\\.webp).*)",
   ],
 };
-

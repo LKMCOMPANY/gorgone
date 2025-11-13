@@ -59,4 +59,3 @@ export const baseMetadata: Metadata = {
     apple: [{ url: "/apple-touch-icon.png" }],
   },
 };
-

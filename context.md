@@ -9,6 +9,7 @@ GORGONE is a social media monitoring platform for enterprises and government. Th
 **IMPORTANT: All text content in the application MUST be in English.**
 
 This includes:
+
 - UI text and labels
 - Error messages
 - Comments in code
@@ -19,6 +20,7 @@ This includes:
 ## Technical Stack
 
 ### Frontend
+
 - **Framework**: Next.js 15 (App Router)
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS 4
@@ -27,6 +29,7 @@ This includes:
 - **Typography**: Shadcn typography components for consistency
 
 ### Backend & Services
+
 - **Database**: Supabase (PostgreSQL)
 - **Cache**: Upstash Redis
 - **Workers & Schedules**: QStash (Upstash)
@@ -82,22 +85,26 @@ This includes:
 ## Design System
 
 ### Color Palette
+
 - **Background**: White (light) / Black (#0A0A0A in dark)
 - **Foreground**: Black (light) / White (dark)
 - **Accent**: #7550ff (purple) - main brand color
 
 ### Theme
+
 - Full dark/light mode support
 - CSS variables in `globals.css` using OKLCH
 - Mobile-first responsive system
 
 ### Typography
+
 - **Sans**: Geist Sans
 - **Mono**: Geist Mono
 - **Components**: Use Shadcn typography components (`TypographyH1`, `TypographyH2`, `TypographyP`, etc.)
 - **Consistency**: Never hardcode text styles, always use typography components
 
 ### Loading States
+
 - **No global loaders**: Avoid duplicate loading states
 - **Component-level skeletons**: Use Shadcn skeleton component on specific sections
 - **Graceful degradation**: Show skeletons while data loads
@@ -105,15 +112,18 @@ This includes:
 ## Main Features
 
 ### Pages
+
 1. **Home page** (`/`): GORGONE logo + Login button
 2. **Admin Dashboard** (`/dashboard`): Interface with header, sidebar, footer
 
 ### Dashboard Components
+
 - **Header**: Logo, theme toggle, mobile menu button (responsive)
 - **Sidebar**: Main navigation (collapsible, mobile-friendly with drawer)
 - **Footer**: Copyright and information
 
 ### Mobile Optimization
+
 - **Sidebar**: Collapsible on mobile with hamburger menu in header
 - **Responsive spacing**: Adaptive padding (p-4 sm:p-6 lg:p-8)
 - **Touch-friendly**: All interactive elements have proper touch targets
@@ -122,7 +132,9 @@ This includes:
 ## Configuration
 
 ### Environment Variables
+
 See `env.template` for the complete list of required variables:
+
 - Supabase: database connection
 - Upstash Redis: cache
 - QStash: workers and schedules
@@ -134,11 +146,13 @@ See `env.template` for the complete list of required variables:
 The project includes a `render.yaml` file that automatically configures deployment.
 
 **Commands:**
+
 - Build Command: `npm install && npm run build`
 - Start Command: `npm start`
 - Node Version: 18+
 
 **Automatic Deployment:**
+
 1. Connect your GitHub repo to Render
 2. Render will automatically detect the `render.yaml` file
 3. Configure environment variables in the dashboard
@@ -146,6 +160,7 @@ The project includes a `render.yaml` file that automatically configures deployme
 ### Service Configuration
 
 **1. Supabase**
+
 - Create a project on https://supabase.com
 - Get the URL and API keys from Settings > API
 - Configure in Render:
@@ -154,6 +169,7 @@ The project includes a `render.yaml` file that automatically configures deployme
   - `SUPABASE_SERVICE_ROLE_KEY`
 
 **2. Upstash Redis**
+
 - Create a Redis database on https://upstash.com
 - Get the REST credentials
 - Configure in Render:
@@ -161,6 +177,7 @@ The project includes a `render.yaml` file that automatically configures deployme
   - `UPSTASH_REDIS_REST_TOKEN`
 
 **3. QStash (Upstash)**
+
 - Enable QStash in your Upstash account
 - Get the token and signing keys
 - Configure in Render:
@@ -169,6 +186,7 @@ The project includes a `render.yaml` file that automatically configures deployme
   - `QSTASH_NEXT_SIGNING_KEY`
 
 **4. Application URL**
+
 - Once deployed, get the Render URL
 - Configure `NEXT_PUBLIC_APP_URL` with this URL
 
@@ -177,12 +195,14 @@ The project includes a `render.yaml` file that automatically configures deployme
 ### Supabase Auth Integration
 
 The application uses **Supabase Auth** with the new API keys system (not legacy JWT keys):
+
 - **Publishable key**: `NEXT_PUBLIC_SUPABASE_ANON_KEY` (client-side)
 - **Secret key**: `SUPABASE_SERVICE_ROLE_KEY` (server-side)
 
 ### User Roles
 
 Four hierarchical roles are supported:
+
 1. **Super Admin**: Full access, can create/delete clients and their data
 2. **Admin**: Can access all client spaces as a visitor
 3. **Operator**: Can view client spaces and all zones (except settings)
@@ -191,6 +211,7 @@ Four hierarchical roles are supported:
 ### Database Schema
 
 **`public.profiles` table**:
+
 - `id` (UUID, FK to auth.users)
 - `email` (unique)
 - `role` (user role)
@@ -198,14 +219,18 @@ Four hierarchical roles are supported:
 - `created_at`, `created_by`, `updated_at`
 
 **RLS Policies**:
+
 - Users can view their own profile
 - Super admins can manage all profiles
 - RLS is **enabled** on `public.profiles`
 - RLS is **disabled** on `auth.*` tables (managed by Supabase)
 
+**Important**: Server-side auth uses admin client to bypass RLS when reading profiles to avoid circular dependencies (RLS policies that check roles from the same table).
+
 ### Auth Implementation
 
 **Files**:
+
 - `lib/supabase/client.ts`: Browser client
 - `lib/supabase/server.ts`: Server Components client
 - `lib/supabase/admin.ts`: Admin client (bypasses RLS)
@@ -217,12 +242,14 @@ Four hierarchical roles are supported:
 - `middleware.ts`: Route protection and redirects
 
 **Protected Routes**:
+
 - `/dashboard/*` → Requires authentication
 - `/login`, `/` → Redirects to dashboard if authenticated
 
 ### User Creation
 
 Users are created manually by Super Admins via the Admin API:
+
 - No email confirmation required initially
 - Username/password provided directly to clients
 - User creation triggers automatic profile creation (via DB trigger)
@@ -249,4 +276,3 @@ Users are created manually by Super Admins via the Admin API:
 - **Error Handling**: All errors logged via centralized logger
 - **SEO**: Comprehensive metadata, sitemap, robots.txt, PWA manifest
 - **Type Safety**: Environment variables validated via `lib/env.ts`
-

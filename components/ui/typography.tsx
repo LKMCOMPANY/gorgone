@@ -67,17 +67,13 @@ export function TypographyP({ children, className }: TypographyProps) {
 
 export function TypographyLead({ children, className }: TypographyProps) {
   return (
-    <p className={cn("text-xl text-muted-foreground", className)}>
-      {children}
-    </p>
+    <p className={cn("text-xl text-muted-foreground", className)}>{children}</p>
   );
 }
 
 export function TypographyMuted({ children, className }: TypographyProps) {
   return (
-    <p className={cn("text-sm text-muted-foreground", className)}>
-      {children}
-    </p>
+    <p className={cn("text-sm text-muted-foreground", className)}>{children}</p>
   );
 }
 
@@ -88,4 +84,3 @@ export function TypographySmall({ children, className }: TypographyProps) {
     </small>
   );
 }
-
