@@ -26,7 +26,8 @@ This includes:
 - **Styling**: Tailwind CSS 4
 - **UI Components**: Shadcn UI (modern design system)
 - **Theme**: Dark/light mode support with next-themes
-- **Typography**: Shadcn typography components for consistency
+- **Notifications**: Sonner (toast notifications)
+- **Design System**: Professional government-grade CSS variables system
 
 ### Backend & Services
 
@@ -40,31 +41,66 @@ This includes:
 ### Folder Structure
 
 ```
-/app                    # Next.js pages (App Router)
-  /dashboard           # Admin dashboard pages
-  layout.tsx           # Root layout with ThemeProvider
-  page.tsx             # Home page
-  globals.css          # Global styles and CSS variables
+/app                      # Next.js pages (App Router)
+  /dashboard             # Dashboard pages
+    /clients             # Client management module
+      /[id]              # Client details page
+      /new               # Create client page
+      page.tsx           # Clients list page
+    layout.tsx           # Dashboard layout (with sidebar)
+    page.tsx             # Dashboard home
+  /actions               # Server actions
+    auth.ts              # Auth actions (logout)
+    clients.ts           # Client management actions
+  layout.tsx             # Root layout with ThemeProvider
+  page.tsx               # Home page
+  login/                 # Login page
+  globals.css            # Global styles and CSS variables
 
-/components            # Reusable components
-  /ui                  # Shadcn UI components + Typography
-  /dashboard           # Dashboard-specific components
+/components              # Reusable components
+  /ui                    # Shadcn UI components
+    sonner.tsx           # Toast notifications wrapper
+  /dashboard             # Dashboard-specific components
+    /clients             # Client management components
+      clients-table.tsx           # Clients list table
+      clients-table-skeleton.tsx  # Loading skeleton
+      client-details.tsx          # Client details form
+      client-details-skeleton.tsx # Details loading skeleton
+      client-users-list.tsx       # Users list for a client
+      create-client-form.tsx      # Create client form
+      create-user-dialog.tsx      # Create user dialog
+      edit-user-dialog.tsx        # Edit user dialog
+    header.tsx           # Dashboard header
+    sidebar.tsx          # Dashboard sidebar
+    footer.tsx           # Dashboard footer
+  /auth                  # Auth components
+    login-form.tsx       # Login form
 
-/lib                   # Business logic and utilities
-  /providers           # React providers (theme, etc.)
-  /data                # Data layer - data access
-  /cache               # Redis helpers
-  /hooks               # Custom React hooks
-  constants.ts         # Centralized constants
-  utils.ts             # General utilities
-  metadata.ts          # SEO metadata configuration
-  env.ts               # Type-safe environment variables
-  logger.ts            # Centralized logging
+/lib                     # Business logic and utilities
+  /auth                  # Authentication
+    permissions.ts       # Role hierarchy and permissions
+    utils.ts             # Auth helper functions
+  /supabase              # Supabase clients
+    client.ts            # Browser client
+    server.ts            # Server Components client
+    admin.ts             # Admin client (bypasses RLS)
+  /data                  # Data layer - centralized data access
+    index.ts             # Exports all data functions
+    clients.ts           # Client & user CRUD operations
+  /cache                 # Redis helpers
+    redis.ts             # Redis client configuration
+  /providers             # React providers
+    theme-provider.tsx   # Theme provider
+  constants.ts           # Centralized constants
+  utils.ts               # General utilities (cn, formatDate, etc.)
+  metadata.ts            # SEO metadata configuration
+  env.ts                 # Type-safe environment variables
+  logger.ts              # Centralized logging
 
-/types                 # Centralized TypeScript types
+/types                   # Centralized TypeScript types
+  index.ts               # All interfaces (User, Profile, Client, etc.)
 
-/middleware.ts         # Security headers and middleware
-/components/theme-toggle.tsx  # Standalone theme toggle component
+/middleware.ts           # Route protection and security headers
 ```
 
 ### Architectural Principles
@@ -335,20 +371,49 @@ This design system ensures:
 ### Pages
 
 1. **Home page** (`/`): GORGONE logo + Login button
-2. **Admin Dashboard** (`/dashboard`): Interface with header, sidebar, footer
+2. **Login page** (`/login`): Authentication form
+3. **Dashboard** (`/dashboard`): Main dashboard interface
+4. **Client Management** (`/dashboard/clients`): Complete client management module
+
+### Client Management Module
+
+**Features**:
+- ✅ **List Clients**: Table with search, status badges, user count
+- ✅ **Create Client**: Form with auto-save and validation
+- ✅ **Edit Client**: Update name, description, active status
+- ✅ **Delete Client**: Soft delete with confirmation
+- ✅ **User Management**: Create/edit/delete users per client
+- ✅ **Role Assignment**: Assign roles to client users (admin, operator, manager)
+- ✅ **Loading States**: Professional skeletons for all views
+- ✅ **Toast Notifications**: Real-time feedback on all actions
+- ✅ **Responsive**: Optimized for mobile and desktop
+
+**Access Control**:
+- Only **super_admin** users can access client management
+- Client users are isolated per client (via `client_id`)
+- Row Level Security (RLS) enforced at database level
+
+**Pages**:
+- `/dashboard/clients` - List all clients
+- `/dashboard/clients/new` - Create new client
+- `/dashboard/clients/[id]` - View/edit client details + manage users
 
 ### Dashboard Components
 
-- **Header**: Logo, theme toggle, mobile menu button (responsive)
-- **Sidebar**: Main navigation (collapsible, mobile-friendly with drawer)
+- **Header**: Logo, user menu, theme toggle, mobile menu button
+- **Sidebar**: Navigation with role-based visibility
+  - Dashboard (all users)
+  - Clients (super_admin only)
 - **Footer**: Copyright and information
+- **Skeletons**: Loading states for all data-heavy components
 
 ### Mobile Optimization
 
-- **Sidebar**: Collapsible on mobile with hamburger menu in header
-- **Responsive spacing**: Adaptive padding (p-4 sm:p-6 lg:p-8)
-- **Touch-friendly**: All interactive elements have proper touch targets
-- **Responsive typography**: Text scales appropriately across breakpoints
+- **Sidebar**: Collapsible drawer on mobile with hamburger menu
+- **Responsive tables**: Card-style layout on mobile, table on desktop
+- **Touch-friendly**: Proper touch targets (min 44x44px)
+- **Adaptive spacing**: Uses design system spacing scale
+- **Responsive forms**: Full-width inputs on mobile, optimized on desktop
 
 ## Configuration
 
@@ -440,18 +505,46 @@ Four hierarchical roles are supported:
 
 - `id` (UUID, FK to auth.users)
 - `email` (unique)
-- `role` (user role)
+- `role` (user role: super_admin, admin, operator, manager)
 - `organization` (company name)
+- `client_id` (UUID, FK to clients - NULL for super_admin)
 - `created_at`, `created_by`, `updated_at`
+
+**`public.clients` table**:
+
+- `id` (UUID, PK)
+- `name` (text, unique) - Client operation name
+- `description` (text, nullable)
+- `is_active` (boolean) - Active status
+- `created_at`, `created_by`, `updated_at`
+
+**Relationships**:
+
+- `profiles.client_id` → `clients.id` (many-to-one)
+- Super admins have `client_id = NULL`
+- Client users have `client_id` set to their client
 
 **RLS Policies**:
 
+**profiles table**:
 - Users can view their own profile
-- Super admins can manage all profiles
-- RLS is **enabled** on `public.profiles`
-- RLS is **disabled** on `auth.*` tables (managed by Supabase)
+- Super admins can view/manage all profiles
+- Users can view profiles from their own client
+- RLS is **enabled**
 
-**Important**: Server-side auth uses admin client to bypass RLS when reading profiles to avoid circular dependencies (RLS policies that check roles from the same table).
+**clients table**:
+- Super admins can view/manage all clients
+- Client users can view their own client only
+- RLS is **enabled**
+
+**Data Isolation**:
+
+All client-specific data (future: alerts, analytics, etc.) will use `client_id` for:
+- **Compartmentalization**: Each client sees only their data
+- **Shared tables**: Common tables filtered by `client_id`
+- **RLS enforcement**: Database-level security
+
+**Important**: Server-side auth uses admin client to bypass RLS when reading profiles to avoid circular dependencies.
 
 ### Auth Implementation
 
@@ -461,10 +554,11 @@ Four hierarchical roles are supported:
 - `lib/supabase/server.ts`: Server Components client
 - `lib/supabase/admin.ts`: Admin client (bypasses RLS)
 - `lib/auth/permissions.ts`: Role hierarchy and permissions
-- `lib/auth/utils.ts`: Auth helper functions
+- `lib/auth/utils.ts`: Auth helper functions (`getCurrentUser`, `getUserProfile`, etc.)
 - `components/auth/login-form.tsx`: Login form component
 - `app/login/page.tsx`: Login page
 - `app/actions/auth.ts`: Server actions (logout)
+- `app/actions/clients.ts`: Server actions for client management
 - `middleware.ts`: Route protection and redirects
 
 **Protected Routes**:
@@ -480,25 +574,72 @@ Users are created manually by Super Admins via the Admin API:
 - Username/password provided directly to clients
 - User creation triggers automatic profile creation (via DB trigger)
 
+## Completed Features
+
+1. ✅ **Authentication**: Supabase Auth with role-based access
+2. ✅ **Database Schema**: Profiles, clients tables with RLS policies
+3. ✅ **Client Management**: Complete CRUD for clients and users
+4. ✅ **Design System**: Professional government-grade CSS variables
+5. ✅ **UI Components**: Toast notifications, skeletons, responsive layouts
+6. ✅ **Data Layer**: Centralized data access with type safety
+7. ✅ **Documentation**: Complete design system and architecture docs
+
 ## Next Steps
 
-1. ✅ Authentication implemented with Supabase Auth
-2. ✅ Database schema created with RLS
-3. **Create admin page to manage users** (add/edit/delete clients)
-4. Implement QStash workers for monitoring
-5. Create monitoring and analytics pages
-6. Implement Redis cache
-7. Testing and performance optimizations
+1. **Social Media Monitoring**:
+   - Implement Twitter API integration
+   - Create alerts system (store in common table with `client_id`)
+   - Real-time monitoring dashboard
+
+2. **Analytics & Reporting**:
+   - Client-specific analytics pages
+   - Data visualization (charts, graphs)
+   - Export functionality (CSV, PDF)
+
+3. **QStash Workers**:
+   - Scheduled monitoring tasks
+   - Background data processing
+   - Alert notifications
+
+4. **Redis Cache**:
+   - Cache frequently accessed data
+   - Session management
+   - Rate limiting
+
+5. **Advanced Features**:
+   - Multi-platform monitoring (Instagram, Facebook, TikTok)
+   - Sentiment analysis
+   - Custom alert rules
+   - Team collaboration features
+
+6. **Performance & Testing**:
+   - Load testing with large datasets
+   - E2E tests (Playwright)
+   - Performance optimizations
+   - Security audits
 
 ## Important Notes
 
-- **Performance**: App must handle large volumes of data
-- **Security**: Designed for enterprises and government - security headers via middleware
-- **UX**: Fluid, professional, minimalist interface
-- **Mobile**: Optimized for mobile and desktop
-- **Scalability**: Production-ready architecture
-- **Language**: All text MUST be in English (UI, code, comments)
-- **Code Quality**: Use `npm run format` before commits, `npm run lint:fix` for errors
-- **Error Handling**: All errors logged via centralized logger
+- **Performance**: App must handle large volumes of data (millions of alerts)
+- **Security**: Government-grade security with RLS, security headers, role-based access
+- **UX**: Fluid, professional, minimalist, elegant interface
+- **Design System**: All components use CSS variables - NO hardcoded values
+- **Mobile**: Fully responsive, mobile-first approach
+- **Scalability**: Production-ready architecture with data layer separation
+- **Language**: All text MUST be in English (UI, code, comments, variables)
+- **Code Quality**: ESLint + Prettier, run `npm run format` before commits
+- **Error Handling**: Centralized logger, user-friendly error messages, toast notifications
 - **SEO**: Comprehensive metadata, sitemap, robots.txt, PWA manifest
-- **Type Safety**: Environment variables validated via `lib/env.ts`
+- **Type Safety**: Full TypeScript coverage, validated environment variables
+- **Data Isolation**: All client data compartmentalized via `client_id`
+- **Animations**: Subtle and professional (150-250ms, smooth easing)
+- **Documentation**: Keep `DESIGN_SYSTEM.md` and `context.md` updated for all changes
+
+## Documentation Files
+
+- **`context.md`**: This file - complete project context and architecture
+- **`DESIGN_SYSTEM.md`**: Complete design system guide with patterns and examples
+- **`CLIENTS_IMPLEMENTATION.md`**: Client management module architecture
+- **`OPTIMIZATIONS.md`**: Performance optimizations and improvements
+- **`README.md`**: Project overview and getting started
+- **`env.template`**: Environment variables template
