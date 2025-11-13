@@ -272,6 +272,84 @@ export function MySkeleton() {
 </Card>
 ```
 
+### Elegant Card Patterns
+
+**Subtle Dashed Borders with Muted Backgrounds**:
+
+For grouped content or sections that need visual separation without being too prominent:
+
+```tsx
+// Subtle container with dashed border
+<div className="rounded-lg border border-dashed border-border/60 bg-muted/30 p-6">
+  {/* Content */}
+</div>
+
+// Settings section (toggle group)
+<div className="rounded-lg border border-border bg-muted/30 p-4 transition-colors duration-[150ms] hover:bg-muted/40">
+  <div className="flex items-center justify-between">
+    <div className="space-y-0.5">
+      <Label className="text-body-sm font-medium">Feature Name</Label>
+      <p className="text-caption text-muted-foreground">Feature description</p>
+    </div>
+    <Switch />
+  </div>
+</div>
+
+// Data source card (with icon and hover)
+<div className="group rounded-lg border border-border bg-card p-6 transition-all duration-[150ms] hover:border-primary/50 hover:shadow-sm">
+  <div className="flex items-start gap-4">
+    <div className="flex-shrink-0 rounded-lg bg-primary/10 p-3 transition-colors duration-[150ms] group-hover:bg-primary/20">
+      {/* Icon */}
+    </div>
+    <div className="flex-1 space-y-2">
+      <h3 className="text-body font-semibold">Source Name</h3>
+      <p className="text-body-sm text-muted-foreground">Description</p>
+    </div>
+  </div>
+</div>
+```
+
+**Visual Characteristics**:
+- **Borders**: `border-border/60` (60% opacity) for subtle, non-intrusive lines
+- **Backgrounds**: `bg-muted/30` or `bg-muted/40` (30-40% opacity) for subtle gray tones
+- **Dashed borders**: `border-dashed` for visual differentiation from solid borders
+- **Hover states**: Increase opacity (`hover:bg-muted/40`) or add border color (`hover:border-primary/50`)
+- **Smooth transitions**: Always `duration-[150ms]` for instant responsiveness
+
+**Benefits**:
+- ✅ **Excellent readability** in both light and dark themes
+- ✅ **Subtle contrast** that doesn't overwhelm
+- ✅ **Professional look** suitable for government/enterprise apps
+- ✅ **Clear hierarchy** through varied opacity levels
+- ✅ **Responsive feel** with smooth hover states
+
+**Usage Examples**:
+```tsx
+// Information panel (low emphasis)
+<div className="rounded-lg border border-dashed border-border/60 bg-muted/30 p-6">
+  <p className="text-body-sm text-muted-foreground">
+    No data sources enabled yet.
+  </p>
+</div>
+
+// Section group (medium emphasis)
+<div className="space-y-3 rounded-lg border border-border bg-muted/30 p-4">
+  {items.map((item) => (
+    <div key={item.id} className="rounded-lg border border-border bg-card p-4">
+      {/* Item content */}
+    </div>
+  ))}
+</div>
+
+// Danger zone (high emphasis)
+<div className="rounded-lg border border-destructive/30 bg-destructive/5 p-6">
+  <h3 className="text-heading-3 text-destructive">Danger Zone</h3>
+  <p className="text-body-sm text-muted-foreground">
+    Irreversible actions
+  </p>
+</div>
+```
+
 ---
 
 ## 🔗 Links

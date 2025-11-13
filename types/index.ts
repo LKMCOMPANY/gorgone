@@ -55,6 +55,32 @@ export interface ClientUser {
   updated_at: string;
 }
 
+// Zone data sources configuration
+export interface ZoneDataSources {
+  twitter: boolean;
+  tiktok: boolean;
+  media: boolean;
+}
+
+// Zone type
+export interface Zone {
+  id: string;
+  name: string;
+  client_id: string;
+  operational_context: string | null;
+  data_sources: ZoneDataSources;
+  settings: Record<string, unknown>;
+  is_active: boolean;
+  created_at: string;
+  created_by: string | null;
+  updated_at: string;
+}
+
+// Zone with additional client information
+export interface ZoneWithClient extends Zone {
+  client?: Client;
+}
+
 // Authentication types
 export interface AuthSession {
   user: User;

@@ -22,15 +22,29 @@ export const PERMISSIONS = {
     "delete_clients",
     "access_all_clients",
     "access_all_zones",
+    "manage_zones",
     "manage_settings",
+    "view_settings",
   ],
   admin: [
     "access_all_clients",
     "access_all_zones",
     "view_only", // Can view but not edit
+    "view_settings",
   ],
-  operator: ["access_clients", "access_zones", "view_data"],
-  manager: ["access_clients", "access_zones", "view_data"],
+  operator: [
+    "access_clients",
+    "access_zones",
+    "view_data",
+    // Operators CANNOT view settings
+  ],
+  manager: [
+    "access_clients",
+    "access_zones",
+    "manage_zones",
+    "view_data",
+    "view_settings",
+  ],
 } as const;
 
 /**
@@ -81,4 +95,22 @@ export function getRoleName(role: UserRole): string {
     manager: "Manager",
   };
   return roleNames[role];
+}
+
+/**
+ * Check if user can manage zones (create, edit, delete)
+ */
+export function canManageZones(userRole: UserRole | null | undefined): boolean {
+  if (!userRole) return false;
+  return hasPermission(userRole, "manage_zones");
+}
+
+/**
+ * Check if user can view settings page
+ */
+export function canViewSettings(
+  userRole: UserRole | null | undefined
+): boolean {
+  if (!userRole) return false;
+  return hasPermission(userRole, "view_settings");
 }

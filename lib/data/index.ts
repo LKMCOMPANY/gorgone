@@ -19,6 +19,18 @@ export {
   removeUserFromClient,
 } from "./clients";
 
+// Re-export zone management functions
+export {
+  getZonesByClient,
+  getActiveZonesByClient,
+  getZoneById,
+  createZone,
+  updateZone,
+  deleteZone,
+  toggleZoneActive,
+  updateZoneDataSources,
+} from "./zones";
+
 /**
  * Fetch monitoring data
  */

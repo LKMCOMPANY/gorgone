@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -13,8 +14,10 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { isSuperAdmin } from "@/lib/auth/permissions";
-import type { UserRole } from "@/types";
+import { isSuperAdmin, canManageZones } from "@/lib/auth/permissions";
+import { ZonesSidebarSection } from "@/components/dashboard/zones/zones-sidebar-section";
+import { CreateZoneDialog } from "@/components/dashboard/zones/create-zone-dialog";
+import type { UserRole, Zone } from "@/types";
 
 const mainMenuItems = [
   {
@@ -34,11 +37,18 @@ const adminMenuItems = [
 
 interface DashboardSidebarProps {
   userRole?: UserRole | null;
+  clientId?: string | null;
+  zones?: Zone[];
 }
 
-export function DashboardSidebar({ userRole }: DashboardSidebarProps) {
+export function DashboardSidebar({
+  userRole,
+  clientId,
+  zones = [],
+}: DashboardSidebarProps) {
   const pathname = usePathname();
   const showAdminMenu = userRole && isSuperAdmin(userRole);
+  const showCreateZone = clientId && userRole && canManageZones(userRole);
 
   return (
     <Sidebar collapsible="icon">
@@ -65,6 +75,11 @@ export function DashboardSidebar({ userRole }: DashboardSidebarProps) {
           </SidebarGroupContent>
         </SidebarGroup>
 
+        {/* Zones Section - Show if user has a client */}
+        {clientId && zones.length > 0 && (
+          <ZonesSidebarSection zones={zones} userRole={userRole} />
+        )}
+
         {showAdminMenu && (
           <SidebarGroup>
             <SidebarGroupLabel>Administration</SidebarGroupLabel>
@@ -89,6 +104,17 @@ export function DashboardSidebar({ userRole }: DashboardSidebarProps) {
           </SidebarGroup>
         )}
       </SidebarContent>
+
+      {/* Create Zone Button - Bottom of sidebar */}
+      {showCreateZone && clientId && (
+        <SidebarFooter>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <CreateZoneDialog clientId={clientId} />
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarFooter>
+      )}
     </Sidebar>
   );
 }

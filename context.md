@@ -47,11 +47,19 @@ This includes:
       /[id]              # Client details page
       /new               # Create client page
       page.tsx           # Clients list page
+    /zones               # Zone management module
+      /[zoneId]          # Zone-specific pages
+        /overview        # Zone overview page
+        /feed            # Zone feed page
+        /analysis        # Zone analysis page
+        /settings        # Zone settings page (hidden from operators)
+        layout.tsx       # Zone layout
     layout.tsx           # Dashboard layout (with sidebar)
     page.tsx             # Dashboard home
   /actions               # Server actions
     auth.ts              # Auth actions (logout)
     clients.ts           # Client management actions
+    zones.ts             # Zone management actions
   layout.tsx             # Root layout with ThemeProvider
   page.tsx               # Home page
   login/                 # Login page
@@ -60,6 +68,7 @@ This includes:
 /components              # Reusable components
   /ui                    # Shadcn UI components
     sonner.tsx           # Toast notifications wrapper
+    textarea.tsx         # Textarea component
   /dashboard             # Dashboard-specific components
     /clients             # Client management components
       clients-table.tsx           # Clients list table
@@ -70,15 +79,20 @@ This includes:
       create-client-form.tsx      # Create client form
       create-user-dialog.tsx      # Create user dialog
       edit-user-dialog.tsx        # Edit user dialog
+    /zones               # Zone management components
+      create-zone-dialog.tsx      # Create zone popup
+      zones-sidebar-section.tsx   # Zone list in sidebar
+      zone-page-header.tsx        # Zone page header with dynamic tabs
+      zone-settings-form.tsx      # Zone settings form
     header.tsx           # Dashboard header
-    sidebar.tsx          # Dashboard sidebar
+    sidebar.tsx          # Dashboard sidebar (with zones)
     footer.tsx           # Dashboard footer
   /auth                  # Auth components
     login-form.tsx       # Login form
 
 /lib                     # Business logic and utilities
   /auth                  # Authentication
-    permissions.ts       # Role hierarchy and permissions
+    permissions.ts       # Role hierarchy and permissions (with zone permissions)
     utils.ts             # Auth helper functions
   /supabase              # Supabase clients
     client.ts            # Browser client
@@ -87,6 +101,7 @@ This includes:
   /data                  # Data layer - centralized data access
     index.ts             # Exports all data functions
     clients.ts           # Client & user CRUD operations
+    zones.ts             # Zone CRUD operations
   /cache                 # Redis helpers
     redis.ts             # Redis client configuration
   /providers             # React providers
@@ -98,7 +113,7 @@ This includes:
   logger.ts              # Centralized logging
 
 /types                   # Centralized TypeScript types
-  index.ts               # All interfaces (User, Profile, Client, etc.)
+  index.ts               # All interfaces (User, Profile, Client, Zone, etc.)
 
 /middleware.ts           # Route protection and security headers
 ```
@@ -398,6 +413,118 @@ This design system ensures:
 - `/dashboard/clients/new` - Create new client
 - `/dashboard/clients/[id]` - View/edit client details + manage users
 
+### Zone Management Module
+
+**Overview**:
+Zones are monitoring spaces within each client account. Each zone has its own data sources (X/Twitter, TikTok, Media) and can be configured independently. Zones are shared across all users of the same client, with different access rights based on user roles.
+
+**Features**:
+- ✅ **Create Zone**: Dialog with zone name input and auto-save
+- ✅ **List Zones**: Displayed in sidebar with collapsible sub-navigation
+- ✅ **Zone Pages**: Overview, Feed, Analysis, Settings for each zone
+- ✅ **Data Sources**: Toggle X/Twitter, TikTok, Media sources per zone
+- ✅ **Dynamic Tabs**: Conditional tabs based on enabled data sources
+- ✅ **Zone Settings**: Edit name, operational context, active status, data sources
+- ✅ **Professional Icons**: X and TikTok logos in UI elements
+- ✅ **Delete Zone**: Soft delete with confirmation in danger zone
+- ✅ **Role-Based Access**: Settings page hidden from operators
+- ✅ **Toast Notifications**: Real-time feedback on all actions
+- ✅ **Responsive**: Optimized for mobile and desktop
+- ✅ **Loading States**: Professional skeletons with elegant shimmer animation
+
+**Database Schema**:
+
+**`public.zones` table**:
+- `id` (UUID, PK)
+- `name` (text) - Zone name
+- `client_id` (UUID, FK to clients) - Client association
+- `operational_context` (text, nullable) - Zone description/context
+- `data_sources` (JSONB) - Enabled sources: `{ twitter, tiktok, media }`
+- `settings` (JSONB) - Future custom settings
+- `is_active` (boolean) - Active status
+- `created_at`, `created_by`, `updated_at`
+
+**Relationships**:
+- `zones.client_id` → `clients.id` (many-to-one)
+- Each zone belongs to exactly one client
+- Multiple zones per client allowed
+
+**RLS Policies**:
+- Super admins can view/manage all zones
+- Client users can view/manage zones from their own client only
+- Operators can view zones but not edit settings
+- Managers can view and edit zones
+- RLS is **enabled**
+
+**Access Control**:
+- **super_admin**: Full access to all zones, can manage all settings
+- **admin**: View-only access to all zones across all clients
+- **operator**: Can view zones and data, but NOT settings pages
+- **manager**: Can view and manage zones, including settings
+
+**Architecture**:
+
+**Data Layer** (`/lib/data/zones.ts`):
+- `getZonesByClient()` - Get all zones for a client
+- `getActiveZonesByClient()` - Get only active zones
+- `getZoneById()` - Get single zone with client info
+- `createZone()` - Create new zone
+- `updateZone()` - Update zone details
+- `deleteZone()` - Soft delete zone
+- `toggleZoneActive()` - Toggle zone active status
+- `updateZoneDataSources()` - Update enabled data sources
+
+**Server Actions** (`/app/actions/zones.ts`):
+- `getZonesAction()` - Fetch zones with permission checks
+- `getZoneAction()` - Fetch single zone with permission checks
+- `createZoneAction()` - Create zone with validation
+- `updateZoneAction()` - Update zone with permission checks
+- `deleteZoneAction()` - Delete zone with permission checks
+- `toggleZoneActiveAction()` - Toggle active status
+- `updateZoneDataSourcesAction()` - Update data sources
+- All actions include cache revalidation and toast feedback
+
+**Components** (`/components/dashboard/zones/`):
+- `create-zone-dialog.tsx` - Zone creation popup (bottom of sidebar)
+- `zones-sidebar-section.tsx` - Sidebar zone list with collapsible sub-pages
+- `zone-page-header.tsx` - Zone title, description, and dynamic data source tabs
+- `zone-settings-form.tsx` - Comprehensive settings form with auto-save
+
+**Pages**:
+- `/dashboard/zones/[zoneId]/overview` - Zone overview with metrics
+- `/dashboard/zones/[zoneId]/feed` - Zone content feed
+- `/dashboard/zones/[zoneId]/analysis` - Zone data analysis
+- `/dashboard/zones/[zoneId]/settings` - Zone settings (hidden from operators)
+
+**UI Design Patterns**:
+- **Elegant Cards**: Subtle dashed borders (`border-dashed border-border/60`)
+- **Muted Backgrounds**: Low opacity for subtle contrast (`bg-muted/30`)
+- **Professional Icons**: X and TikTok logos instead of emojis
+- **Smooth Transitions**: `duration-[150ms]` for responsive feel
+- **Group Hover Effects**: Cards with icon color transitions
+- **Danger Zone**: Distinct section with red accent for destructive actions
+
+**Dynamic Tabs**:
+- Tabs automatically rendered based on enabled data sources
+- Each data source (X, TikTok, Media) appears as a tab with its logo
+- Empty state displayed when no data sources are enabled
+- Tabs persist across Overview, Feed, and Analysis pages
+- URL parameter `source` controls active tab
+
+**Future Development**:
+- Each data source tab will load source-specific content
+- Overview page: Metrics and KPIs per data source
+- Feed page: Real-time posts and content from each source
+- Analysis page: Analytics and insights per data source
+- Settings: Source-specific configuration options
+
+**Performance Considerations**:
+- Zones cached for fast loading
+- Data sources conditionally loaded based on enabled status
+- Skeleton loading states for smooth UX
+- Cache revalidation on all mutations
+- Optimized for high-volume data monitoring
+
 ### Dashboard Components
 
 - **Header**: Logo, user menu, theme toggle, mobile menu button
@@ -577,12 +704,13 @@ Users are created manually by Super Admins via the Admin API:
 ## Completed Features
 
 1. ✅ **Authentication**: Supabase Auth with role-based access
-2. ✅ **Database Schema**: Profiles, clients tables with RLS policies
+2. ✅ **Database Schema**: Profiles, clients, zones tables with RLS policies
 3. ✅ **Client Management**: Complete CRUD for clients and users
-4. ✅ **Design System**: Professional government-grade CSS variables
-5. ✅ **UI Components**: Toast notifications, skeletons, responsive layouts
-6. ✅ **Data Layer**: Centralized data access with type safety
-7. ✅ **Documentation**: Complete design system and architecture docs
+4. ✅ **Zone Management**: Complete CRUD for zones with data sources and dynamic tabs
+5. ✅ **Design System**: Professional government-grade CSS variables with elegant card patterns
+6. ✅ **UI Components**: Toast notifications, elegant shimmer skeletons, responsive layouts
+7. ✅ **Data Layer**: Centralized data access with type safety
+8. ✅ **Documentation**: Complete design system, architecture, and module docs
 
 ## Next Steps
 
@@ -640,6 +768,8 @@ Users are created manually by Super Admins via the Admin API:
 - **`context.md`**: This file - complete project context and architecture
 - **`DESIGN_SYSTEM.md`**: Complete design system guide with patterns and examples
 - **`CLIENTS_IMPLEMENTATION.md`**: Client management module architecture
+- **`ZONES_IMPLEMENTATION.md`**: Zone management module architecture
+- **`UI_POLISH_ZONES.md`**: UI polish and design refinements for zones
 - **`OPTIMIZATIONS.md`**: Performance optimizations and improvements
 - **`README.md`**: Project overview and getting started
 - **`env.template`**: Environment variables template
