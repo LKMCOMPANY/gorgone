@@ -30,24 +30,24 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  // Refresh session if expired
+  // Get authenticated user
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
+    data: { user },
+  } = await supabase.auth.getUser();
 
   const isLoginPage = request.nextUrl.pathname === "/login";
   const isHomePage = request.nextUrl.pathname === "/";
   const isDashboard = request.nextUrl.pathname.startsWith("/dashboard");
 
-  // Redirect to login if accessing dashboard without session
-  if (isDashboard && !session) {
+  // Redirect to login if accessing dashboard without authentication
+  if (isDashboard && !user) {
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = "/login";
     return NextResponse.redirect(redirectUrl);
   }
 
-  // Redirect to dashboard if accessing login/home with session
-  if ((isLoginPage || isHomePage) && session) {
+  // Redirect to dashboard if accessing login/home while authenticated
+  if ((isLoginPage || isHomePage) && user) {
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = "/dashboard";
     return NextResponse.redirect(redirectUrl);
