@@ -10,9 +10,6 @@ const nextConfig: NextConfig = {
     dangerouslyAllowSVG: true,
   },
 
-  // Output configuration for production
-  output: "standalone",
-
   // Experimental features for better performance
   experimental: {
     optimizePackageImports: ["lucide-react", "@radix-ui/react-icons"],

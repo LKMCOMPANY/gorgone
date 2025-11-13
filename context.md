@@ -33,7 +33,7 @@ This includes:
 - **Database**: Supabase (PostgreSQL)
 - **Cache**: Upstash Redis
 - **Workers & Schedules**: QStash (Upstash)
-- **Deployment**: Render
+- **Deployment**: Vercel (Edge Network)
 
 ## Architecture
 
@@ -141,21 +141,24 @@ See `env.template` for the complete list of required variables:
 
 ## Deployment
 
-### Render
+### Vercel
 
-The project includes a `render.yaml` file that automatically configures deployment.
-
-**Commands:**
-
-- Build Command: `npm install && npm run build`
-- Start Command: `npm start`
-- Node Version: 18+
+The project is optimized for Vercel deployment with zero configuration.
 
 **Automatic Deployment:**
 
-1. Connect your GitHub repo to Render
-2. Render will automatically detect the `render.yaml` file
-3. Configure environment variables in the dashboard
+1. Connect your GitHub repo to Vercel: https://vercel.com/new
+2. Vercel auto-detects Next.js and configures everything
+3. Configure environment variables (see below)
+4. Every push to `main` triggers automatic deployment
+
+**Deployment Features:**
+
+- ⚡ **Edge Network**: Global CDN for ultra-low latency
+- 🔄 **Zero downtime**: Atomic deployments
+- 🎯 **Preview deployments**: Every branch gets a unique URL
+- 📊 **Analytics**: Built-in Web Vitals and performance monitoring
+- 🚀 **Instant rollbacks**: One-click rollback to any previous deployment
 
 ### Service Configuration
 
@@ -163,7 +166,7 @@ The project includes a `render.yaml` file that automatically configures deployme
 
 - Create a project on https://supabase.com
 - Get the URL and API keys from Settings > API
-- Configure in Render:
+- Configure in Vercel:
   - `NEXT_PUBLIC_SUPABASE_URL`
   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
   - `SUPABASE_SERVICE_ROLE_KEY`
@@ -172,7 +175,7 @@ The project includes a `render.yaml` file that automatically configures deployme
 
 - Create a Redis database on https://upstash.com
 - Get the REST credentials
-- Configure in Render:
+- Configure in Vercel:
   - `UPSTASH_REDIS_REST_URL`
   - `UPSTASH_REDIS_REST_TOKEN`
 
@@ -180,15 +183,17 @@ The project includes a `render.yaml` file that automatically configures deployme
 
 - Enable QStash in your Upstash account
 - Get the token and signing keys
-- Configure in Render:
+- Configure in Vercel:
   - `QSTASH_TOKEN`
   - `QSTASH_CURRENT_SIGNING_KEY`
   - `QSTASH_NEXT_SIGNING_KEY`
+  - `QSTASH_URL` (usually `https://qstash.upstash.io`)
 
 **4. Application URL**
 
-- Once deployed, get the Render URL
+- Vercel provides: `https://gorgone.vercel.app`
 - Configure `NEXT_PUBLIC_APP_URL` with this URL
+- Custom domains can be added in Vercel dashboard
 
 ## Authentication & Authorization
 

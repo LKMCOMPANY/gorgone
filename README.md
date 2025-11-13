@@ -22,7 +22,7 @@ Enterprise-grade social media monitoring platform for large organizations and go
 - **Database**: Supabase (PostgreSQL)
 - **Cache**: Upstash Redis
 - **Workers**: QStash (Upstash)
-- **Deploy**: Render
+- **Deploy**: Vercel
 
 ## 🚀 Quick Start
 
@@ -84,15 +84,23 @@ See `env.template` for the complete list. Required variables:
 - `UPSTASH_REDIS_REST_TOKEN` - Upstash Redis token
 - `QSTASH_TOKEN` - QStash token
 
-## 🌐 Deployment (Render)
+## 🌐 Deployment (Vercel)
 
-1. **Build Command**: `npm install && npm run build`
-2. **Start Command**: `npm start`
-3. **Node Version**: 18+
+**Automatic deployment** via GitHub integration:
 
-The `render.yaml` file is included for automatic configuration.
+1. Connect your GitHub repo to Vercel
+2. Vercel auto-detects Next.js configuration
+3. Configure environment variables (see above)
+4. Deploy automatically on every push to `main`
 
-Configure all environment variables in the Render dashboard.
+**Manual deployment** via CLI:
+
+```bash
+npm install -g vercel
+vercel
+```
+
+**Production URL**: `https://gorgone.vercel.app`
 
 ## 📚 Documentation
 
