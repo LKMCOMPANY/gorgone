@@ -202,6 +202,52 @@
       transform: translateY(0);
     }
   }
+
+  /* Elegant Skeleton Shimmer */
+  .skeleton-shimmer {
+    position: relative;
+    overflow: hidden;
+    background: oklch(from var(--muted) l c h / 0.4);
+  }
+
+  .skeleton-shimmer::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      oklch(from var(--muted) l c h / 0.15) 50%,
+      transparent 100%
+    );
+    animation: shimmer 2s ease-in-out infinite;
+  }
+
+  @keyframes shimmer {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(100%);
+    }
+  }
+
+  .dark .skeleton-shimmer {
+    background: oklch(from var(--muted) l c h / 0.2);
+  }
+
+  .dark .skeleton-shimmer::after {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      oklch(from var(--muted) l c h / 0.08) 50%,
+      transparent 100%
+    );
+  }
 }
 
 @layer utilities {
