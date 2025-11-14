@@ -129,7 +129,7 @@ export function TwitterRulesList({
                 </Badge>
                 <div className="flex-1 min-w-0">
                   <p className="text-body-sm font-medium truncate">
-                    {rule.rule_name || "Monitoring Rule"}
+                    {rule.tag || "Monitoring Rule"}
                   </p>
                   <p className="text-caption text-muted-foreground">
                     Updated {formatDistanceToNow(new Date(rule.updated_at))}
@@ -179,7 +179,7 @@ export function TwitterRulesList({
               {/* Query Preview */}
               <div className="rounded-lg border border-dashed border-border/60 bg-muted/20 p-3">
                 <p className="text-caption font-mono text-muted-foreground break-all">
-                  {rule.query_string || rule.query_simple || "(empty query)"}
+                  {rule.query || "(empty query)"}
                 </p>
               </div>
 
@@ -187,7 +187,7 @@ export function TwitterRulesList({
               <div className="flex items-center gap-4 text-caption text-muted-foreground">
                 <span className="flex items-center gap-1.5">
                   <Clock className="h-3.5 w-3.5" />
-                  Check every {rule.interval}s
+                  Check every {rule.interval_seconds}s
                 </span>
                 {rule.last_checked_at && (
                   <span className="flex items-center gap-1.5">

@@ -19,11 +19,11 @@ import type { TwitterRule, TwitterQueryBuilderConfig } from "@/types";
  */
 interface CreateRuleRequest {
   zone_id: string;
-  rule_name: string;
+  tag: string; // Rule name/tag
   query_type: "simple" | "builder";
-  query_string?: string; // For simple mode
+  query?: string; // For simple mode (direct query)
   query_builder_config?: TwitterQueryBuilderConfig; // For builder mode
-  interval: number; // Seconds
+  interval_seconds: number; // Check interval in seconds
 }
 
 /**
@@ -39,18 +39,18 @@ export async function POST(request: NextRequest) {
     // =====================================================
 
     // Validate required fields
-    if (!body.zone_id || !body.rule_name || !body.query_type || !body.interval) {
+    if (!body.zone_id || !body.tag || !body.query_type || !body.interval_seconds) {
       return NextResponse.json(
         { 
           success: false, 
-          error: "Missing required fields: zone_id, rule_name, query_type, interval" 
+          error: "Missing required fields: zone_id, tag, query_type, interval_seconds" 
         },
         { status: 400 }
       );
     }
 
     // Validate interval (minimum 60 seconds as per twitterapi.io)
-    if (body.interval < 60) {
+    if (body.interval_seconds < 60) {
       return NextResponse.json(
         { 
           success: false, 
@@ -65,16 +65,16 @@ export async function POST(request: NextRequest) {
 
     if (body.query_type === "simple") {
       // Simple mode: direct query string
-      if (!body.query_string || body.query_string.trim() === "") {
+      if (!body.query || body.query.trim() === "") {
         return NextResponse.json(
           { 
             success: false, 
-            error: "Query string is required for simple mode" 
+            error: "Query is required for simple mode" 
           },
           { status: 400 }
         );
       }
-      finalQuery = body.query_string.trim();
+      finalQuery = body.query.trim();
 
     } else if (body.query_type === "builder") {
       // Builder mode: generate query from config
@@ -124,9 +124,9 @@ export async function POST(request: NextRequest) {
     }
 
     logger.info(`Creating Twitter rule for zone ${body.zone_id}`, {
-      rule_name: body.rule_name,
+      tag: body.tag,
       query: finalQuery,
-      interval: body.interval,
+      interval_seconds: body.interval_seconds,
     });
 
     // =====================================================
@@ -135,10 +135,10 @@ export async function POST(request: NextRequest) {
 
     const ruleData: Partial<TwitterRule> = {
       zone_id: body.zone_id,
-      tag: body.rule_name,
+      tag: body.tag,
       query: finalQuery,
       query_type: body.query_type,
-      interval_seconds: body.interval,
+      interval_seconds: body.interval_seconds,
       query_builder_config: body.query_type === "builder" ? body.query_builder_config : null,
       is_active: true,
     };
@@ -157,7 +157,7 @@ export async function POST(request: NextRequest) {
 
     const webhookResult = await twitterApi.addWebhookRule({
       query: finalQuery,
-      interval: body.interval,
+      interval: body.interval_seconds,
       webhook_url: webhookUrl,
     });
 
@@ -165,7 +165,7 @@ export async function POST(request: NextRequest) {
       // Rollback: Delete local rule since API call failed
       logger.error("Failed to create webhook rule in TwitterAPI.io", {
         query: finalQuery,
-        interval: body.interval,
+        interval_seconds: body.interval_seconds,
         webhook_url: webhookUrl,
         result: webhookResult,
       });

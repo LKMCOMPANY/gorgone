@@ -60,14 +60,14 @@ export function TwitterRuleDialog({
   // Initialize form with editing rule
   useEffect(() => {
     if (editingRule) {
-      setRuleName(editingRule.rule_name || "");
-      setQueryString(editingRule.query_string || editingRule.query_simple || "");
-      setInterval(editingRule.interval);
+      setRuleName(editingRule.tag || "");
+      setQueryString(editingRule.query || "");
+      setInterval(editingRule.interval_seconds);
       
       if (editingRule.query_builder_config) {
         setBuilderConfig(editingRule.query_builder_config);
         setMode("builder");
-      } else if (editingRule.query_simple) {
+      } else {
         setMode("simple");
       }
     } else {
@@ -111,11 +111,11 @@ export function TwitterRuleDialog({
     try {
       const payload = {
         zone_id: zoneId,
-        rule_name: ruleName,
+        tag: ruleName,
         query_type: mode,
-        query_string: mode === "simple" ? queryString : undefined,
+        query: mode === "simple" ? queryString : undefined,
         query_builder_config: mode === "builder" ? builderConfig : undefined,
-        interval,
+        interval_seconds: interval,
       };
 
       const response = await fetch(

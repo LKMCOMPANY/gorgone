@@ -60,13 +60,13 @@ export async function PATCH(
     let newQuery: string | undefined;
 
     // Update rule name (tag)
-    if (body.rule_name && body.rule_name !== existingRule.tag) {
-      updates.tag = body.rule_name;
+    if (body.tag && body.tag !== existingRule.tag) {
+      updates.tag = body.tag;
     }
 
     // Update interval
-    if (body.interval !== undefined && body.interval !== existingRule.interval_seconds) {
-      if (body.interval < 60) {
+    if (body.interval_seconds !== undefined && body.interval_seconds !== existingRule.interval_seconds) {
+      if (body.interval_seconds < 60) {
         return NextResponse.json(
           { 
             success: false, 
@@ -75,14 +75,14 @@ export async function PATCH(
           { status: 400 }
         );
       }
-      updates.interval_seconds = body.interval;
+      updates.interval_seconds = body.interval_seconds;
       intervalUpdated = true;
     }
 
     // Update query (if provided)
     if (body.query_type) {
-      if (body.query_type === "simple" && body.query_string) {
-        newQuery = body.query_string.trim();
+      if (body.query_type === "simple" && body.query) {
+        newQuery = body.query.trim();
         updates.query = newQuery;
         updates.query_type = "simple";
         updates.query_builder_config = null;
