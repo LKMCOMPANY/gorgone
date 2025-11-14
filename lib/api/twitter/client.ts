@@ -137,35 +137,39 @@ export interface WebhookRule {
 
 /**
  * Add webhook rule
+ * @see https://docs.twitterapi.io/api-reference/endpoint/add_webhook_rule
  */
 export async function addWebhookRule(rule: {
-  query: string;
-  interval?: number;
-  webhook_url: string;
+  tag: string;
+  value: string;
+  interval_seconds: number;
 }): Promise<{ rule_id: string } | null> {
   try {
-    const endpoint = "/v1/webhook/add_rule";
+    const endpoint = "/oapi/tweet_filter/add_rule";
 
-    const data = await twitterApiFetch<{ rule_id?: string; id?: string }>(
-      endpoint,
-      {
-        method: "POST",
-        body: JSON.stringify({
-          query: rule.query,
-          interval: rule.interval || 100,
-          webhook_url: rule.webhook_url,
-        }),
-      }
-    );
+    const data = await twitterApiFetch<{ 
+      rule_id?: string;
+      status?: string;
+      msg?: string;
+    }>(endpoint, {
+      method: "POST",
+      body: JSON.stringify({
+        tag: rule.tag,
+        value: rule.value,
+        interval_seconds: rule.interval_seconds,
+      }),
+    });
 
-    const ruleId = data.rule_id || data.id;
-    if (!ruleId) {
-      throw new Error("No rule_id returned from API");
+    if (!data.rule_id) {
+      throw new Error(data.msg || "No rule_id returned from API");
     }
 
-    logger.info(`Webhook rule created: ${ruleId}`);
+    logger.info(`Webhook rule created: ${data.rule_id}`, {
+      tag: rule.tag,
+      status: data.status,
+    });
 
-    return { rule_id: ruleId };
+    return { rule_id: data.rule_id };
   } catch (error) {
     logger.error("Error adding webhook rule:", error);
     return null;
@@ -174,10 +178,11 @@ export async function addWebhookRule(rule: {
 
 /**
  * Get webhook rules
+ * @see https://docs.twitterapi.io/api-reference/endpoint/get_webhook_rules
  */
 export async function getWebhookRules(): Promise<WebhookRule[]> {
   try {
-    const endpoint = "/v1/webhook/get_rules";
+    const endpoint = "/oapi/tweet_filter/get_rules";
 
     const data = await twitterApiFetch<{ rules?: WebhookRule[] }>(endpoint, {
       method: "GET",
@@ -192,25 +197,38 @@ export async function getWebhookRules(): Promise<WebhookRule[]> {
 
 /**
  * Update webhook rule
+ * @see https://docs.twitterapi.io/api-reference/endpoint/update_webhook_rule
+ * Note: All fields are REQUIRED, not partial updates
  */
 export async function updateWebhookRule(
   ruleId: string,
-  updates: {
-    query?: string;
-    interval?: number;
-    webhook_url?: string;
+  rule: {
+    tag: string;
+    value: string;
+    interval_seconds: number;
+    is_effect?: 0 | 1; // 1 = active, 0 = inactive
   }
 ): Promise<boolean> {
   try {
-    const endpoint = "/v1/webhook/update_rule";
+    const endpoint = "/oapi/tweet_filter/update_rule";
 
-    await twitterApiFetch(endpoint, {
-      method: "PUT",
+    const data = await twitterApiFetch<{
+      status?: string;
+      msg?: string;
+    }>(endpoint, {
+      method: "POST", // POST, not PUT!
       body: JSON.stringify({
         rule_id: ruleId,
-        ...updates,
+        tag: rule.tag,
+        value: rule.value,
+        interval_seconds: rule.interval_seconds,
+        is_effect: rule.is_effect ?? 1, // Default to active
       }),
     });
+
+    if (data.status !== "success") {
+      throw new Error(data.msg || "Update failed");
+    }
 
     logger.info(`Webhook rule updated: ${ruleId}`);
     return true;
@@ -222,17 +240,25 @@ export async function updateWebhookRule(
 
 /**
  * Delete webhook rule
+ * @see https://docs.twitterapi.io/api-reference/endpoint/delete_webhook_rule
  */
 export async function deleteWebhookRule(ruleId: string): Promise<boolean> {
   try {
-    const endpoint = "/v1/webhook/delete_rule";
+    const endpoint = "/oapi/tweet_filter/delete_rule";
 
-    await twitterApiFetch(endpoint, {
+    const data = await twitterApiFetch<{
+      status?: string;
+      msg?: string;
+    }>(endpoint, {
       method: "DELETE",
       body: JSON.stringify({
         rule_id: ruleId,
       }),
     });
+
+    if (data.status !== "success") {
+      throw new Error(data.msg || "Delete failed");
+    }
 
     logger.info(`Webhook rule deleted: ${ruleId}`);
     return true;

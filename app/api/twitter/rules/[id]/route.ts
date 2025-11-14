@@ -124,20 +124,16 @@ export async function PATCH(
     // STEP 3: UPDATE RULE IN TWITTERAPI.IO (IF NEEDED)
     // =====================================================
 
-    if ((queryUpdated || intervalUpdated) && existingRule.external_rule_id) {
-      const webhookUpdates: any = {};
-      
-      if (queryUpdated && newQuery) {
-        webhookUpdates.query = newQuery;
-      }
-      
-      if (intervalUpdated) {
-        webhookUpdates.interval = updates.interval_seconds;
-      }
-
+    if ((queryUpdated || intervalUpdated || updates.tag) && existingRule.external_rule_id) {
+      // TwitterAPI.io requires ALL fields for update, not partial
       const success = await twitterApi.updateWebhookRule(
         existingRule.external_rule_id,
-        webhookUpdates
+        {
+          tag: updates.tag || existingRule.tag,
+          value: newQuery || existingRule.query,
+          interval_seconds: updates.interval_seconds || existingRule.interval_seconds,
+          is_effect: 1, // Keep active
+        }
       );
 
       if (!success) {
@@ -295,7 +291,34 @@ export async function POST(
     }
 
     // =====================================================
-    // STEP 2: UPDATE STATUS
+    // STEP 2: UPDATE STATUS IN TWITTERAPI.IO
+    // =====================================================
+
+    if (existingRule.external_rule_id) {
+      const success = await twitterApi.updateWebhookRule(
+        existingRule.external_rule_id,
+        {
+          tag: existingRule.tag,
+          value: existingRule.query,
+          interval_seconds: existingRule.interval_seconds,
+          is_effect: body.is_active ? 1 : 0,
+        }
+      );
+
+      if (!success) {
+        logger.error(`Failed to toggle webhook rule ${existingRule.external_rule_id}`);
+        return NextResponse.json(
+          { 
+            success: false, 
+            error: "Failed to toggle rule in TwitterAPI.io" 
+          },
+          { status: 500 }
+        );
+      }
+    }
+
+    // =====================================================
+    // STEP 3: UPDATE LOCAL DATABASE
     // =====================================================
 
     await rulesData.toggleRule(ruleId, body.is_active);
@@ -303,7 +326,7 @@ export async function POST(
     logger.info(`Twitter rule ${body.is_active ? "activated" : "deactivated"}: ${ruleId}`);
 
     // =====================================================
-    // STEP 3: RETURN UPDATED RULE
+    // STEP 4: RETURN UPDATED RULE
     // =====================================================
 
     const updatedRule = await rulesData.getRuleById(ruleId);

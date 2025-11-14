@@ -153,20 +153,18 @@ export async function POST(request: NextRequest) {
     // STEP 3: CREATE WEBHOOK RULE IN TWITTERAPI.IO
     // =====================================================
 
-    const webhookUrl = `${env.appUrl}/api/webhooks/twitter`;
-
     const webhookResult = await twitterApi.addWebhookRule({
-      query: finalQuery,
-      interval: body.interval_seconds,
-      webhook_url: webhookUrl,
+      tag: body.tag,
+      value: finalQuery,
+      interval_seconds: body.interval_seconds,
     });
 
     if (!webhookResult || !webhookResult.rule_id) {
       // Rollback: Delete local rule since API call failed
       logger.error("Failed to create webhook rule in TwitterAPI.io", {
-        query: finalQuery,
+        tag: body.tag,
+        value: finalQuery,
         interval_seconds: body.interval_seconds,
-        webhook_url: webhookUrl,
         result: webhookResult,
       });
       await rulesData.deleteRule(ruleId);
