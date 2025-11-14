@@ -18,16 +18,22 @@ export async function POST(request: NextRequest) {
     // Parse webhook payload first
     const payload = await request.json();
 
+    logger.info("Twitter webhook received", {
+      timestamp: new Date().toISOString(),
+      event_type: payload.event_type || "unknown",
+    });
+
     // =====================================================
-    // HANDLE CONNECTION TEST (for twitterapi.io setup)
+    // HANDLE TEST WEBHOOK (twitterapi.io validation)
     // =====================================================
     
     // If empty payload or test request, return 200 OK
-    if (!payload || Object.keys(payload).length === 0) {
-      logger.info("Twitter webhook connection test received");
+    if (!payload || Object.keys(payload).length === 0 || payload.event_type === "test_webhook_url") {
+      logger.info("Twitter webhook test received - returning 200 OK");
       return NextResponse.json({
         status: "ok",
         message: "Webhook endpoint is ready",
+        service: "twitter-webhook",
       });
     }
 
@@ -52,10 +58,6 @@ export async function POST(request: NextRequest) {
         { status: 401 }
       );
     }
-
-    logger.info("Twitter webhook received", {
-      timestamp: new Date().toISOString(),
-    });
 
     // Extract tweets from payload
     // TwitterAPI.io may send tweets in different formats
