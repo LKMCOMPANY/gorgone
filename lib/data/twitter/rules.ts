@@ -166,9 +166,9 @@ export async function updateRuleApiId(
 }
 
 /**
- * Update rule last checked timestamp
+ * Update rule last triggered timestamp
  */
-export async function updateRuleLastChecked(
+export async function updateRuleLastTriggered(
   ruleId: string
 ): Promise<void> {
   try {
@@ -177,15 +177,15 @@ export async function updateRuleLastChecked(
     const { error } = await supabase
       .from("twitter_rules")
       .update({
-        last_checked_at: new Date().toISOString(),
+        last_triggered_at: new Date().toISOString(),
       })
       .eq("id", ruleId);
 
     if (error) throw error;
 
-    logger.debug(`Rule last checked updated: ${ruleId}`);
+    logger.debug(`Rule last triggered updated: ${ruleId}`);
   } catch (error) {
-    logger.error(`Error updating rule last checked for ${ruleId}:`, error);
+    logger.error(`Error updating rule last triggered for ${ruleId}:`, error);
   }
 }
 

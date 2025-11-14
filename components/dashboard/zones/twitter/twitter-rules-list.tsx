@@ -189,10 +189,10 @@ export function TwitterRulesList({
                   <Clock className="h-3.5 w-3.5" />
                   Check every {rule.interval_seconds}s
                 </span>
-                {rule.last_checked_at && (
+                {rule.last_triggered_at && (
                   <span className="flex items-center gap-1.5">
                     <Activity className="h-3.5 w-3.5" />
-                    Last checked {formatDistanceToNow(new Date(rule.last_checked_at))}
+                    Last checked {formatDistanceToNow(new Date(rule.last_triggered_at))}
                   </span>
                 )}
               </div>

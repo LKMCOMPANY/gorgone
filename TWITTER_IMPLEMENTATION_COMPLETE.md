@@ -24,11 +24,14 @@ This document confirms the completion of the core Twitter integration infrastruc
 - Full-text search indexes
 - Time-range query optimization
 
-### Materialized Views (5 + periods)
+### Materialized Views (5)
 - ✅ `twitter_zone_stats_hourly` - Hourly aggregated stats
-- ✅ `twitter_top_profiles_[period]` - Top profiles by engagement (3h/6h/12h/24h/7d/30d)
-- ✅ `twitter_top_tweets_[period]` - Top tweets by engagement (3h/6h/12h/24h/7d/30d)
-- ✅ `twitter_share_of_voice_[period]` - Profile tag volume analysis (3h/6h/12h/24h/7d/30d)
+- ✅ `twitter_zone_stats_daily` - Daily aggregated stats
+- ✅ `twitter_top_profiles_by_zone` - Top profiles by engagement
+- ✅ `twitter_trending_hashtags` - Trending hashtag analysis
+- ✅ `twitter_share_of_voice` - Profile tag volume analysis
+
+**Note**: Time period filters (3h, 6h, 12h, 24h, 7d, 30d) are calculated DYNAMICALLY by summing hourly/daily rows, not with separate materialized views. This provides flexibility and reduces refresh overhead.
 
 ### Regular Views (2)
 - ✅ `twitter_threads_with_context` - Recursive thread reconstruction

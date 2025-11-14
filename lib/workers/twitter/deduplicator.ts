@@ -176,24 +176,23 @@ async function processAuthorProfile(
 
   // Create new profile
   const profileData: Partial<TwitterProfile> = {
-    zone_id: zoneId,
     twitter_user_id: author.id.toString(),
     username: author.username,
-    display_name: author.name,
+    name: author.name,
     description: author.description || null,
     location: author.location || null,
-    profile_image_url: author.profile_image_url || null,
-    banner_image_url: author.profile_banner_url || null,
+    profile_picture_url: author.profile_image_url || null,
+    cover_picture_url: author.profile_banner_url || null,
     is_verified: author.verified || false,
     is_blue_verified: author.is_blue_verified || false,
     followers_count: author.followers_count || 0,
     following_count: author.following_count || 0,
-    tweet_count: author.statuses_count || 0,
-    listed_count: author.listed_count || 0,
+    tweets_count: author.statuses_count || 0,
     twitter_created_at: author.created_at || null,
     first_seen_at: new Date().toISOString(),
     last_seen_at: new Date().toISOString(),
     profile_url: `https://twitter.com/${author.username}`,
+    twitter_url: `https://x.com/${author.username}`,
     raw_data: author as any,
   };
 
