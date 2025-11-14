@@ -15,9 +15,9 @@ import { generateQuery, validateConfig } from "@/lib/data/twitter/query-builder"
 import type { TwitterQueryBuilderConfig } from "@/types";
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 /**
@@ -29,7 +29,7 @@ export async function PATCH(
   { params }: RouteParams
 ) {
   try {
-    const ruleId = params.id;
+    const { id: ruleId } = await params;
     const body = await request.json();
 
     logger.info(`Updating Twitter rule ${ruleId}`);
@@ -194,7 +194,7 @@ export async function DELETE(
   { params }: RouteParams
 ) {
   try {
-    const ruleId = params.id;
+    const { id: ruleId } = await params;
 
     logger.info(`Deleting Twitter rule ${ruleId}`);
 
@@ -262,7 +262,7 @@ export async function POST(
   { params }: RouteParams
 ) {
   try {
-    const ruleId = params.id;
+    const { id: ruleId } = await params;
     const body = await request.json();
 
     logger.info(`Toggling Twitter rule ${ruleId}`);
