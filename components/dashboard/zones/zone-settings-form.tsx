@@ -18,7 +18,7 @@ import {
 import { toast } from "sonner";
 import type { Zone, UserRole, ZoneDataSources } from "@/types";
 import { canManageZones } from "@/lib/auth/permissions";
-import { TwitterDataSourceTab } from "./twitter/twitter-data-source-tab";
+import { TwitterSettingsTab } from "./twitter/twitter-settings-tab";
 
 interface ZoneSettingsFormProps {
   zone: Zone;
@@ -398,7 +398,7 @@ export function ZoneSettingsForm({ zone, userRole }: ZoneSettingsFormProps) {
       {/* X/Twitter Tab */}
       {dataSources.twitter && (
         <TabsContent value="twitter" className="animate-in fade-in-0 duration-300">
-          <TwitterDataSourceTab zoneId={zone.id} />
+          <TwitterSettingsTab zoneId={zone.id} />
         </TabsContent>
       )}
 

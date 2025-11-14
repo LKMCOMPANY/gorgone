@@ -68,6 +68,35 @@ export async function getProfileById(
 }
 
 /**
+ * Get profile by username
+ */
+export async function getProfileByUsername(
+  username: string
+): Promise<TwitterProfile | null> {
+  try {
+    const supabase = createAdminClient();
+
+    const cleanUsername = username.replace("@", "").trim().toLowerCase();
+
+    const { data, error } = await supabase
+      .from("twitter_profiles")
+      .select("*")
+      .eq("username", cleanUsername)
+      .single();
+
+    if (error) {
+      if (error.code === "PGRST116") return null;
+      throw error;
+    }
+
+    return data as TwitterProfile;
+  } catch (error) {
+    logger.error(`Error fetching profile by username ${username}:`, error);
+    return null;
+  }
+}
+
+/**
  * Create or update profile (upsert)
  * Returns the profile ID
  */
