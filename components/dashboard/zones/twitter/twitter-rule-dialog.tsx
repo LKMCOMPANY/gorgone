@@ -165,7 +165,7 @@ export function TwitterRuleDialog({
             </Label>
             <Input
               id="rule-name"
-              placeholder="e.g., Patrick Muyaya Monitoring"
+              placeholder="e.g., Elon Musk Monitoring"
               value={ruleName}
               onChange={(e) => setRuleName(e.target.value)}
               className="h-10 transition-all duration-[150ms] focus-visible:shadow-[var(--shadow-sm)]"
