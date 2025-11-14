@@ -4,7 +4,7 @@
  */
 
 import { logger } from "@/lib/logger";
-import { createProfile, getProfileByTwitterId } from "@/lib/data/twitter/profiles";
+import { upsertProfile, getProfileByTwitterId } from "@/lib/data/twitter/profiles";
 import {
   getTweetByTwitterId,
   createTweet,
@@ -197,12 +197,12 @@ async function processAuthorProfile(
     raw_data: author as any,
   };
 
-  const profileId = await createProfile(profileData);
+  const profileId = await upsertProfile(profileData);
   if (!profileId) {
-    throw new Error(`Failed to create profile for user ${author.id}`);
+    throw new Error(`Failed to upsert profile for user ${author.id}`);
   }
 
-  logger.debug(`Profile created: ${profileId} (${author.id})`);
+  logger.debug(`Profile upserted: ${profileId} (${author.id})`);
   return profileId;
 }
 
