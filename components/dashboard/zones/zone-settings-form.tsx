@@ -18,6 +18,7 @@ import {
 import { toast } from "sonner";
 import type { Zone, UserRole, ZoneDataSources } from "@/types";
 import { canManageZones } from "@/lib/auth/permissions";
+import { TwitterDataSourceTab } from "./twitter/twitter-data-source-tab";
 
 interface ZoneSettingsFormProps {
   zone: Zone;
@@ -397,37 +398,7 @@ export function ZoneSettingsForm({ zone, userRole }: ZoneSettingsFormProps) {
       {/* X/Twitter Tab */}
       {dataSources.twitter && (
         <TabsContent value="twitter" className="animate-in fade-in-0 duration-300">
-          <Card className="card-padding border-border">
-            <div className="space-y-6">
-              <div className="space-y-2">
-                <h3 className="text-heading-3 flex items-center gap-2">
-                  <svg className="h-5 w-5 text-primary" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-                  </svg>
-                  X (Twitter) Configuration
-                </h3>
-                <p className="text-body text-muted-foreground">
-                  Configure monitoring settings for X/Twitter posts, mentions, and trends
-                </p>
-              </div>
-              <div className="rounded-lg border border-dashed border-border bg-muted/30 p-12 text-center">
-                <div className="mx-auto max-w-sm space-y-3">
-                  <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-                    <svg className="w-8 h-8 text-primary" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
-                      <path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
-                      <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                    </svg>
-                  </div>
-                  <div className="space-y-2">
-                    <p className="text-body font-medium">Configuration options coming soon</p>
-                    <p className="text-body-sm text-muted-foreground">
-                      You'll be able to configure keywords, hashtags, accounts to monitor, and filters
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </Card>
+          <TwitterDataSourceTab zoneId={zone.id} />
         </TabsContent>
       )}
 

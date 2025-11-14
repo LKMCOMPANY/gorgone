@@ -109,3 +109,472 @@ export type ApiResponse<T> = {
   error?: string;
   status: "success" | "error";
 };
+
+// =====================================================
+// TWITTER INTEGRATION TYPES
+// =====================================================
+
+// Twitter Profile Tag Types (for Share of Voice)
+export type TwitterProfileTagType =
+  | "attila"
+  | "local_team"
+  | "target"
+  | "surveillance"
+  | "ally"
+  | "asset"
+  | "adversary";
+
+// Twitter Engagement Tracking Tiers
+export type TwitterEngagementTier = "ultra_hot" | "hot" | "warm" | "cold";
+
+// Twitter Rule Query Types
+export type TwitterQueryType = "simple" | "builder";
+
+// Twitter Entity Types
+export type TwitterEntityType = "hashtag" | "mention" | "url";
+
+// =====================================================
+// Query Builder Configuration
+// =====================================================
+
+export interface TwitterQueryBuilderConfig {
+  keywords: string[];
+  hashtags: string[];
+  mentions: string[];
+  from_users: string[];
+  to_users: string[];
+  exclude_keywords: string[];
+  exclude_users: string[];
+  verified_only: boolean;
+  has_media: boolean;
+  has_links: boolean;
+  min_retweets: number | null;
+  min_likes: number | null;
+  min_replies: number | null;
+  interval?: number;
+  date_range?: {
+    start: string; // ISO 8601
+    end: string; // ISO 8601
+  };
+  lang?: string;
+}
+
+// =====================================================
+// Database Tables Types
+// =====================================================
+
+// Twitter Profile (normalized)
+export interface TwitterProfile {
+  id: string;
+  twitter_user_id: string;
+  username: string;
+  name: string;
+  profile_picture_url: string | null;
+  cover_picture_url: string | null;
+  description: string | null;
+  location: string | null;
+  is_verified: boolean;
+  is_blue_verified: boolean;
+  verified_type: string | null;
+  followers_count: number;
+  following_count: number;
+  tweets_count: number;
+  media_count: number;
+  favourites_count: number;
+  twitter_created_at: string | null;
+  is_automated: boolean;
+  automated_by: string | null;
+  can_dm: boolean;
+  possibly_sensitive: boolean;
+  profile_url: string | null;
+  twitter_url: string | null;
+  raw_data: Record<string, unknown> | null;
+  first_seen_at: string;
+  last_seen_at: string;
+  last_updated_at: string;
+  total_tweets_collected: number;
+  created_at: string;
+  updated_at: string;
+}
+
+// Twitter Tweet
+export interface TwitterTweet {
+  id: string;
+  zone_id: string;
+  tweet_id: string;
+  author_profile_id: string;
+  conversation_id: string | null;
+  text: string;
+  lang: string | null;
+  source: string | null;
+  twitter_created_at: string;
+  collected_at: string;
+  retweet_count: number;
+  reply_count: number;
+  like_count: number;
+  quote_count: number;
+  view_count: number;
+  bookmark_count: number;
+  total_engagement: number;
+  has_media: boolean;
+  has_links: boolean;
+  has_hashtags: boolean;
+  has_mentions: boolean;
+  is_reply: boolean;
+  in_reply_to_tweet_id: string | null;
+  in_reply_to_user_id: string | null;
+  in_reply_to_username: string | null;
+  tweet_url: string | null;
+  twitter_url: string | null;
+  raw_data: Record<string, unknown>;
+  is_processed: boolean;
+  sentiment_score: number | null;
+  embedding: number[] | null;
+  embedding_model: string | null;
+  embedding_created_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+// Tweet with Profile
+export interface TwitterTweetWithProfile extends TwitterTweet {
+  author: TwitterProfile;
+}
+
+// Twitter Engagement History
+export interface TwitterEngagementHistory {
+  id: string;
+  tweet_id: string;
+  retweet_count: number;
+  reply_count: number;
+  like_count: number;
+  quote_count: number;
+  view_count: number;
+  bookmark_count: number;
+  total_engagement: number;
+  delta_retweets: number;
+  delta_replies: number;
+  delta_likes: number;
+  delta_quotes: number;
+  delta_views: number;
+  engagement_velocity: number | null;
+  snapshot_at: string;
+  created_at: string;
+}
+
+// Twitter Profile Snapshot
+export interface TwitterProfileSnapshot {
+  id: string;
+  profile_id: string;
+  followers_count: number;
+  following_count: number;
+  tweets_count: number;
+  favourites_count: number;
+  delta_followers: number;
+  delta_following: number;
+  delta_tweets: number;
+  followers_growth_rate: number | null;
+  snapshot_at: string;
+  created_at: string;
+}
+
+// Twitter Entity
+export interface TwitterEntity {
+  id: string;
+  tweet_id: string;
+  entity_type: TwitterEntityType;
+  entity_value: string;
+  entity_text: string;
+  created_at: string;
+}
+
+// Twitter Rule
+export interface TwitterRule {
+  id: string;
+  zone_id: string;
+  tag: string;
+  query: string;
+  query_type: TwitterQueryType;
+  interval_seconds: number;
+  query_builder_config: TwitterQueryBuilderConfig | null;
+  external_rule_id: string | null;
+  is_active: boolean;
+  last_triggered_at: string | null;
+  created_at: string;
+  created_by: string | null;
+  updated_at: string;
+}
+
+// Twitter Profile Zone Tag
+export interface TwitterProfileZoneTag {
+  id: string;
+  profile_id: string;
+  zone_id: string;
+  tag_type: TwitterProfileTagType;
+  notes: string | null;
+  confidence_score: number | null;
+  created_at: string;
+  created_by: string | null;
+  updated_at: string;
+}
+
+// Twitter Engagement Tracking
+export interface TwitterEngagementTracking {
+  id: string;
+  tweet_db_id: string;
+  tier: TwitterEngagementTier;
+  last_updated_at: string;
+  next_update_at: string | null;
+  update_count: number;
+  created_at: string;
+}
+
+// =====================================================
+// Materialized Views Types
+// =====================================================
+
+// Zone Stats (Hourly)
+export interface TwitterZoneStatsHourly {
+  zone_id: string;
+  hour: string;
+  total_tweets: number;
+  unique_authors: number;
+  total_retweets: number;
+  total_replies: number;
+  total_likes: number;
+  total_quotes: number;
+  total_views: number;
+  total_engagement: number;
+  avg_engagement: number;
+  avg_retweets: number;
+  avg_likes: number;
+  tweets_with_media: number;
+  tweets_with_links: number;
+  reply_tweets: number;
+  avg_sentiment: number | null;
+}
+
+// Zone Stats (Daily)
+export interface TwitterZoneStatsDaily extends TwitterZoneStatsHourly {
+  day: string;
+}
+
+// Top Profile by Zone
+export interface TwitterTopProfile {
+  zone_id: string;
+  profile_id: string;
+  twitter_user_id: string;
+  username: string;
+  name: string;
+  profile_picture_url: string | null;
+  is_verified: boolean;
+  is_blue_verified: boolean;
+  followers_count: number;
+  tweet_count: number;
+  total_engagement: number;
+  avg_engagement: number;
+  last_tweet_at: string;
+}
+
+// Top Tweet by Zone
+export interface TwitterTopTweet {
+  zone_id: string;
+  tweet_id: string;
+  twitter_tweet_id: string;
+  text: string;
+  author_profile_id: string;
+  author_username: string;
+  author_name: string;
+  twitter_created_at: string;
+  current_engagement: number;
+  retweet_count: number;
+  reply_count: number;
+  like_count: number;
+  quote_count: number;
+  view_count: number;
+  period_start: string;
+  period_end: string;
+}
+
+// Trending Hashtag
+export interface TwitterTrendingHashtag {
+  zone_id: string;
+  hashtag: string;
+  original_hashtag: string;
+  tweet_count_24h: number;
+  unique_authors_24h: number;
+  total_engagement_24h: number;
+  last_used_at: string;
+}
+
+// Share of Voice
+export interface TwitterShareOfVoice {
+  zone_id: string;
+  tag_type: TwitterProfileTagType;
+  tag_tweets: number;
+  tag_engagement: number;
+  tag_unique_authors: number;
+  total_zone_tweets: number;
+  total_zone_engagement: number;
+  volume_percentage: number;
+  engagement_percentage: number;
+}
+
+// =====================================================
+// Regular Views Types
+// =====================================================
+
+// Thread with Context
+export interface TwitterThreadContext {
+  id: string;
+  tweet_id: string;
+  conversation_id: string | null;
+  text: string;
+  author_profile_id: string;
+  in_reply_to_tweet_id: string | null;
+  twitter_created_at: string;
+  total_engagement: number;
+  depth: number;
+  path: string[];
+  root_tweet_id: string;
+}
+
+// Thread View (alias for ThreadContext)
+export type TwitterThreadView = TwitterThreadContext;
+
+// Orphaned Reply
+export interface TwitterOrphanedReply extends TwitterTweet {
+  missing_parent_id: string;
+}
+
+// =====================================================
+// API Response Types (TwitterAPI.io)
+// =====================================================
+
+// Search Response
+export interface TwitterAPISearchResponse {
+  tweets: TwitterAPITweet[];
+  has_next_page: boolean;
+  next_cursor: string | null;
+}
+
+// Webhook Payload
+export interface TwitterAPIWebhookPayload {
+  event_type: "tweet";
+  rule_id: string;
+  rule_tag: string;
+  tweets: TwitterAPITweet[];
+  timestamp: number;
+}
+
+// Tweet from API (camelCase from twitterapi.io)
+export interface TwitterAPITweet {
+  type: "tweet";
+  id: string;
+  url: string;
+  twitterUrl: string;
+  text: string;
+  source: string;
+  retweet_count: number;
+  reply_count: number;
+  like_count: number;
+  quote_count: number;
+  view_count?: number;
+  created_at: string;
+  lang: string;
+  bookmark_count?: number;
+  is_reply?: boolean;
+  in_reply_to_status_id?: string;
+  conversation_id: string;
+  display_text_range?: [number, number];
+  in_reply_to_user_id?: string;
+  in_reply_to_screen_name?: string;
+  author?: TwitterAPIUser;
+  extended_entities?: Record<string, unknown>;
+  card?: Record<string, unknown> | null;
+  place?: Record<string, unknown>;
+  entities?: TwitterAPIEntities;
+}
+
+// User from API
+export interface TwitterAPIUser {
+  type?: "user";
+  id: number | string;
+  username: string;
+  name: string;
+  description?: string;
+  location?: string;
+  url?: string;
+  profile_image_url?: string;
+  profile_banner_url?: string;
+  verified?: boolean;
+  is_blue_verified?: boolean;
+  followers_count?: number;
+  following_count?: number;
+  statuses_count?: number;
+  listed_count?: number;
+  created_at?: string;
+}
+
+// Entities from API
+export interface TwitterAPIEntities {
+  mentions?: Array<{
+    id: string;
+    username: string;
+    name: string;
+    indices?: [number, number];
+  }>;
+  hashtags?: Array<{
+    tag: string;
+    text: string;
+    indices?: [number, number];
+  }>;
+  urls?: Array<{
+    url: string;
+    expanded_url?: string;
+    display_url?: string;
+    indices?: [number, number];
+  }>;
+  media?: Array<{
+    type: string;
+    url: string;
+    media_url: string;
+    indices?: [number, number];
+  }>;
+}
+
+// =====================================================
+// Utility Types
+// =====================================================
+
+// Profile Ratios
+export interface TwitterProfileRatios {
+  total_posts: number;
+  original_posts: number;
+  replies: number;
+  retweets: number;
+  reply_ratio: number;
+  retweet_ratio: number;
+  original_ratio: number;
+}
+
+// Volume Chart Data Point
+export interface TwitterVolumeChartData {
+  hour: string;
+  total_tweets: number;
+  total_engagement: number;
+  unique_authors: number;
+}
+
+// Time Period Options
+export type TwitterTimePeriod = "3h" | "6h" | "12h" | "24h" | "7d" | "30d";
+
+// Convert period to hours
+export const TWITTER_PERIOD_HOURS: Record<TwitterTimePeriod, number> = {
+  "3h": 3,
+  "6h": 6,
+  "12h": 12,
+  "24h": 24,
+  "7d": 168,
+  "30d": 720,
+};

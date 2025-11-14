@@ -27,6 +27,11 @@ export const env = {
     currentSigningKey: process.env.QSTASH_CURRENT_SIGNING_KEY || "",
     nextSigningKey: process.env.QSTASH_NEXT_SIGNING_KEY || "",
   },
+
+  // Twitter API (twitterapi.io)
+  twitter: {
+    apiKey: process.env.TWITTER_API_KEY || "",
+  },
 } as const;
 
 /**
@@ -48,6 +53,10 @@ export function validateEnv() {
     NEXT_PUBLIC_SUPABASE_ANON_KEY: env.supabase.anonKey,
   };
 
+  const optional = {
+    TWITTER_API_KEY: env.twitter.apiKey,
+  };
+
   const missing = Object.entries(required)
     .filter(([, value]) => !value)
     .map(([key]) => key);
@@ -55,6 +64,17 @@ export function validateEnv() {
   if (missing.length > 0 && isProduction) {
     throw new Error(
       `Missing required environment variables: ${missing.join(", ")}`
+    );
+  }
+
+  // Warn about missing optional variables
+  const missingOptional = Object.entries(optional)
+    .filter(([, value]) => !value)
+    .map(([key]) => key);
+
+  if (missingOptional.length > 0 && isDevelopment) {
+    console.warn(
+      `⚠️  Missing optional environment variables: ${missingOptional.join(", ")}`
     );
   }
 
