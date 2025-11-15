@@ -232,6 +232,7 @@ export interface TwitterTweet {
   embedding: number[] | null;
   embedding_model: string | null;
   embedding_created_at: string | null;
+  predictions: TweetPredictions | null; // Engagement predictions
   created_at: string;
   updated_at: string;
 }
@@ -330,6 +331,44 @@ export interface TwitterEngagementTracking {
   next_update_at: string | null;
   update_count: number;
   created_at: string;
+}
+
+// =====================================================
+// Predictions Types
+// =====================================================
+
+// Single metric prediction (for likes, retweets, etc.)
+export interface MetricPrediction {
+  current: number;
+  velocity: number; // Change per hour
+  p1h: number; // Predicted value in 1 hour
+  p2h: number; // Predicted value in 2 hours
+  p3h: number; // Predicted value in 3 hours
+}
+
+// Complete tweet predictions (stored in twitter_tweets.predictions JSONB)
+export interface TweetPredictions {
+  calculated_at: string; // ISO timestamp
+  snapshots_used: number; // Number of snapshots used for calculation
+  confidence: number; // 0-1 (based on snapshots / 6)
+  
+  engagement: {
+    likes: MetricPrediction;
+    retweets: MetricPrediction;
+    replies: MetricPrediction;
+    quotes: MetricPrediction;
+  };
+  
+  reach: {
+    views: MetricPrediction;
+  };
+  
+  model_version?: string; // For future model evolution
+}
+
+// Tweet with predictions included
+export interface TwitterTweetWithPredictions extends TwitterTweet {
+  predictions: TweetPredictions | null;
 }
 
 // =====================================================

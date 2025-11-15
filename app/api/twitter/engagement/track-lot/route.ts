@@ -14,6 +14,7 @@ import * as twitterApi from "@/lib/api/twitter/client";
 import { updateTweetEngagement } from "@/lib/data/twitter/tweets";
 import { createEngagementSnapshot } from "@/lib/data/twitter/engagement";
 import { getZoneEngagementThreshold } from "@/lib/data/twitter/zone-stats";
+import { calculateAndStoreTweetPredictions } from "@/lib/data/twitter/predictions";
 import { Client } from "@upstash/qstash";
 
 // QStash client for scheduling next updates
@@ -189,6 +190,9 @@ export async function POST(request: NextRequest) {
 
       // Create engagement snapshot for history
       await createEngagementSnapshot(tweet.id, metrics);
+
+      // Calculate and store predictions (if enough snapshots)
+      await calculateAndStoreTweetPredictions(tweet.id);
 
       // Update tracking status
       if (shouldContinue.continue) {

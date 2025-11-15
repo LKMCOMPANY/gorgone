@@ -15,6 +15,9 @@ export * from "./engagement";
 // Zone Stats
 export * from "./zone-stats";
 
+// Predictions
+export * from "./predictions";
+
 // Entities
 export * from "./entities";
 

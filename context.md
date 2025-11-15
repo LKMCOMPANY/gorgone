@@ -567,6 +567,7 @@ Complete real-time Twitter monitoring integration using twitterapi.io webhooks. 
 - `tweets.ts` - Tweet CRUD + search + filtering
 - `engagement.ts` - Engagement tracking + snapshot creation
 - `zone-stats.ts` - Dynamic thresholds (P25) + Redis cache
+- `predictions.ts` - Engagement predictions (velocity-based, 5 metrics)
 - `entities.ts` - Entity extraction + trending analysis
 - `analytics.ts` - Aggregated stats + top profiles/tweets
 - `threads.ts` - Thread reconstruction + orphan resolution

@@ -738,13 +738,22 @@ Economy: 60-70% ✅
 
 **Files**:
 - `lib/data/twitter/zone-stats.ts` - Dynamic thresholds + Redis cache
+- `lib/data/twitter/predictions.ts` - Engagement predictions (velocity-based)
 - `app/api/twitter/engagement/track-lot/route.ts` - Lot worker
 - `app/api/webhooks/twitter/route.ts` - Triggers QStash after webhook
 
 **Tables used**:
-- `twitter_tweets` - Updated metrics
-- `twitter_engagement_history` - Snapshots for curves
+- `twitter_tweets` - Updated metrics + predictions (JSONB)
+- `twitter_engagement_history` - Snapshots for curves + velocity calculation
 - `twitter_engagement_tracking` - Status (hot/cold) + update count
+
+**Predictions**:
+- Calculated automatically after each snapshot (if >= 2 snapshots)
+- Velocity-based linear extrapolation per metric type
+- 5 metrics: likes, retweets, replies, quotes, views
+- Predictions: +1h, +2h, +3h
+- Stored in `predictions` JSONB column
+- Confidence based on number of snapshots
 
 **No cron schedules needed** - Fully event-driven ✅
 
