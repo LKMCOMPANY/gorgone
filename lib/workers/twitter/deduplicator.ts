@@ -20,6 +20,7 @@ interface ProcessingResult {
   duplicates: number;
   errors: number;
   updatedProfiles: number;
+  createdTweetIds: string[]; // IDs of newly created tweets for QStash scheduling
 }
 
 /**
@@ -34,6 +35,7 @@ export async function processIncomingTweets(
     duplicates: 0,
     errors: 0,
     updatedProfiles: 0,
+    createdTweetIds: [],
   };
 
   // Get zone ID from rule ID
@@ -135,6 +137,7 @@ async function processSingleTweet(
 
   logger.debug(`Tweet created: ${tweetDbId} (${apiTweet.id})`);
   result.created++;
+  result.createdTweetIds.push(tweetDbId); // Store ID for QStash scheduling
 
   // Extract and store entities
   await extractAndStoreEntities(tweetDbId, zoneId, apiTweet);
@@ -261,6 +264,7 @@ export async function batchProcessTweets(
     duplicates: 0,
     errors: 0,
     updatedProfiles: 0,
+    createdTweetIds: [],
   };
 
   // Deduplicate first
