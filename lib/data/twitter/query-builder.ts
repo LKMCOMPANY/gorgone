@@ -16,15 +16,15 @@ export function generateQuery(config: TwitterQueryBuilderConfig): string {
   const userParts: string[] = [];
 
   if (config.from_users.length > 0) {
-    userParts.push(...config.from_users.map((u) => `from:${u}`));
+    userParts.push(...config.from_users.map((u) => `from:${u.replace(/^@/, "")}`));
   }
 
   if (config.to_users.length > 0) {
-    userParts.push(...config.to_users.map((u) => `to:${u}`));
+    userParts.push(...config.to_users.map((u) => `to:${u.replace(/^@/, "")}`));
   }
 
   if (config.mentions.length > 0) {
-    userParts.push(...config.mentions.map((u) => `@${u}`));
+    userParts.push(...config.mentions.map((u) => `@${u.replace(/^@/, "")}`));
   }
 
   // Keywords (OR logic)
@@ -36,7 +36,7 @@ export function generateQuery(config: TwitterQueryBuilderConfig): string {
 
   // Hashtags (OR logic)
   if (config.hashtags.length > 0) {
-    userParts.push(...config.hashtags.map((h) => `#${h}`));
+    userParts.push(...config.hashtags.map((h) => `#${h.replace(/^#/, "")}`));
   }
 
   // Combine user parts with OR
@@ -51,7 +51,7 @@ export function generateQuery(config: TwitterQueryBuilderConfig): string {
 
   // Exclude users (AND logic)
   if (config.exclude_users.length > 0) {
-    parts.push(...config.exclude_users.map((u) => `-from:${u}`));
+    parts.push(...config.exclude_users.map((u) => `-from:${u.replace(/^@/, "")}`));
   }
 
   // Filters (AND logic)
