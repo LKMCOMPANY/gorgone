@@ -143,11 +143,8 @@ export async function POST(request: NextRequest) {
       is_active: true,
     };
 
+    // Create rule in database (will throw on duplicate)
     const ruleId = await rulesData.createRule(ruleData);
-
-    if (!ruleId) {
-      throw new Error("Failed to create rule in database");
-    }
 
     // =====================================================
     // STEP 3: CREATE WEBHOOK RULE IN TWITTERAPI.IO
@@ -228,8 +225,19 @@ export async function POST(request: NextRequest) {
       rule: createdRule,
     }, { status: 201 });
 
-  } catch (error) {
+  } catch (error: any) {
     logger.error("Error creating Twitter rule:", error);
+    
+    // Handle duplicate rule name (unique constraint on tag + zone_id)
+    if (error?.code === "23505") {
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: "A rule with this name already exists in this zone. Please choose a different name or delete the existing rule." 
+        },
+        { status: 409 } // Conflict
+      );
+    }
     
     return NextResponse.json(
       { 

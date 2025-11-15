@@ -9,27 +9,26 @@ import type { TwitterRule, TwitterQueryBuilderConfig } from "@/types";
 
 /**
  * Create a new Twitter rule
+ * @throws Error with code 23505 if duplicate (tag, zone_id)
  */
 export async function createRule(
   rule: Partial<TwitterRule>
-): Promise<string | null> {
-  try {
-    const supabase = createAdminClient();
+): Promise<string> {
+  const supabase = createAdminClient();
 
-    const { data, error } = await supabase
-      .from("twitter_rules")
-      .insert(rule)
-      .select("id")
-      .single();
+  const { data, error } = await supabase
+    .from("twitter_rules")
+    .insert(rule)
+    .select("id")
+    .single();
 
-    if (error) throw error;
-
-    logger.info(`Twitter rule created: ${data.id}`);
-    return data.id;
-  } catch (error) {
+  if (error) {
     logger.error("Error creating Twitter rule:", error);
-    return null;
+    throw error; // Propagate error to caller
   }
+
+  logger.info(`Twitter rule created: ${data.id}`);
+  return data.id;
 }
 
 /**
