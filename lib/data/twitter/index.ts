@@ -11,6 +11,7 @@ export * from "./tweets";
 
 // Engagement
 export * from "./engagement";
+export * from "./engagement-updater";
 
 // Entities
 export * from "./entities";

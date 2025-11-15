@@ -107,6 +107,40 @@ export async function getTweetById(
 }
 
 /**
+ * Get multiple tweets by IDs (batch)
+ * More efficient than calling getTweetById multiple times
+ * @see https://docs.twitterapi.io/api-reference/endpoint/get_tweet_by_ids
+ */
+export async function getTweetsByIds(
+  tweetIds: string[]
+): Promise<TwitterAPITweet[]> {
+  if (tweetIds.length === 0) return [];
+
+  try {
+    // Join tweet IDs with commas as required by the API
+    const idsParam = tweetIds.join(",");
+    const endpoint = `/twitter/tweets?tweet_ids=${encodeURIComponent(idsParam)}`;
+
+    const data = await twitterApiFetch<{
+      tweets?: TwitterAPITweet[];
+      status?: string;
+      message?: string;
+    }>(endpoint, {
+      method: "GET",
+    });
+
+    if (data.status === "error") {
+      throw new Error(data.message || "Failed to fetch tweets");
+    }
+
+    return data.tweets || [];
+  } catch (error) {
+    logger.error(`Error fetching tweets by IDs (${tweetIds.length} tweets):`, error);
+    return [];
+  }
+}
+
+/**
  * Get user by username
  */
 export async function getUserByUsername(username: string): Promise<any | null> {

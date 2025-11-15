@@ -114,3 +114,45 @@ export function canViewSettings(
   if (!userRole) return false;
   return hasPermission(userRole, "view_settings");
 }
+
+/**
+ * Check if user can access a specific zone
+ * Super admin and admin can access all zones
+ * Others can only access zones from their client
+ */
+export async function canAccessZone(
+  userId: string,
+  zoneId: string
+): Promise<boolean> {
+  try {
+    const { createAdminClient } = await import("@/lib/supabase/admin");
+    const supabase = createAdminClient();
+
+    // Get user profile with role and client_id
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("role, client_id")
+      .eq("id", userId)
+      .single();
+
+    if (profileError || !profile) return false;
+
+    // Super admin and admin can access all zones
+    if (profile.role === "super_admin" || profile.role === "admin") {
+      return true;
+    }
+
+    // For other roles, check if zone belongs to user's client
+    const { data: zone, error: zoneError } = await supabase
+      .from("zones")
+      .select("client_id")
+      .eq("id", zoneId)
+      .single();
+
+    if (zoneError || !zone) return false;
+
+    return zone.client_id === profile.client_id;
+  } catch (error) {
+    return false;
+  }
+}

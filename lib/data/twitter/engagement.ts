@@ -146,6 +146,10 @@ export async function getTweetsForEngagementUpdate(
 
 /**
  * Create engagement tracking record for a tweet
+ * 
+ * Strategy: Track every hour for 6 hours (6 updates total)
+ * - 0-6h: Update every hour
+ * - 6h+: Stop tracking
  */
 export async function createEngagementTracking(
   tweetDbId: string,
@@ -155,27 +159,18 @@ export async function createEngagementTracking(
     const supabase = createAdminClient();
 
     // Determine initial tier based on tweet age
-    const ageMinutes =
-      (new Date().getTime() - tweetCreatedAt.getTime()) / (1000 * 60);
+    const ageHours =
+      (new Date().getTime() - tweetCreatedAt.getTime()) / (1000 * 60 * 60);
 
-    let tier: TwitterEngagementTier = "ultra_hot";
+    let tier: TwitterEngagementTier = "hot";
     let nextUpdateAt = new Date();
 
-    if (ageMinutes < 60) {
-      // Ultra hot: first hour, update every 10 min
-      tier = "ultra_hot";
-      nextUpdateAt.setMinutes(nextUpdateAt.getMinutes() + 10);
-    } else if (ageMinutes < 240) {
-      // Hot: 1-4h, update every 30 min
+    // Simplified: track every hour for 6 hours
+    if (ageHours < 6) {
       tier = "hot";
-      nextUpdateAt.setMinutes(nextUpdateAt.getMinutes() + 30);
-    } else if (ageMinutes < 720) {
-      // Warm: 4-12h, update every 1h
-      tier = "warm";
       nextUpdateAt.setHours(nextUpdateAt.getHours() + 1);
     } else {
-      // Cold: 12h+, stop tracking
-      tier = "cold";
+      tier = "cold"; // Stop tracking after 6 hours
     }
 
     const { error } = await supabase
