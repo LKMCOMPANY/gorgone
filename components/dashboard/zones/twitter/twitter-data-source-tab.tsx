@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { TwitterRulesList } from "./twitter-rules-list";
 import { TwitterRuleDialog } from "./twitter-rule-dialog";
+import { TwitterDataSourceSkeleton } from "./twitter-data-source-skeleton";
 import type { TwitterRule } from "@/types";
 
 interface TwitterDataSourceTabProps {
@@ -61,27 +62,20 @@ export function TwitterDataSourceTab({ zoneId }: TwitterDataSourceTabProps) {
   }
 
   if (loading) {
-    return (
-      <Card className="card-padding">
-        <div className="space-y-4">
-          <div className="h-6 w-48 animate-pulse rounded bg-muted" />
-          <div className="h-4 w-full max-w-md animate-pulse rounded bg-muted" />
-        </div>
-      </Card>
-    );
+    return <TwitterDataSourceSkeleton />;
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-in fade-in-0 duration-300">
       {/* Header */}
-      <div className="space-y-2">
+      <div className="space-y-1.5">
         <h3 className="text-heading-3 flex items-center gap-2">
           <svg className="h-5 w-5 text-primary" fill="currentColor" viewBox="0 0 24 24">
             <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
           </svg>
           Data Sources
         </h3>
-        <p className="text-body text-muted-foreground">
+        <p className="text-body-sm text-muted-foreground">
           Configure monitoring rules to capture tweets matching your criteria
         </p>
       </div>
@@ -89,9 +83,9 @@ export function TwitterDataSourceTab({ zoneId }: TwitterDataSourceTabProps) {
       {/* Empty State or Rules List */}
       {rules.length === 0 ? (
         <Card className="card-padding">
-          <div className="rounded-lg border border-dashed border-border/60 bg-muted/30 p-12">
-            <div className="text-center space-y-4">
-              <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+          <div className="rounded-lg border border-dashed border-border/60 bg-muted/20 p-12 sm:p-16">
+            <div className="text-center space-y-5">
+              <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center transition-all duration-[250ms] hover:scale-105 hover:bg-primary/15">
                 <svg
                   className="w-8 h-8 text-primary"
                   fill="none"
@@ -110,7 +104,7 @@ export function TwitterDataSourceTab({ zoneId }: TwitterDataSourceTabProps) {
                   Create your first rule to start capturing tweets that match specific keywords, mentions, or criteria
                 </p>
               </div>
-              <Button onClick={handleCreateNew} className="gap-2">
+              <Button onClick={handleCreateNew} className="gap-2 transition-all duration-[150ms]">
                 <Plus className="h-4 w-4" />
                 Create First Rule
               </Button>
