@@ -14,10 +14,10 @@ import { forceUpdateTweetEngagement } from "@/lib/data/twitter/engagement-update
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const tweetDbId = params.id;
+    const { id: tweetDbId } = await params;
 
     // 1. Authentication check
     const user = await getCurrentUser();
@@ -99,10 +99,10 @@ export async function POST(
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const tweetDbId = params.id;
+    const { id: tweetDbId } = await params;
 
     // Authentication check
     const user = await getCurrentUser();
