@@ -89,13 +89,6 @@ async function processSingleTweet(
     throw new Error(`Failed to process author profile for tweet ${apiTweet.id}`);
   }
 
-  // Calculate total engagement
-  const totalEngagement =
-    (apiTweet.retweetCount || 0) +
-    (apiTweet.replyCount || 0) +
-    (apiTweet.likeCount || 0) +
-    (apiTweet.quoteCount || 0);
-
   // Prepare tweet data
   const authorUsername = apiTweet.author?.userName?.toLowerCase() || "unknown";
 
@@ -115,7 +108,7 @@ async function processSingleTweet(
     quote_count: apiTweet.quoteCount || 0,
     view_count: apiTweet.viewCount || 0,
     bookmark_count: apiTweet.bookmarkCount || 0,
-    total_engagement: totalEngagement,
+    // total_engagement is a GENERATED column, don't insert it
     has_media: false, // TODO: Check extended_entities or entities for media
     has_links: !!(apiTweet.entities?.urls && apiTweet.entities.urls.length > 0),
     has_hashtags: !!(
