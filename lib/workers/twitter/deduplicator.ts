@@ -174,10 +174,25 @@ async function processAuthorProfile(
     return existingProfile.id;
   }
 
+  // Extract username from URL if not provided directly
+  let username = author.username;
+  if (!username && author.url) {
+    // Extract from URL like "https://x.com/elonmusk"
+    const match = author.url.match(/x\.com\/([^/?]+)/);
+    if (match) {
+      username = match[1];
+    }
+  }
+
+  if (!username) {
+    logger.error(`Cannot extract username for author ${author.id}`, { author });
+    throw new Error(`Missing username for author ${author.id}`);
+  }
+
   // Create new profile
   const profileData: Partial<TwitterProfile> = {
     twitter_user_id: author.id.toString(),
-    username: author.username,
+    username: username.toLowerCase(),
     name: author.name,
     description: author.description || null,
     location: author.location || null,
@@ -191,8 +206,8 @@ async function processAuthorProfile(
     twitter_created_at: author.created_at || null,
     first_seen_at: new Date().toISOString(),
     last_seen_at: new Date().toISOString(),
-    profile_url: `https://twitter.com/${author.username}`,
-    twitter_url: `https://x.com/${author.username}`,
+    profile_url: `https://twitter.com/${username}`,
+    twitter_url: `https://x.com/${username}`,
     raw_data: author as any,
   };
 
