@@ -178,8 +178,32 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    logger.info(`Webhook rule created with ID: ${webhookResult.rule_id}, now activating...`);
+
     // =====================================================
-    // STEP 4: UPDATE LOCAL RULE WITH EXTERNAL ID
+    // STEP 4: ACTIVATE THE RULE (is_effect = 1)
+    // =====================================================
+    
+    // Rules are created inactive by default, we must activate them
+    const activated = await twitterApi.updateWebhookRule(
+      webhookResult.rule_id,
+      {
+        tag: body.tag,
+        value: finalQuery,
+        interval_seconds: body.interval_seconds,
+        is_effect: 1, // ACTIVATE
+      }
+    );
+
+    if (!activated) {
+      logger.warn(`Rule created but failed to activate: ${webhookResult.rule_id}`);
+      // Don't rollback - the rule exists, user can activate it manually
+    } else {
+      logger.info(`Webhook rule activated successfully: ${webhookResult.rule_id}`);
+    }
+
+    // =====================================================
+    // STEP 5: UPDATE LOCAL RULE WITH EXTERNAL ID
     // =====================================================
 
     await rulesData.updateRule(ruleId, {
