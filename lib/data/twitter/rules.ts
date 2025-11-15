@@ -102,7 +102,7 @@ export async function getRuleByApiId(
     const { data, error } = await supabase
       .from("twitter_rules")
       .select("*")
-      .eq("api_rule_id", apiRuleId)
+      .eq("external_rule_id", apiRuleId)
       .single();
 
     if (error) {
