@@ -282,9 +282,12 @@ export interface TwitterProfileSnapshot {
 export interface TwitterEntity {
   id: string;
   tweet_id: string;
+  zone_id: string;
   entity_type: TwitterEntityType;
   entity_value: string;
-  entity_text: string;
+  entity_normalized: string;
+  start_index: number | null;
+  end_index: number | null;
   created_at: string;
 }
 
@@ -472,60 +475,70 @@ export interface TwitterAPITweet {
   type: "tweet";
   id: string;
   url: string;
-  twitterUrl: string;
   text: string;
   source: string;
-  retweet_count: number;
-  reply_count: number;
-  like_count: number;
-  quote_count: number;
-  view_count?: number;
-  created_at: string;
+  retweetCount: number;
+  replyCount: number;
+  likeCount: number;
+  quoteCount: number;
+  viewCount?: number;
+  createdAt: string;
   lang: string;
-  bookmark_count?: number;
-  is_reply?: boolean;
-  in_reply_to_status_id?: string;
-  conversation_id: string;
-  display_text_range?: [number, number];
-  in_reply_to_user_id?: string;
-  in_reply_to_screen_name?: string;
+  bookmarkCount?: number;
+  isReply?: boolean;
+  inReplyToId?: string;
+  conversationId: string;
+  displayTextRange?: [number, number];
+  inReplyToUserId?: string;
+  inReplyToUsername?: string;
   author?: TwitterAPIUser;
-  extended_entities?: Record<string, unknown>;
-  card?: Record<string, unknown> | null;
-  place?: Record<string, unknown>;
   entities?: TwitterAPIEntities;
+  quoted_tweet?: any;
+  retweeted_tweet?: any;
+  isLimitedReply?: boolean;
 }
 
 // User from API
 export interface TwitterAPIUser {
   type?: "user";
-  id: number | string;
-  username: string;
+  id: string;
+  userName: string; // CamelCase as per API
+  url: string;
   name: string;
+  isBlueVerified?: boolean;
+  verifiedType?: string;
+  profilePicture?: string;
+  coverPicture?: string;
   description?: string;
   location?: string;
-  url?: string;
-  profile_image_url?: string;
-  profile_banner_url?: string;
-  verified?: boolean;
-  is_blue_verified?: boolean;
-  followers_count?: number;
-  following_count?: number;
-  statuses_count?: number;
-  listed_count?: number;
-  created_at?: string;
+  followers?: number;
+  following?: number;
+  canDm?: boolean;
+  createdAt?: string;
+  favouritesCount?: number;
+  hasCustomTimelines?: boolean;
+  isTranslator?: boolean;
+  mediaCount?: number;
+  statusesCount?: number;
+  withheldInCountries?: string[];
+  possiblySensitive?: boolean;
+  pinnedTweetIds?: string[];
+  isAutomated?: boolean;
+  automatedBy?: string;
+  unavailable?: boolean;
+  message?: string;
+  unavailableReason?: string;
 }
 
-// Entities from API
+// Entities from API (exact structure from twitterapi.io)
 export interface TwitterAPIEntities {
-  mentions?: Array<{
-    id: string;
-    username: string;
+  user_mentions?: Array<{
+    id_str: string;
     name: string;
+    screen_name: string;
     indices?: [number, number];
   }>;
   hashtags?: Array<{
-    tag: string;
     text: string;
     indices?: [number, number];
   }>;
@@ -533,12 +546,6 @@ export interface TwitterAPIEntities {
     url: string;
     expanded_url?: string;
     display_url?: string;
-    indices?: [number, number];
-  }>;
-  media?: Array<{
-    type: string;
-    url: string;
-    media_url: string;
     indices?: [number, number];
   }>;
 }

@@ -12,31 +12,40 @@ import type { TwitterEntity, TwitterAPITweet } from "@/types";
  */
 export async function extractAndStoreEntities(
   tweetDbId: string,
+  zoneId: string,
   apiTweet: TwitterAPITweet
 ): Promise<void> {
   try {
     const entities: Partial<TwitterEntity>[] = [];
 
-    // Extract hashtags
+    // Extract hashtags (API uses hashtags[].text)
     if (apiTweet.entities?.hashtags) {
       for (const hashtag of apiTweet.entities.hashtags) {
+        const tag = hashtag.text;
         entities.push({
           tweet_id: tweetDbId,
+          zone_id: zoneId,
           entity_type: "hashtag",
-          entity_value: hashtag.tag,
-          entity_text: `#${hashtag.tag}`,
+          entity_value: tag,
+          entity_normalized: tag.toLowerCase(),
+          start_index: hashtag.indices?.[0] || null,
+          end_index: hashtag.indices?.[1] || null,
         });
       }
     }
 
-    // Extract mentions
-    if (apiTweet.entities?.mentions) {
-      for (const mention of apiTweet.entities.mentions) {
+    // Extract mentions (API uses user_mentions[].screen_name)
+    if (apiTweet.entities?.user_mentions) {
+      for (const mention of apiTweet.entities.user_mentions) {
+        const screenName = mention.screen_name;
         entities.push({
           tweet_id: tweetDbId,
+          zone_id: zoneId,
           entity_type: "mention",
-          entity_value: mention.username,
-          entity_text: `@${mention.username}`,
+          entity_value: screenName,
+          entity_normalized: screenName.toLowerCase(),
+          start_index: mention.indices?.[0] || null,
+          end_index: mention.indices?.[1] || null,
         });
       }
     }
@@ -44,17 +53,18 @@ export async function extractAndStoreEntities(
     // Extract URLs
     if (apiTweet.entities?.urls) {
       for (const url of apiTweet.entities.urls) {
+        const expandedUrl = url.expanded_url || url.url;
         entities.push({
           tweet_id: tweetDbId,
+          zone_id: zoneId,
           entity_type: "url",
-          entity_value: url.expanded_url || url.url,
-          entity_text: url.display_url || url.url,
+          entity_value: expandedUrl,
+          entity_normalized: expandedUrl.toLowerCase(),
+          start_index: url.indices?.[0] || null,
+          end_index: url.indices?.[1] || null,
         });
       }
     }
-
-    // Extract symbols/cashtags ($AAPL etc.) - if available in API
-    // Note: Not currently in TwitterAPI.io entities structure
 
     // Bulk insert entities
     if (entities.length > 0) {

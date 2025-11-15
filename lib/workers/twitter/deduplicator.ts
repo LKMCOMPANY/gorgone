@@ -91,43 +91,45 @@ async function processSingleTweet(
 
   // Calculate total engagement
   const totalEngagement =
-    (apiTweet.retweet_count || 0) +
-    (apiTweet.reply_count || 0) +
-    (apiTweet.like_count || 0) +
-    (apiTweet.quote_count || 0);
+    (apiTweet.retweetCount || 0) +
+    (apiTweet.replyCount || 0) +
+    (apiTweet.likeCount || 0) +
+    (apiTweet.quoteCount || 0);
 
   // Prepare tweet data
+  const authorUsername = apiTweet.author?.userName?.toLowerCase() || "unknown";
+
   const tweetData: Partial<TwitterTweet> = {
     zone_id: zoneId,
     tweet_id: apiTweet.id,
     author_profile_id: authorProfileId,
-    conversation_id: apiTweet.conversation_id || null,
+    conversation_id: apiTweet.conversationId || null,
     text: apiTweet.text,
     lang: apiTweet.lang || null,
     source: apiTweet.source || null,
-    twitter_created_at: apiTweet.created_at,
+    twitter_created_at: apiTweet.createdAt,
     collected_at: new Date().toISOString(),
-    retweet_count: apiTweet.retweet_count || 0,
-    reply_count: apiTweet.reply_count || 0,
-    like_count: apiTweet.like_count || 0,
-    quote_count: apiTweet.quote_count || 0,
-    view_count: apiTweet.view_count || 0,
-    bookmark_count: apiTweet.bookmark_count || 0,
+    retweet_count: apiTweet.retweetCount || 0,
+    reply_count: apiTweet.replyCount || 0,
+    like_count: apiTweet.likeCount || 0,
+    quote_count: apiTweet.quoteCount || 0,
+    view_count: apiTweet.viewCount || 0,
+    bookmark_count: apiTweet.bookmarkCount || 0,
     total_engagement: totalEngagement,
-    has_media: !!(apiTweet.entities?.media && apiTweet.entities.media.length > 0),
+    has_media: false, // TODO: Check extended_entities or entities for media
     has_links: !!(apiTweet.entities?.urls && apiTweet.entities.urls.length > 0),
     has_hashtags: !!(
       apiTweet.entities?.hashtags && apiTweet.entities.hashtags.length > 0
     ),
     has_mentions: !!(
-      apiTweet.entities?.mentions && apiTweet.entities.mentions.length > 0
+      apiTweet.entities?.user_mentions && apiTweet.entities.user_mentions.length > 0
     ),
-    is_reply: !!apiTweet.in_reply_to_status_id,
-    in_reply_to_tweet_id: apiTweet.in_reply_to_status_id || null,
-    in_reply_to_user_id: apiTweet.in_reply_to_user_id?.toString() || null,
-    in_reply_to_username: apiTweet.in_reply_to_screen_name || null,
-    tweet_url: `https://twitter.com/${apiTweet.author?.username}/status/${apiTweet.id}`,
-    twitter_url: `https://twitter.com/${apiTweet.author?.username}/status/${apiTweet.id}`,
+    is_reply: !!apiTweet.isReply,
+    in_reply_to_tweet_id: apiTweet.inReplyToId || null,
+    in_reply_to_user_id: apiTweet.inReplyToUserId || null,
+    in_reply_to_username: apiTweet.inReplyToUsername || null,
+    tweet_url: apiTweet.url || `https://twitter.com/${authorUsername}/status/${apiTweet.id}`,
+    twitter_url: apiTweet.url || `https://x.com/${authorUsername}/status/${apiTweet.id}`,
     raw_data: apiTweet as any,
     is_processed: false,
   };
@@ -142,12 +144,12 @@ async function processSingleTweet(
   result.created++;
 
   // Extract and store entities
-  await extractAndStoreEntities(tweetDbId, apiTweet);
+  await extractAndStoreEntities(tweetDbId, zoneId, apiTweet);
 
   // Create engagement tracking
   await createEngagementTracking(
     tweetDbId,
-    new Date(apiTweet.created_at)
+    new Date(apiTweet.createdAt)
   );
 }
 
@@ -174,40 +176,40 @@ async function processAuthorProfile(
     return existingProfile.id;
   }
 
-  // Extract username from URL if not provided directly
-  let username = author.username;
-  if (!username && author.url) {
-    // Extract from URL like "https://x.com/elonmusk"
-    const match = author.url.match(/x\.com\/([^/?]+)/);
-    if (match) {
-      username = match[1];
-    }
-  }
+  // Extract username (API uses userName in camelCase)
+  const username = author.userName?.toLowerCase() || null;
 
   if (!username) {
-    logger.error(`Cannot extract username for author ${author.id}`, { author });
-    throw new Error(`Missing username for author ${author.id}`);
+    logger.error(`Missing userName for author ${author.id}`, { author });
+    throw new Error(`Missing userName for author ${author.id}`);
   }
 
-  // Create new profile
+  // Create new profile (map API fields to our schema)
   const profileData: Partial<TwitterProfile> = {
     twitter_user_id: author.id.toString(),
-    username: username.toLowerCase(),
+    username: username,
     name: author.name,
     description: author.description || null,
     location: author.location || null,
-    profile_picture_url: author.profile_image_url || null,
-    cover_picture_url: author.profile_banner_url || null,
-    is_verified: author.verified || false,
-    is_blue_verified: author.is_blue_verified || false,
-    followers_count: author.followers_count || 0,
-    following_count: author.following_count || 0,
-    tweets_count: author.statuses_count || 0,
-    twitter_created_at: author.created_at || null,
+    profile_picture_url: author.profilePicture || null,
+    cover_picture_url: author.coverPicture || null,
+    is_verified: false, // Legacy verified badge (deprecated)
+    is_blue_verified: author.isBlueVerified || false,
+    verified_type: author.verifiedType || null,
+    followers_count: author.followers || 0,
+    following_count: author.following || 0,
+    tweets_count: author.statusesCount || 0,
+    media_count: author.mediaCount || 0,
+    favourites_count: author.favouritesCount || 0,
+    twitter_created_at: author.createdAt || null,
+    is_automated: author.isAutomated || false,
+    automated_by: author.automatedBy || null,
+    can_dm: author.canDm || false,
+    possibly_sensitive: author.possiblySensitive || false,
     first_seen_at: new Date().toISOString(),
     last_seen_at: new Date().toISOString(),
     profile_url: `https://twitter.com/${username}`,
-    twitter_url: `https://x.com/${username}`,
+    twitter_url: author.url || `https://x.com/${username}`,
     raw_data: author as any,
   };
 
