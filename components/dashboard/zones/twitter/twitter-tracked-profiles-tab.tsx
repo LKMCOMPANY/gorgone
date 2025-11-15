@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { X, Upload, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { TwitterTrackedProfilesSkeleton } from "./twitter-tracked-profiles-skeleton";
 import type { TwitterProfileZoneTag, TwitterProfileTagType } from "@/types";
 
 interface TwitterTrackedProfilesTabProps {
@@ -283,43 +284,44 @@ export function TwitterTrackedProfilesTab({ zoneId }: TwitterTrackedProfilesTabP
   }
 
   if (loading) {
-    return (
-      <Card className="card-padding">
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-        </div>
-      </Card>
-    );
+    return <TwitterTrackedProfilesSkeleton />;
   }
 
   const currentLabelConfig = LABEL_TYPES.find((t) => t.value === activeTab)!;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-in fade-in-0 duration-300">
       {/* Header */}
-      <div className="space-y-2">
+      <div className="space-y-1.5">
         <h3 className="text-heading-3">Tracked Profiles</h3>
-        <p className="text-body text-muted-foreground">
+        <p className="text-body-sm text-muted-foreground">
           Tag Twitter profiles to categorize them in your monitoring feed and calculate Share of Voice metrics
         </p>
       </div>
 
       {/* Label Type Tabs */}
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as TwitterProfileTagType)}>
-        <TabsList className="grid w-full grid-cols-7 h-auto">
-          {LABEL_TYPES.map((type) => (
-            <TabsTrigger 
-              key={type.value} 
-              value={type.value}
-              className="flex flex-col items-center gap-1 py-2 data-[state=active]:bg-background"
-            >
-              <span className="text-body-sm font-medium">{type.label}</span>
-              <Badge variant="outline" className={`text-[10px] px-1.5 py-0 h-4 ${type.color}`}>
-                {profiles[type.value].length}
-              </Badge>
-            </TabsTrigger>
-          ))}
-        </TabsList>
+        {/* Responsive TabsList: scrollable on mobile */}
+        <div className="relative">
+          <div className="overflow-x-auto overflow-y-hidden pb-2 -mb-2 scrollbar-hide">
+            <TabsList className="inline-flex w-auto h-auto gap-1 bg-transparent p-0">
+              {LABEL_TYPES.map((type) => (
+                <TabsTrigger 
+                  key={type.value} 
+                  value={type.value}
+                  className="flex-shrink-0 flex flex-col items-center gap-1.5 px-4 py-2.5 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-[150ms]"
+                >
+                  <span className="text-body-sm font-medium whitespace-nowrap">{type.label}</span>
+                  <Badge variant="outline" className={`text-[10px] px-1.5 py-0 h-4 ${type.color} transition-all duration-[150ms]`}>
+                    {profiles[type.value].length}
+                  </Badge>
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </div>
+          {/* Scroll hint on mobile */}
+          <div className="absolute right-0 top-0 h-full w-8 bg-gradient-to-l from-background to-transparent pointer-events-none sm:hidden" />
+        </div>
 
         {LABEL_TYPES.map((type) => (
           <TabsContent key={type.value} value={type.value} className="mt-6 space-y-6">
