@@ -367,24 +367,25 @@ async function updateTrackingTier(
     }
 
     // Increment update count
-    await supabase.rpc("increment_update_count", {
+    const { error: rpcError } = await supabase.rpc("increment_update_count", {
       tweet_id: tweetDbId,
-      }).catch(() => {
-      // Fallback if RPC doesn't exist - manually increment
-      supabase
+    });
+
+    // Fallback if RPC doesn't exist - manually increment
+    if (rpcError) {
+      const { data: trackingData } = await supabase
         .from("twitter_engagement_tracking")
         .select("update_count")
         .eq("tweet_db_id", tweetDbId)
-        .single()
-        .then(({ data }: { data: { update_count: number } | null }) => {
-          if (data) {
-            supabase
-              .from("twitter_engagement_tracking")
-              .update({ update_count: data.update_count + 1 })
-              .eq("tweet_db_id", tweetDbId);
-          }
-        });
-    });
+        .single();
+
+      if (trackingData) {
+        await supabase
+          .from("twitter_engagement_tracking")
+          .update({ update_count: trackingData.update_count + 1 })
+          .eq("tweet_db_id", tweetDbId);
+      }
+    }
 
     logger.debug(`Updated tracking tier for tweet ${tweetDbId}: ${tier}`);
   } catch (error) {
