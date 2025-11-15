@@ -536,9 +536,10 @@ Complete real-time Twitter monitoring integration using twitterapi.io webhooks. 
 - ✅ **Profile Tracking**: Tag profiles with 7 label types (Attila, Ally, Adversary, etc.)
 - ✅ **Deduplication**: Multi-level deduplication (tweets + profiles)
 - ✅ **Entity Extraction**: Automatic hashtags, mentions, URLs extraction
-- ✅ **Engagement Tracking**: Tiered 12-hour update strategy (ultra_hot/hot/warm/cold)
-- ✅ **Performance**: 58 database indexes, 5 materialized views
-- ✅ **Scalability**: Profile normalization (70% storage savings)
+- ✅ **Engagement Tracking**: Trigger-based with smart stopping (6h window, 50-70% API savings)
+- ✅ **Dynamic Thresholds**: P25 per zone with Redis cache
+- ✅ **Performance**: 58 database indexes, 5 materialized views, batch API optimization
+- ✅ **Scalability**: Auto-proportional (2 tweets/day or 10k/hour works the same)
 
 **Database Tables** (8):
 1. `twitter_profiles` - Normalized user profiles (deduplication)
@@ -564,7 +565,8 @@ Complete real-time Twitter monitoring integration using twitterapi.io webhooks. 
 **Data Layer** (`lib/data/twitter/`):
 - `profiles.ts` - Profile CRUD + tagging + growth tracking
 - `tweets.ts` - Tweet CRUD + search + filtering
-- `engagement.ts` - Engagement tracking + velocity calculation
+- `engagement.ts` - Engagement tracking + snapshot creation
+- `zone-stats.ts` - Dynamic thresholds (P25) + Redis cache
 - `entities.ts` - Entity extraction + trending analysis
 - `analytics.ts` - Aggregated stats + top profiles/tweets
 - `threads.ts` - Thread reconstruction + orphan resolution
@@ -583,7 +585,8 @@ Complete real-time Twitter monitoring integration using twitterapi.io webhooks. 
 - `POST /api/twitter/profiles/tags` - Tag profile
 - `GET /api/twitter/profiles/tags` - List tagged profiles
 - `DELETE /api/twitter/profiles/tags` - Remove tag
-- `POST /api/webhooks/twitter` - Receive tweets from twitterapi.io
+- `POST /api/webhooks/twitter` - Receive tweets + trigger engagement tracking
+- `POST /api/twitter/engagement/track-lot` - Process engagement updates for tweet lot
 
 **UI Components** (`components/dashboard/zones/twitter/`):
 - `twitter-settings-tab.tsx` - Container with sub-tabs
@@ -603,10 +606,11 @@ Complete real-time Twitter monitoring integration using twitterapi.io webhooks. 
 - Security: X-API-Key verification on webhook requests
 
 **Performance Guarantees**:
-- 10,000 tweets/hour capacity
+- 10,000+ tweets/hour capacity (auto-scaling)
 - All queries < 50ms (most < 10ms)
 - Profile normalization: 70% storage savings
-- Engagement tracking: Optimized 16 API calls per tweet (vs 36)
+- Engagement tracking: 50-70% fewer API calls with smart stopping
+- Batch API optimization: 10x fewer calls (20 tweets per call)
 - Materialized views: 10-100x faster aggregations
 
 **Label Types** (Share of Voice):

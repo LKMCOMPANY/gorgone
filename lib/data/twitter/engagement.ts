@@ -118,38 +118,14 @@ export async function getEngagementHistory(
 }
 
 /**
- * Get tweets that need engagement update (based on tier and schedule)
- */
-export async function getTweetsForEngagementUpdate(
-  limit = 1000
-): Promise<TwitterEngagementTracking[]> {
-  try {
-    const supabase = createAdminClient();
-    const now = new Date().toISOString();
-
-    const { data, error } = await supabase
-      .from("twitter_engagement_tracking")
-      .select("*")
-      .lte("next_update_at", now)
-      .neq("tier", "cold")
-      .order("next_update_at", { ascending: true })
-      .limit(limit);
-
-    if (error) throw error;
-
-    return (data as TwitterEngagementTracking[]) || [];
-  } catch (error) {
-    logger.error("Error fetching tweets for engagement update:", error);
-    return [];
-  }
-}
-
-/**
  * Create engagement tracking record for a tweet
  * 
  * Strategy: Track every hour for 6 hours (6 updates total)
- * - 0-6h: Update every hour
- * - 6h+: Stop tracking
+ * - 0-6h: Update every hour (tier: hot)
+ * - 6h+: Stop tracking (tier: cold)
+ * 
+ * Note: Actual scheduling is handled by QStash (trigger-based)
+ * This table is used for status tracking and analytics
  */
 export async function createEngagementTracking(
   tweetDbId: string,
@@ -190,64 +166,6 @@ export async function createEngagementTracking(
       `Error creating engagement tracking for ${tweetDbId}:`,
       error
     );
-  }
-}
-
-/**
- * Update engagement tracking tier and schedule
- */
-export async function updateEngagementTracking(
-  trackingId: string,
-  tweetCreatedAt: Date
-): Promise<void> {
-  try {
-    const supabase = createAdminClient();
-
-    // Calculate tweet age
-    const ageMinutes =
-      (new Date().getTime() - tweetCreatedAt.getTime()) / (1000 * 60);
-    const ageHours = ageMinutes / 60;
-
-    // Determine tier and next update time
-    let tier: TwitterEngagementTier;
-    let nextUpdateAt: Date | null = new Date();
-
-    if (ageMinutes < 60) {
-      tier = "ultra_hot";
-      nextUpdateAt.setMinutes(nextUpdateAt.getMinutes() + 10);
-    } else if (ageHours < 4) {
-      tier = "hot";
-      nextUpdateAt.setMinutes(nextUpdateAt.getMinutes() + 30);
-    } else if (ageHours < 12) {
-      tier = "warm";
-      nextUpdateAt.setHours(nextUpdateAt.getHours() + 1);
-    } else {
-      tier = "cold";
-      nextUpdateAt = null; // Stop tracking
-    }
-
-    // Update tracking record
-    const { error } = await supabase
-      .from("twitter_engagement_tracking")
-      .update({
-        tier,
-        next_update_at: nextUpdateAt?.toISOString() || null,
-        last_updated_at: new Date().toISOString(),
-      })
-      .eq("id", trackingId);
-
-    if (error) throw error;
-
-    // Increment update count
-    await supabase.rpc("increment", {
-      table_name: "twitter_engagement_tracking",
-      row_id: trackingId,
-      column_name: "update_count",
-    });
-
-    logger.debug(`Engagement tracking updated: ${trackingId} -> ${tier}`);
-  } catch (error) {
-    logger.error(`Error updating engagement tracking ${trackingId}:`, error);
   }
 }
 

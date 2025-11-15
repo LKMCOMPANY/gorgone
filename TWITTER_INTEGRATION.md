@@ -685,6 +685,71 @@ grok,nasa,spacex
 
 ---
 
+## Engagement Tracking System
+
+### Architecture: Trigger par lot (v2.0)
+
+**Principle**: Each webhook lot triggers its own QStash job for 6-hour tracking
+
+```
+Webhook receives tweets → Save to DB → Schedule QStash job
+  ↓ (1h)
+Worker updates lot → Check each tweet → Schedule next update if active
+  ↓ (1h)
+Repeat until 6h or all tweets stopped
+```
+
+### Decision Logic
+
+**Simple 3-rule system**:
+```typescript
+Continue tracking IF:
+  (age < 6h) AND (delta > 0 OR engagement >= zone_P25)
+
+Stop tracking IF:
+  age >= 6h OR (delta = 0 AND engagement < zone_P25)
+```
+
+### Dynamic Threshold
+
+**P25 (25th percentile)** calculated per zone from last 24h:
+- Cached in Redis (1h TTL)
+- Auto-adapts to each zone's engagement profile
+- Example: Zone with avg 1.2 engagement → P25 ≈ 1
+
+### Performance
+
+**Batch API calls preserved**:
+```
+10 tweets in lot → 1 API call (batch)
+Economy: 90% vs individual calls
+```
+
+**Smart stopping**:
+```
+100 tweets → 75% dead after 1h
+- Dead tweets: 1 update each = 75 calls
+- Active tweets: 4-6 updates = 100-150 calls
+Total: 175-225 vs 600 without optimization
+Economy: 60-70% ✅
+```
+
+### Implementation
+
+**Files**:
+- `lib/data/twitter/zone-stats.ts` - Dynamic thresholds + Redis cache
+- `app/api/twitter/engagement/track-lot/route.ts` - Lot worker
+- `app/api/webhooks/twitter/route.ts` - Triggers QStash after webhook
+
+**Tables used**:
+- `twitter_tweets` - Updated metrics
+- `twitter_engagement_history` - Snapshots for curves
+- `twitter_engagement_tracking` - Status (hot/cold) + update count
+
+**No cron schedules needed** - Fully event-driven ✅
+
+---
+
 ## Maintenance
 
 ### Materialized View Refresh
@@ -696,20 +761,6 @@ twitter_zone_stats_daily:     Once per day (midnight)
 twitter_top_profiles_by_zone: Every 5 minutes
 twitter_trending_hashtags:    Every 10 minutes
 twitter_share_of_voice:       Every 10 minutes
-```
-
-### Engagement Updates
-
-**Cron**: Every 10 minutes
-```typescript
-// Get tweets due for update
-const tweets = await getTweetsForEngagementUpdate();
-
-// Update each
-for (const tweet of tweets) {
-  const freshData = await twitterApi.getTweetById(tweet.tweet_id);
-  await updateEngagementMetrics(tweet.id, freshData);
-}
 ```
 
 ### Data Retention
