@@ -105,13 +105,13 @@ export function TwitterRulesList({
     <Card className="card-padding">
       <div className="space-y-5">
         {/* Header with count and action */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <p className="text-body-sm text-muted-foreground">
-            {rules.length} active rule{rules.length !== 1 && 's'}
+            {rules.length} active rule{rules.length !== 1 ? 's' : ''}
           </p>
-          <Button onClick={onCreateNew} size="sm" className="gap-2">
+          <Button onClick={onCreateNew} size="sm" className="gap-2 w-full sm:w-auto">
             <Plus className="h-4 w-4" />
-            New Rule
+            <span>New Rule</span>
           </Button>
         </div>
 
@@ -124,7 +124,10 @@ export function TwitterRulesList({
             >
               {/* Header: Status + Name + Actions */}
               <div className="flex items-start gap-3">
-                <Badge variant={rule.is_active ? "default" : "secondary"}>
+                <Badge 
+                  variant={rule.is_active ? "default" : "secondary"}
+                  className="flex-shrink-0"
+                >
                   {rule.is_active ? "Active" : "Paused"}
                 </Badge>
                 <div className="flex-1 min-w-0">
@@ -140,28 +143,28 @@ export function TwitterRulesList({
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8"
+                      className="h-8 w-8 flex-shrink-0"
                       disabled={deletingId === rule.id || pausingId === rule.id}
                     >
                       <MoreVertical className="h-4 w-4" />
                       <span className="sr-only">Open menu</span>
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
+                  <DropdownMenuContent align="end" className="w-48">
                     <DropdownMenuItem onClick={() => onEdit(rule)}>
                       <Pencil className="mr-2 h-4 w-4" />
-                      Edit
+                      <span>Edit</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => handlePause(rule)}>
                       {rule.is_active ? (
                         <>
                           <Pause className="mr-2 h-4 w-4" />
-                          Pause
+                          <span>Pause</span>
                         </>
                       ) : (
                         <>
                           <Play className="mr-2 h-4 w-4" />
-                          Resume
+                          <span>Resume</span>
                         </>
                       )}
                     </DropdownMenuItem>
@@ -170,7 +173,7 @@ export function TwitterRulesList({
                       className="text-destructive focus:text-destructive"
                     >
                       <Trash2 className="mr-2 h-4 w-4" />
-                      Delete
+                      <span>Delete</span>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -184,16 +187,19 @@ export function TwitterRulesList({
               </div>
 
               {/* Metadata */}
-              <div className="flex items-center gap-4 text-caption text-muted-foreground">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-caption text-muted-foreground">
                 <span className="flex items-center gap-1.5">
-                  <Clock className="h-3.5 w-3.5" />
-                  Check every {rule.interval_seconds}s
+                  <Clock className="h-3.5 w-3.5 flex-shrink-0" />
+                  <span>Check every {rule.interval_seconds}s</span>
                 </span>
                 {rule.last_triggered_at && (
-                  <span className="flex items-center gap-1.5">
-                    <Activity className="h-3.5 w-3.5" />
-                    Last checked {formatDistanceToNow(new Date(rule.last_triggered_at))}
-                  </span>
+                  <>
+                    <span className="hidden sm:inline">•</span>
+                    <span className="flex items-center gap-1.5">
+                      <Activity className="h-3.5 w-3.5 flex-shrink-0" />
+                      <span>Last checked {formatDistanceToNow(new Date(rule.last_triggered_at))}</span>
+                    </span>
+                  </>
                 )}
               </div>
             </div>

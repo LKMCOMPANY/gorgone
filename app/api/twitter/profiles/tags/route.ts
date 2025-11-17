@@ -74,37 +74,51 @@ export async function POST(request: NextRequest) {
     });
 
     // =====================================================
-    // STEP 1: GET OR CREATE PROFILE
+    // STEP 1: FIND PROFILE IN ZONE
     // =====================================================
 
-    // Check if profile exists
-    let profile = await profilesData.getProfileByUsername(username);
+    // First, check if profile exists with tweets in this zone
+    const supabase = createAdminClient();
+    
+    // Get profiles that have tweets in this zone
+    const { data: tweetsData } = await supabase
+      .from("twitter_tweets")
+      .select("author_profile_id")
+      .eq("zone_id", body.zone_id)
+      .limit(1000); // Get a good sample
 
-    if (!profile) {
-      // Profile doesn't exist yet - create a placeholder
-      // It will be populated when we receive tweets from this user
-      const supabase = createAdminClient();
-      
-      const { data, error } = await supabase
-        .from("twitter_profiles")
-        .insert({
-          twitter_user_id: `placeholder_${username}_${Date.now()}`, // Temporary ID
-          username,
-          name: username, // Will be updated when we get real data
-        })
-        .select("id")
-        .single();
-
-      if (error) throw error;
-      
-      profile = await profilesData.getProfileById(data.id);
-      
-      if (!profile) {
-        throw new Error("Failed to create profile");
-      }
-
-      logger.info(`Created placeholder profile for @${username}`);
+    if (!tweetsData || tweetsData.length === 0) {
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: "No profiles found in this zone yet. Please wait for tweets to be collected." 
+        },
+        { status: 404 }
+      );
     }
+
+    const profileIdsInZone = [...new Set(tweetsData.map(t => t.author_profile_id))];
+
+    // Search for profile by username among profiles that have tweets in this zone
+    const { data: profileData } = await supabase
+      .from("twitter_profiles")
+      .select("*")
+      .eq("username", username)
+      .in("id", profileIdsInZone)
+      .single();
+
+    if (!profileData) {
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: `Profile @${username} not found in this zone. Make sure this user has tweets collected in this zone first.` 
+        },
+        { status: 404 }
+      );
+    }
+
+    const profile = profileData;
+    logger.info(`Found profile for @${username}`, { profile_id: profile.id });
 
     // =====================================================
     // STEP 2: ADD TAG

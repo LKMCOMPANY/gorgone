@@ -70,13 +70,13 @@ export function TwitterDataSourceTab({ zoneId }: TwitterDataSourceTabProps) {
       {/* Header */}
       <div className="space-y-1.5">
         <h3 className="text-heading-3 flex items-center gap-2">
-          <svg className="h-5 w-5 text-primary" fill="currentColor" viewBox="0 0 24 24">
+          <svg className="h-5 w-5 text-primary flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
             <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
           </svg>
-          Data Sources
+          <span>Data Sources</span>
         </h3>
         <p className="text-body-sm text-muted-foreground">
-          Configure monitoring rules to capture tweets matching your criteria
+          Configure monitoring rules to automatically capture tweets matching your criteria
         </p>
       </div>
 
@@ -84,8 +84,8 @@ export function TwitterDataSourceTab({ zoneId }: TwitterDataSourceTabProps) {
       {rules.length === 0 ? (
         <Card className="card-padding">
           <div className="rounded-lg border border-dashed border-border/60 bg-muted/20 p-12 sm:p-16">
-            <div className="text-center space-y-5">
-              <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center transition-all duration-[250ms] hover:scale-105 hover:bg-primary/15">
+            <div className="text-center space-y-4">
+              <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
                 <svg
                   className="w-8 h-8 text-primary"
                   fill="none"
@@ -104,7 +104,7 @@ export function TwitterDataSourceTab({ zoneId }: TwitterDataSourceTabProps) {
                   Create your first rule to start capturing tweets that match specific keywords, mentions, or criteria
                 </p>
               </div>
-              <Button onClick={handleCreateNew} className="gap-2 transition-all duration-[150ms]">
+              <Button onClick={handleCreateNew} className="gap-2">
                 <Plus className="h-4 w-4" />
                 Create First Rule
               </Button>
