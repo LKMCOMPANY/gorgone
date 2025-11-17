@@ -53,6 +53,7 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get("search") || undefined;
     const searchType = searchParams.get("search_type") as "keyword" | "user" | undefined;
     const sortBy = (searchParams.get("sort_by") || "recent") as SortOption;
+    const postType = searchParams.get("post_type") as "post" | "repost" | "reply" | "quote" | undefined;
     const profileTagType = searchParams.get("profile_tag_type") || undefined;
     const has_links = searchParams.get("has_links") === "true";
     const verified_only = searchParams.get("verified_only") === "true";
@@ -196,7 +197,30 @@ export async function GET(request: NextRequest) {
       throw error;
     }
 
-    const typedTweets = (tweets as any) as TwitterTweetWithProfile[] || [];
+    let typedTweets = (tweets as any) as TwitterTweetWithProfile[] || [];
+
+    // Filter by post type (analyze raw_data to determine type)
+    if (postType) {
+      typedTweets = typedTweets.filter((tweet) => {
+        const isRetweet = tweet.raw_data?.retweeted_tweet || tweet.text.startsWith("RT @");
+        const isQuote = !!tweet.raw_data?.quoted_tweet;
+        const isReply = tweet.is_reply;
+        const isPost = !isRetweet && !isQuote && !isReply;
+
+        switch (postType) {
+          case "post":
+            return isPost;
+          case "repost":
+            return isRetweet;
+          case "reply":
+            return isReply;
+          case "quote":
+            return isQuote;
+          default:
+            return true;
+        }
+      });
+    }
 
     // Fetch all profile tags in one query (more efficient than N queries)
     const uniqueProfileIds = [...new Set(typedTweets.map((t) => t.author_profile_id))];

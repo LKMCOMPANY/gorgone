@@ -44,6 +44,7 @@ export function TwitterFeedContent({ zoneId }: TwitterFeedContentProps) {
         params.append("search_type", filters.searchType || "keyword");
       }
       if (filters.sort_by) params.append("sort_by", filters.sort_by);
+      if (filters.post_type) params.append("post_type", filters.post_type);
       if (filters.profile_tag_type) params.append("profile_tag_type", filters.profile_tag_type);
       if (filters.has_links) params.append("has_links", "true");
       if (filters.verified_only) params.append("verified_only", "true");
@@ -170,7 +171,7 @@ export function TwitterFeedContent({ zoneId }: TwitterFeedContentProps) {
             <div className="space-y-2">
               <p className="text-body font-semibold">No tweets found</p>
               <p className="text-body-sm text-muted-foreground">
-                {filters.search || filters.has_links || filters.verified_only || filters.profile_tag_type || 
+                {filters.search || filters.post_type || filters.has_links || filters.verified_only || filters.profile_tag_type || 
                  filters.min_views || filters.min_retweets || filters.min_likes || filters.min_replies
                   ? "Try adjusting your filters or search criteria"
                   : "No tweets have been collected yet. Check your monitoring rules in settings."}

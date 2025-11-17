@@ -29,11 +29,13 @@ function debounce<T extends (...args: any[]) => any>(
 
 export type SortOption = "recent" | "most_views" | "most_retweets" | "most_replies" | "most_likes" | "most_engagement";
 export type ProfileTagType = "attila" | "adversary" | "surveillance" | "target" | "ally" | "asset" | "local_team";
+export type PostType = "post" | "repost" | "reply" | "quote";
 
 export interface TwitterFeedFilters {
   search?: string;
   searchType?: "keyword" | "user";
   sort_by?: SortOption;
+  post_type?: PostType;
   profile_tag_type?: ProfileTagType;
   has_links?: boolean;
   verified_only?: boolean;
@@ -136,6 +138,7 @@ export function TwitterFeedFilters({
 
   const getActiveFiltersCount = () => {
     let count = 0;
+    if (filters.post_type) count++;
     if (filters.profile_tag_type) count++;
     if (filters.has_links) count++;
     if (filters.verified_only) count++;
@@ -256,6 +259,28 @@ export function TwitterFeedFilters({
           </SelectContent>
         </Select>
 
+        {/* Post Type Filter */}
+        <Select
+          value={filters.post_type || "all"}
+          onValueChange={(value) =>
+            handleFilterChange("post_type", value === "all" ? undefined : (value as PostType))
+          }
+        >
+          <SelectTrigger className="h-9 w-[140px] transition-shadow duration-[150ms]">
+            <svg className="h-4 w-4 mr-2" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+            </svg>
+            <SelectValue placeholder="Post type" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Types</SelectItem>
+            <SelectItem value="post">Posts</SelectItem>
+            <SelectItem value="repost">Reposts</SelectItem>
+            <SelectItem value="reply">Replies</SelectItem>
+            <SelectItem value="quote">Quotes</SelectItem>
+          </SelectContent>
+        </Select>
+
         {/* Profile Type Filter */}
         <Select
           value={filters.profile_tag_type || "all"}
@@ -328,6 +353,22 @@ export function TwitterFeedFilters({
             {filters.search}
             <button
               onClick={handleClearSearch}
+              className="hover:text-foreground transition-colors duration-[150ms]"
+            >
+              <X className="h-3 w-3" />
+            </button>
+          </Badge>
+        )}
+
+        {/* Active Post Type Filter */}
+        {filters.post_type && (
+          <Badge variant="secondary" className="gap-2 capitalize">
+            <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+            </svg>
+            {filters.post_type}s
+            <button
+              onClick={() => handleFilterChange("post_type", undefined)}
               className="hover:text-foreground transition-colors duration-[150ms]"
             >
               <X className="h-3 w-3" />
