@@ -57,6 +57,7 @@ export async function GET(request: NextRequest) {
     const profileTagType = searchParams.get("profile_tag_type") || undefined;
     const has_links = searchParams.get("has_links") === "true";
     const verified_only = searchParams.get("verified_only") === "true";
+    const active_tracking_only = searchParams.get("active_tracking_only") === "true";
     const min_views = searchParams.get("min_views") ? parseInt(searchParams.get("min_views")!) : undefined;
     const min_retweets = searchParams.get("min_retweets") ? parseInt(searchParams.get("min_retweets")!) : undefined;
     const min_likes = searchParams.get("min_likes") ? parseInt(searchParams.get("min_likes")!) : undefined;
@@ -181,6 +182,29 @@ export async function GET(request: NextRequest) {
 
     if (startDate) {
       query = query.gte("twitter_created_at", startDate.toISOString());
+    }
+
+    // Filter by tracking status (active only)
+    if (active_tracking_only) {
+      // Get tweet IDs with active tracking (tier = 'hot')
+      const { data: activeTrackingTweets } = await supabase
+        .from("twitter_engagement_tracking")
+        .select("tweet_db_id")
+        .eq("tier", "hot");
+
+      if (activeTrackingTweets && activeTrackingTweets.length > 0) {
+        const activeTweetIds = activeTrackingTweets.map((t) => t.tweet_db_id);
+        query = query.in("id", activeTweetIds);
+      } else {
+        // No active tracking tweets - return empty
+        return NextResponse.json({
+          success: true,
+          tweets: [],
+          count: 0,
+          offset,
+          limit,
+        });
+      }
     }
 
     // Apply sorting

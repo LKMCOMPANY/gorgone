@@ -41,6 +41,7 @@ export function TwitterFeedContent({ zoneId }: TwitterFeedContentProps) {
     if (filters.profile_tag_type) params.append("profile_tag_type", filters.profile_tag_type);
     if (filters.has_links) params.append("has_links", "true");
     if (filters.verified_only) params.append("verified_only", "true");
+    if (filters.active_tracking_only) params.append("active_tracking_only", "true");
     if (filters.min_views) params.append("min_views", filters.min_views.toString());
     if (filters.min_retweets) params.append("min_retweets", filters.min_retweets.toString());
     if (filters.min_likes) params.append("min_likes", filters.min_likes.toString());

@@ -56,3 +56,19 @@ export function formatRelativeTime(dateString: string): string {
 
   return formatDate(dateString);
 }
+
+/**
+ * Format large numbers for compact display (1.5K, 2.3M, etc.)
+ * Centralized utility to avoid duplication across components
+ * @param num - Number to format
+ * @returns Formatted string (e.g., "1.5K", "2.3M")
+ */
+export function formatCompactNumber(num: number): string {
+  if (num >= 1000000) {
+    return (num / 1000000).toFixed(1).replace(/\.0$/, "") + "M";
+  }
+  if (num >= 1000) {
+    return (num / 1000).toFixed(1).replace(/\.0$/, "") + "K";
+  }
+  return num.toString();
+}

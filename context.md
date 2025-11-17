@@ -588,6 +588,9 @@ Complete real-time Twitter monitoring integration using twitterapi.io webhooks. 
 - `DELETE /api/twitter/profiles/tags` - Remove tag
 - `POST /api/webhooks/twitter` - Receive tweets + trigger engagement tracking
 - `POST /api/twitter/engagement/track-lot` - Process engagement updates for tweet lot
+- `GET /api/twitter/feed` - Fetch tweets with filters (including active tracking filter)
+- `GET /api/twitter/engagement/[tweetId]` - Get engagement history + predictions + status
+- `POST /api/twitter/engagement/snapshot` - Create manual engagement snapshot
 
 **UI Components** (`components/dashboard/zones/twitter/`):
 - `twitter-settings-tab.tsx` - Container with sub-tabs
@@ -596,6 +599,10 @@ Complete real-time Twitter monitoring integration using twitterapi.io webhooks. 
 - `twitter-rule-dialog.tsx` - Create/edit rule modal
 - `twitter-query-builder.tsx` - Visual query builder with tags
 - `twitter-tracked-profiles-tab.tsx` - Profile tagging interface (7 labels)
+- `twitter-feed-card.tsx` - Tweet display with engagement chart integration
+- `twitter-feed-content.tsx` - Feed container with infinite scroll
+- `twitter-feed-filters.tsx` - Advanced filtering system
+- `twitter-engagement-chart.tsx` - Engagement evolution visualization with predictions
 
 **Worker** (`lib/workers/twitter/`):
 - `deduplicator.ts` - Process incoming tweets, normalize profiles, extract entities
@@ -623,12 +630,17 @@ Complete real-time Twitter monitoring integration using twitterapi.io webhooks. 
 - 🟣 Asset - Information sources
 - 🔷 Local Team - Internal contacts
 
+**Completed Features**:
+- ✅ Feed UI with tweet cards + engagement evolution charts
+- ✅ Advanced filters (date, engagement, verified, tracking status, post type, profile tags)
+- ✅ Real-time engagement tracking with manual refresh
+- ✅ Tracking status display (Active/Paused badges)
+- ✅ Prediction visualization (3-hour forecasts)
+
 **Future Features** (prepared):
-- Feed UI with tweet cards + engagement curves
 - Profiles tab with stats + ratios
 - Thread Mapping with diagram view
 - 3D Opinion Mapping (UMAP vectorization - embedding column ready)
-- Advanced filters (date, engagement, verified status)
 - Real-time alerts (acceleration, peaks)
 
 **Documentation**:
@@ -824,10 +836,12 @@ Users are created manually by Super Admins via the Admin API:
    - Real-time webhook reception
    - Deduplication + entity extraction
    - Engagement tracking (tiered strategy)
+   - Engagement evolution charts with predictions
+   - Feed with advanced filters and tracking status
    - 8 tables, 5 materialized views, 2 regular views
    - 9 data layer modules + API client + worker
-   - 6 UI components
-   - 5 API routes
+   - 7 UI components (including engagement chart)
+   - 7 API routes (including engagement endpoints)
 6. ✅ **Design System**: Professional government-grade CSS variables with elegant card patterns
 7. ✅ **UI Components**: Toast notifications, elegant shimmer skeletons, responsive layouts
 8. ✅ **Data Layer**: Centralized data access with type safety
@@ -904,9 +918,6 @@ Users are created manually by Super Admins via the Admin API:
 - **`env.template`**: Environment variables template
 
 ### Module Documentation
-- **`CLIENTS_IMPLEMENTATION.md`**: Client management module architecture
-- **`ZONES_IMPLEMENTATION.md`**: Zone management module architecture
 - **`TWITTER_INTEGRATION.md`**: Twitter integration technical documentation
-- **`UI_POLISH_ZONES.md`**: UI polish and design refinements
-- **`OPTIMIZATIONS.md`**: Performance optimizations and improvements
+- **`ENGAGEMENT_EVOLUTION_FEATURE.md`**: Engagement charts and tracking status feature
 - **`LOADING_STATES.md`**: Loading states and skeleton patterns

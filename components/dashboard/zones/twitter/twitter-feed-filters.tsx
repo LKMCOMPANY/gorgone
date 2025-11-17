@@ -39,6 +39,7 @@ export interface TwitterFeedFilters {
   profile_tag_type?: ProfileTagType;
   has_links?: boolean;
   verified_only?: boolean;
+  active_tracking_only?: boolean;
   min_views?: number;
   min_retweets?: number;
   min_likes?: number;
@@ -142,6 +143,7 @@ export function TwitterFeedFilters({
     if (filters.profile_tag_type) count++;
     if (filters.has_links) count++;
     if (filters.verified_only) count++;
+    if (filters.active_tracking_only) count++;
     if (filters.min_views) count++;
     if (filters.min_retweets) count++;
     if (filters.min_likes) count++;
@@ -469,6 +471,45 @@ export function TwitterFeedFilters({
                 )}
               </div>
               <span className="text-body-sm font-medium">Verified Only</span>
+            </button>
+
+            <button
+              onClick={() =>
+                handleFilterChange(
+                  "active_tracking_only",
+                  !filters.active_tracking_only || undefined
+                )
+              }
+              className={cn(
+                "flex items-center gap-3 p-3 rounded-lg border transition-all duration-[150ms]",
+                filters.active_tracking_only
+                  ? "border-primary bg-primary/5 text-primary"
+                  : "border-border hover:border-primary/50 hover:bg-muted/30"
+              )}
+            >
+              <div
+                className={cn(
+                  "h-4 w-4 rounded border-2 flex items-center justify-center transition-all duration-[150ms]",
+                  filters.active_tracking_only
+                    ? "border-primary bg-primary"
+                    : "border-muted-foreground"
+                )}
+              >
+                {filters.active_tracking_only && (
+                  <svg
+                    className="h-3 w-3 text-white"
+                    fill="none"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="3"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path d="M5 13l4 4L19 7" />
+                  </svg>
+                )}
+              </div>
+              <span className="text-body-sm font-medium">Active Tracking Only</span>
             </button>
           </div>
 

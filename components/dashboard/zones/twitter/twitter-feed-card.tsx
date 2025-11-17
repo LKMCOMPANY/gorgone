@@ -1,13 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { ExternalLink, MessageCircle, Repeat2, Heart, BarChart3, Play } from "lucide-react";
+import { ExternalLink, Play } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { TwitterTweetWithProfile, TwitterProfileZoneTag } from "@/types";
 import { formatDistanceToNow } from "date-fns";
 import { TwitterFormattedText } from "./twitter-formatted-text";
+import { TwitterEngagementChart } from "./twitter-engagement-chart";
 
 interface TwitterFeedCardProps {
   tweet: TwitterTweetWithProfile;
@@ -32,17 +33,6 @@ const TAG_COLORS: Record<string, { bg: string; text: string; border: string }> =
   asset: { bg: "bg-purple-500/10", text: "text-purple-700 dark:text-purple-400", border: "border-purple-500/20" },
   local_team: { bg: "bg-cyan-500/10", text: "text-cyan-700 dark:text-cyan-400", border: "border-cyan-500/20" },
 };
-
-// Format large numbers (1.5K, 2.3M, etc.)
-function formatNumber(num: number): string {
-  if (num >= 1000000) {
-    return (num / 1000000).toFixed(1) + "M";
-  }
-  if (num >= 1000) {
-    return (num / 1000).toFixed(1) + "K";
-  }
-  return num.toString();
-}
 
 // Get post type from tweet data
 function getPostType(tweet: TwitterTweetWithProfile): string {
@@ -219,9 +209,9 @@ export function TwitterFeedCard({ tweet, tags = [] }: TwitterFeedCardProps) {
         )}
       </div>
 
-      {/* Content Area - 50% Layout (will be used later for engagement curves) */}
+      {/* Content Area - Responsive Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-2">
-        {/* Left Side - Tweet Content (50%) */}
+        {/* Tweet Content */}
         <div className="p-4 sm:p-6 space-y-4">
           {/* Author Info */}
           <div className="flex items-start gap-3">
@@ -408,71 +398,11 @@ export function TwitterFeedCard({ tweet, tags = [] }: TwitterFeedCardProps) {
             </div>
           )}
 
-          {/* Engagement Stats */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4 border-t border-border/60">
-            {/* Replies */}
-            <div className="flex items-center gap-2">
-              <div className="p-2 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400">
-                <MessageCircle className="h-4 w-4" />
-              </div>
-              <div>
-                <p className="text-body-sm font-semibold">{formatNumber(tweet.reply_count)}</p>
-                <p className="text-caption text-muted-foreground">Replies</p>
-              </div>
-            </div>
-
-            {/* Retweets */}
-            <div className="flex items-center gap-2">
-              <div className="p-2 rounded-lg bg-green-500/10 text-green-600 dark:text-green-400">
-                <Repeat2 className="h-4 w-4" />
-              </div>
-              <div>
-                <p className="text-body-sm font-semibold">{formatNumber(tweet.retweet_count)}</p>
-                <p className="text-caption text-muted-foreground">Retweets</p>
-              </div>
-            </div>
-
-            {/* Likes */}
-            <div className="flex items-center gap-2">
-              <div className="p-2 rounded-lg bg-red-500/10 text-red-600 dark:text-red-400">
-                <Heart className="h-4 w-4" />
-              </div>
-              <div>
-                <p className="text-body-sm font-semibold">{formatNumber(tweet.like_count)}</p>
-                <p className="text-caption text-muted-foreground">Likes</p>
-              </div>
-            </div>
-
-            {/* Views */}
-            {tweet.view_count > 0 && (
-              <div className="flex items-center gap-2">
-                <div className="p-2 rounded-lg bg-purple-500/10 text-purple-600 dark:text-purple-400">
-                  <BarChart3 className="h-4 w-4" />
-                </div>
-                <div>
-                  <p className="text-body-sm font-semibold">{formatNumber(tweet.view_count)}</p>
-                  <p className="text-caption text-muted-foreground">Views</p>
-                </div>
-              </div>
-            )}
-          </div>
         </div>
 
-        {/* Right Side - Engagement Curves (50%) - Placeholder */}
-        <div className="hidden lg:block border-l border-border/60 bg-muted/10">
-          <div className="p-6 h-full flex items-center justify-center">
-            <div className="text-center space-y-3 max-w-xs">
-              <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-                <BarChart3 className="h-8 w-8 text-primary" />
-              </div>
-              <div className="space-y-1">
-                <p className="text-body-sm font-medium">Engagement Curves</p>
-                <p className="text-caption text-muted-foreground">
-                  Historical data and predictions will be displayed here
-                </p>
-              </div>
-            </div>
-          </div>
+        {/* Engagement Chart - Right Side Desktop, Bottom Mobile */}
+        <div className="border-t lg:border-t-0 lg:border-l border-border/60 p-4 sm:p-6 bg-muted/5">
+          <TwitterEngagementChart tweetId={tweet.id} />
         </div>
       </div>
     </Card>
