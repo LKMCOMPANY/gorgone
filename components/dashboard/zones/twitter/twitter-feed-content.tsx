@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { TwitterFeedFilters, type TwitterFeedFilters as Filters } from "./twitter-feed-filters";
 import { TwitterFeedCard } from "./twitter-feed-card";
-import { Button } from "@/components/ui/button";
-import { Loader2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import type { TwitterTweetWithProfile, TwitterProfileZoneTag } from "@/types";
 
 interface FeedTweetWithTags extends TwitterTweetWithProfile {
@@ -18,44 +17,48 @@ interface TwitterFeedContentProps {
 export function TwitterFeedContent({ zoneId }: TwitterFeedContentProps) {
   const [tweets, setTweets] = useState<FeedTweetWithTags[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [filters, setFilters] = useState<Filters>({});
   const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(true);
+  const observerRef = useRef<HTMLDivElement>(null);
   const limit = 20;
 
-  // Fetch tweets when filters or offset change
-  useEffect(() => {
-    loadTweets();
-  }, [zoneId, filters, offset]);
+  // Fetch tweets from API
+  const fetchTweets = useCallback(async (currentOffset: number) => {
+    const params = new URLSearchParams({
+      zone_id: zoneId,
+      limit: limit.toString(),
+      offset: currentOffset.toString(),
+    });
 
-  async function loadTweets() {
+    if (filters.search) {
+      params.append("search", filters.search);
+      params.append("search_type", filters.searchType || "keyword");
+    }
+    if (filters.sort_by) params.append("sort_by", filters.sort_by);
+    if (filters.post_type) params.append("post_type", filters.post_type);
+    if (filters.profile_tag_type) params.append("profile_tag_type", filters.profile_tag_type);
+    if (filters.has_links) params.append("has_links", "true");
+    if (filters.verified_only) params.append("verified_only", "true");
+    if (filters.min_views) params.append("min_views", filters.min_views.toString());
+    if (filters.min_retweets) params.append("min_retweets", filters.min_retweets.toString());
+    if (filters.min_likes) params.append("min_likes", filters.min_likes.toString());
+    if (filters.min_replies) params.append("min_replies", filters.min_replies.toString());
+    if (filters.date_range) params.append("date_range", filters.date_range);
+
+    const response = await fetch(`/api/twitter/feed?${params.toString()}`);
+    return await response.json();
+  }, [zoneId, filters]);
+
+  // Load initial tweets
+  const loadInitialTweets = useCallback(async () => {
     try {
       setLoading(true);
+      setOffset(0);
+      setTweets([]);
 
-      // Build query params
-      const params = new URLSearchParams({
-        zone_id: zoneId,
-        limit: limit.toString(),
-        offset: offset.toString(),
-      });
-
-      if (filters.search) {
-        params.append("search", filters.search);
-        params.append("search_type", filters.searchType || "keyword");
-      }
-      if (filters.sort_by) params.append("sort_by", filters.sort_by);
-      if (filters.post_type) params.append("post_type", filters.post_type);
-      if (filters.profile_tag_type) params.append("profile_tag_type", filters.profile_tag_type);
-      if (filters.has_links) params.append("has_links", "true");
-      if (filters.verified_only) params.append("verified_only", "true");
-      if (filters.min_views) params.append("min_views", filters.min_views.toString());
-      if (filters.min_retweets) params.append("min_retweets", filters.min_retweets.toString());
-      if (filters.min_likes) params.append("min_likes", filters.min_likes.toString());
-      if (filters.min_replies) params.append("min_replies", filters.min_replies.toString());
-      if (filters.date_range) params.append("date_range", filters.date_range);
-
-      const response = await fetch(`/api/twitter/feed?${params.toString()}`);
-      const data = await response.json();
+      const data = await fetchTweets(0);
 
       if (data.success) {
         setTweets(data.tweets || []);
@@ -72,28 +75,67 @@ export function TwitterFeedContent({ zoneId }: TwitterFeedContentProps) {
     } finally {
       setLoading(false);
     }
-  }
+  }, [fetchTweets]);
+
+  // Load more tweets (infinite scroll)
+  const loadMoreTweets = useCallback(async () => {
+    if (!hasMore || loadingMore) return;
+
+    try {
+      setLoadingMore(true);
+      const newOffset = offset + limit;
+
+      const data = await fetchTweets(newOffset);
+
+      if (data.success) {
+        const newTweets = data.tweets || [];
+        setTweets((prev) => [...prev, ...newTweets]);
+        setOffset(newOffset);
+        setHasMore(newTweets.length === limit);
+      } else {
+        setHasMore(false);
+      }
+    } catch (error) {
+      console.error("Failed to load more tweets:", error);
+      setHasMore(false);
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [hasMore, loadingMore, offset, fetchTweets]);
+
+  // Load initial tweets when filters change
+  useEffect(() => {
+    loadInitialTweets();
+  }, [loadInitialTweets]);
+
+  // Intersection Observer for infinite scroll
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const first = entries[0];
+        if (first.isIntersecting && hasMore && !loading && !loadingMore) {
+          loadMoreTweets();
+        }
+      },
+      { threshold: 0.1, rootMargin: "100px" }
+    );
+
+    const currentRef = observerRef.current;
+    if (currentRef) {
+      observer.observe(currentRef);
+    }
+
+    return () => {
+      if (currentRef) {
+        observer.unobserve(currentRef);
+      }
+    };
+  }, [hasMore, loading, loadingMore, loadMoreTweets]);
 
   function handleFiltersChange(newFilters: Filters) {
     setFilters(newFilters);
-    setOffset(0); // Reset to first page when filters change
+    // Reset is handled by useEffect dependency on loadInitialTweets
   }
-
-  function handlePreviousPage() {
-    if (offset >= limit) {
-      setOffset(offset - limit);
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-  }
-
-  function handleNextPage() {
-    if (hasMore) {
-      setOffset(offset + limit);
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-  }
-
-  const currentPage = Math.floor(offset / limit) + 1;
 
   return (
     <div className="space-y-6">
@@ -108,14 +150,16 @@ export function TwitterFeedContent({ zoneId }: TwitterFeedContentProps) {
       {!loading && tweets.length > 0 && (
         <div className="flex items-center justify-between text-body-sm text-muted-foreground">
           <p>
-            Showing {offset + 1} - {offset + tweets.length} tweets{" "}
+            Showing {tweets.length} tweet{tweets.length !== 1 ? 's' : ''}{" "}
             {filters.search && (
               <span>
                 for <span className="font-medium text-foreground">&quot;{filters.search}&quot;</span>
               </span>
             )}
           </p>
-          <p className="hidden sm:block">Page {currentPage}</p>
+          {hasMore && (
+            <p className="hidden sm:block text-caption">Scroll for more</p>
+          )}
         </div>
       )}
 
@@ -183,56 +227,34 @@ export function TwitterFeedContent({ zoneId }: TwitterFeedContentProps) {
 
       {/* Feed Cards */}
       {!loading && tweets.length > 0 && (
-        <div className="space-y-4">
-          {tweets.map((tweet) => (
-            <TwitterFeedCard
-              key={tweet.id}
-              tweet={tweet}
-              tags={tweet.profile_tags}
-            />
-          ))}
-        </div>
-      )}
-
-      {/* Pagination */}
-      {!loading && tweets.length > 0 && (
-        <div className="flex items-center justify-between pt-4 border-t border-border">
-          <Button
-            variant="outline"
-            onClick={handlePreviousPage}
-            disabled={offset === 0}
-            className="gap-2"
-          >
-            <ChevronLeft className="h-4 w-4" />
-            <span className="hidden sm:inline">Previous</span>
-          </Button>
-
-          <div className="flex items-center gap-2">
-            <span className="text-body-sm text-muted-foreground">
-              Page {currentPage}
-            </span>
+        <>
+          <div className="space-y-4">
+            {tweets.map((tweet) => (
+              <TwitterFeedCard
+                key={tweet.id}
+                tweet={tweet}
+                tags={tweet.profile_tags}
+              />
+            ))}
           </div>
 
-          <Button
-            variant="outline"
-            onClick={handleNextPage}
-            disabled={!hasMore}
-            className="gap-2"
-          >
-            <span className="hidden sm:inline">Next</span>
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
-      )}
-
-      {/* Load More Button (Alternative to Pagination) */}
-      {!loading && tweets.length > 0 && hasMore && offset === 0 && (
-        <div className="flex justify-center pt-4">
-          <Button onClick={handleNextPage} variant="outline" className="gap-2">
-            Load more tweets
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
+          {/* Infinite Scroll Trigger */}
+          <div ref={observerRef} className="py-8">
+            {loadingMore && (
+              <div className="flex flex-col items-center gap-3">
+                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                <p className="text-body-sm text-muted-foreground">Loading more tweets...</p>
+              </div>
+            )}
+            {!loadingMore && !hasMore && (
+              <div className="text-center py-4">
+                <p className="text-body-sm text-muted-foreground">
+                  No more tweets to load
+                </p>
+              </div>
+            )}
+          </div>
+        </>
       )}
     </div>
   );
