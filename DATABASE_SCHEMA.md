@@ -490,6 +490,114 @@ Share of Voice by profile tag type.
 
 ---
 
+### 13. `public.twitter_tweet_projections`
+
+3D coordinates for opinion map visualization.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| `id` | UUID | PK, DEFAULT gen_random_uuid() | Projection ID |
+| `tweet_db_id` | UUID | FK to twitter_tweets, NOT NULL | Tweet reference |
+| `zone_id` | UUID | FK to zones, NOT NULL | Parent zone |
+| `session_id` | TEXT | NOT NULL | Session identifier |
+| `x` | NUMERIC | NOT NULL | 3D X coordinate (0-100) |
+| `y` | NUMERIC | NOT NULL | 3D Y coordinate (0-100) |
+| `z` | NUMERIC | NOT NULL | 3D Z coordinate (0-100) |
+| `cluster_id` | INTEGER | NOT NULL | K-means cluster (-1 outliers) |
+| `cluster_confidence` | NUMERIC | 0-1 range | Assignment confidence |
+| `is_outlier` | BOOLEAN | DEFAULT FALSE | Outlier flag |
+| `created_at` | TIMESTAMPTZ | DEFAULT NOW() | |
+| `updated_at` | TIMESTAMPTZ | DEFAULT NOW() | |
+
+**Indexes** (3):
+- Primary key on `id`
+- Composite on `(zone_id, session_id)` - Session queries
+- Composite on `(session_id, cluster_id)` - Cluster filtering
+- Index on `session_id`
+
+**Unique Constraint**: `(tweet_db_id, session_id)` - One projection per session
+
+**RLS**: Enabled
+
+---
+
+### 14. `public.twitter_opinion_clusters`
+
+Cluster metadata and AI-generated labels.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| `id` | UUID | PK, DEFAULT gen_random_uuid() | Cluster ID |
+| `zone_id` | UUID | FK to zones, NOT NULL | Parent zone |
+| `session_id` | TEXT | NOT NULL | Session identifier |
+| `cluster_id` | INTEGER | NOT NULL | Cluster number (0+) |
+| `label` | TEXT | NOT NULL | AI-generated label |
+| `keywords` | TEXT[] | DEFAULT '{}' | Representative keywords |
+| `reasoning` | TEXT | NULLABLE | AI explanation |
+| `tweet_count` | INTEGER | DEFAULT 0 | Tweets in cluster |
+| `centroid_x` | NUMERIC | NOT NULL | 3D centroid X |
+| `centroid_y` | NUMERIC | NOT NULL | 3D centroid Y |
+| `centroid_z` | NUMERIC | NOT NULL | 3D centroid Z |
+| `avg_sentiment` | NUMERIC | -1 to 1 range | Average sentiment |
+| `coherence_score` | NUMERIC | 0-1 range | Cluster quality |
+| `created_at` | TIMESTAMPTZ | DEFAULT NOW() | |
+| `updated_at` | TIMESTAMPTZ | DEFAULT NOW() | |
+
+**Indexes** (3):
+- Primary key on `id`
+- Composite on `(zone_id, session_id)` - Session queries
+- Index on `session_id`
+- Composite on `(session_id, tweet_count DESC)` - Size ranking
+
+**Unique Constraint**: `(zone_id, session_id, cluster_id)` - One cluster per session
+
+**RLS**: Enabled
+
+---
+
+### 15. `public.twitter_opinion_sessions`
+
+Opinion map generation job tracking.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| `id` | UUID | PK, DEFAULT gen_random_uuid() | Session ID |
+| `zone_id` | UUID | FK to zones, NOT NULL | Parent zone |
+| `session_id` | TEXT | UNIQUE, NOT NULL | Session identifier |
+| `status` | TEXT | CHECK (8 states) | pending \| vectorizing \| reducing \| clustering \| labeling \| completed \| failed \| cancelled |
+| `progress` | INTEGER | 0-100 range | Progress percentage |
+| `current_phase` | TEXT | NULLABLE | Current phase name |
+| `phase_message` | TEXT | NULLABLE | User-friendly message |
+| `config` | JSONB | DEFAULT '{}' | Job configuration |
+| `total_tweets` | INTEGER | NULLABLE | Total tweets to process |
+| `vectorized_tweets` | INTEGER | DEFAULT 0 | Tweets vectorized |
+| `total_clusters` | INTEGER | NULLABLE | Clusters found |
+| `outlier_count` | INTEGER | NULLABLE | Outlier count |
+| `execution_time_ms` | INTEGER | NULLABLE | Total execution time |
+| `error_message` | TEXT | NULLABLE | Error description |
+| `error_stack` | TEXT | NULLABLE | Stack trace |
+| `started_at` | TIMESTAMPTZ | NULLABLE | Job start time |
+| `completed_at` | TIMESTAMPTZ | NULLABLE | Job completion time |
+| `created_at` | TIMESTAMPTZ | DEFAULT NOW() | |
+| `created_by` | UUID | FK to auth.users | Creator |
+
+**Indexes** (3):
+- Primary key on `id`
+- Unique on `session_id`
+- Composite on `(zone_id, created_at DESC)` - Latest session
+- Partial on `(status, created_at DESC)` WHERE active - Running jobs
+- Partial on `(zone_id, completed_at DESC)` WHERE completed - Completed jobs
+
+**Unique Constraint**: Only one active (non-terminal) session per zone
+
+**RLS**: Enabled
+
+**Triggers**:
+- Auto-update `updated_at` on tables update
+- Auto-cleanup old sessions when new session completes (keep only active)
+
+---
+
 ## Regular Views
 
 ### 1. `twitter_threads_with_context`

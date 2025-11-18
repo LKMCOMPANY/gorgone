@@ -31,6 +31,9 @@ export {
   updateZoneDataSources,
 } from "./zones";
 
+// Re-export Twitter opinion map functions
+export * from "./twitter/opinion-map";
+
 /**
  * Fetch monitoring data
  */

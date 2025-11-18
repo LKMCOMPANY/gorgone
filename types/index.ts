@@ -624,3 +624,168 @@ export const TWITTER_PERIOD_HOURS: Record<TwitterTimePeriod, number> = {
   "7d": 168,
   "30d": 720,
 };
+
+// ============================================================================
+// OPINION MAP TYPES
+// ============================================================================
+
+// Opinion Session Status
+export type OpinionSessionStatus =
+  | "pending"
+  | "vectorizing"
+  | "reducing"
+  | "clustering"
+  | "labeling"
+  | "completed"
+  | "failed"
+  | "cancelled";
+
+// Tweet Projection (3D coordinates + cluster)
+export interface TwitterTweetProjection {
+  id: string;
+  tweet_db_id: string;
+  zone_id: string;
+  session_id: string;
+  x: number; // 0-100 normalized
+  y: number; // 0-100 normalized
+  z: number; // 0-100 normalized
+  cluster_id: number;
+  cluster_confidence: number; // 0-1
+  created_at: string;
+}
+
+// Tweet Projection with full tweet data (for UI)
+export interface TwitterTweetProjectionWithTweet extends TwitterTweetProjection {
+  tweet: TwitterTweetWithProfile;
+}
+
+// Opinion Cluster Metadata
+export interface TwitterOpinionCluster {
+  id: string;
+  zone_id: string;
+  session_id: string;
+  cluster_id: number;
+  label: string;
+  keywords: string[];
+  reasoning: string | null;
+  tweet_count: number;
+  centroid_x: number; // 0-100 normalized
+  centroid_y: number; // 0-100 normalized
+  centroid_z: number; // 0-100 normalized
+  avg_sentiment: number | null; // -1 to 1
+  coherence_score: number | null; // 0-1
+  created_at: string;
+}
+
+// Opinion Session (job tracking)
+export interface TwitterOpinionSession {
+  id: string;
+  zone_id: string;
+  session_id: string;
+  status: OpinionSessionStatus;
+  progress: number; // 0-100
+  current_phase: string | null;
+  phase_message: string | null;
+  config: OpinionSessionConfig;
+  total_tweets: number | null;
+  vectorized_tweets: number;
+  total_clusters: number | null;
+  outlier_count: number | null;
+  execution_time_ms: number | null;
+  error_message: string | null;
+  error_stack: string | null;
+  started_at: string | null;
+  completed_at: string | null;
+  created_at: string;
+  created_by: string | null;
+}
+
+// Opinion Session Configuration
+export interface OpinionSessionConfig {
+  start_date: string; // ISO 8601
+  end_date: string; // ISO 8601
+  sample_size: number;
+  sampled_tweet_ids?: string[];
+  actual_sample_size?: number;
+  enable_3d?: boolean;
+  sampling_strategy?: "stratified" | "uniform" | "hybrid";
+}
+
+// Opinion Evolution Data Point (for time series chart)
+export interface OpinionEvolutionData {
+  date: string; // YYYY-MM-DD or YYYY-MM-DD HH:00
+  [clusterKey: `cluster_${number}`]: number; // Tweet count per cluster
+}
+
+// Cluster Color Palette
+export const OPINION_CLUSTER_COLORS = [
+  "#0077BB", // Blue
+  "#EE7733", // Orange
+  "#009988", // Teal
+  "#CC3311", // Red
+  "#33BBEE", // Cyan
+  "#EE3377", // Magenta
+  "#BBBBBB", // Grey
+  "#000000", // Black
+  "#AA3377", // Purple
+  "#DDAA33", // Gold
+  "#004488", // Dark Blue
+  "#BB5566", // Rose
+] as const;
+
+// Get cluster color by index
+export function getOpinionClusterColor(clusterId: number): string {
+  return OPINION_CLUSTER_COLORS[clusterId % OPINION_CLUSTER_COLORS.length];
+}
+
+// Sampling Result
+export interface OpinionSamplingResult {
+  tweets: TwitterTweet[];
+  total_available: number;
+  sampled_count: number;
+  buckets_used: number;
+  cache_hit_rate?: number; // % of tweets already embedded
+}
+
+// Embedding Result (from OpenAI)
+export interface OpinionEmbeddingResult {
+  success: boolean;
+  embedding?: number[]; // 1536-dimensional vector
+  error?: string;
+  tokens_used?: number;
+}
+
+// Clustering Result (from K-means)
+export interface OpinionClusteringResult {
+  labels: number[]; // Cluster assignment per tweet
+  confidence: number[]; // Confidence score per tweet
+  centroids: number[][]; // Cluster centroids in 20D space
+  cluster_count: number;
+  outlier_count: number;
+  silhouette_score?: number; // Quality metric
+}
+
+// UMAP Projection Result
+export interface OpinionUMAPResult {
+  projections: number[][]; // [x, y, z] coordinates
+  processing_time_ms: number;
+  explained_variance?: number;
+}
+
+// AI Labeling Result
+export interface OpinionLabelingResult {
+  label: string;
+  keywords: string[];
+  sentiment: number; // -1 to 1
+  confidence: number; // 0-1
+  reasoning?: string;
+}
+
+// Selection State (for UI interactions)
+export type OpinionSelectionState =
+  | { type: "none" }
+  | { type: "selected"; tweetId: string; clusterId: number };
+
+// ============================================================================
+// END OPINION MAP TYPES
+// ============================================================================
