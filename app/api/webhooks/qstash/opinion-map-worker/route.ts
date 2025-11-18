@@ -134,7 +134,31 @@ export async function POST(request: NextRequest) {
       throw new Error('No vectorized tweets found')
     }
 
-    const embeddings = tweets.map(t => t.embedding as number[])
+    // Parse embeddings (Supabase returns vectors as strings)
+    const embeddings = tweets.map(t => {
+      const embedding = t.embedding
+      
+      // If string, parse it
+      if (typeof embedding === 'string') {
+        try {
+          return JSON.parse(embedding)
+        } catch {
+          // If parse fails, try to extract array from string
+          const match = embedding.match(/\[([\d\s,.-]+)\]/)
+          if (match) {
+            return match[1].split(',').map(Number)
+          }
+          throw new Error(`Invalid embedding format for tweet ${t.tweet_id}`)
+        }
+      }
+      
+      // If already array, return as is
+      if (Array.isArray(embedding)) {
+        return embedding
+      }
+      
+      throw new Error(`Unknown embedding format for tweet ${t.tweet_id}`)
+    })
 
     logger.info('[Opinion Map Worker] Embeddings fetched', {
       count: embeddings.length,
