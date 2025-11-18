@@ -6,7 +6,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react'
-import { createBrowserClient } from '@/lib/supabase/client'
+import { createClient } from '@/lib/supabase/client'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -47,7 +47,7 @@ export function TwitterOpinionMapView({ zoneId }: TwitterOpinionMapViewProps) {
   const [selection, setSelection] = useState<OpinionSelectionState>({ type: 'none' })
   const [activeTab, setActiveTab] = useState<'clusters' | 'tweets'>('clusters')
 
-  const supabase = createBrowserClient()
+  const supabase = createClient()
 
   // Load initial data
   useEffect(() => {
