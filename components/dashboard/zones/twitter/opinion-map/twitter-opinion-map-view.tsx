@@ -17,7 +17,14 @@ import { TwitterOpinionEvolutionChart } from './twitter-opinion-evolution-chart'
 import { TwitterOpinionClusterList } from './twitter-opinion-cluster-list'
 import { TwitterOpinionTweetSlider } from './twitter-opinion-tweet-slider'
 import { TwitterOpinionMapSkeleton } from './twitter-opinion-map-skeleton'
-import { generateTimeSeriesData } from '@/lib/data/twitter/opinion-map'
+import { calculateGranularity } from '@/lib/data/twitter/opinion-map/time-series'
+import { 
+  eachHourOfInterval,
+  eachDayOfInterval,
+  startOfHour,
+  startOfDay,
+  format
+} from 'date-fns'
 import type {
   EnrichedTwitterProjection,
   TwitterOpinionCluster,
@@ -25,7 +32,6 @@ import type {
   OpinionSelectionState,
   OpinionEvolutionData
 } from '@/types'
-import { logger } from '@/lib/logger'
 
 interface TwitterOpinionMapViewProps {
   zoneId: string
@@ -100,10 +106,10 @@ export function TwitterOpinionMapView({ zoneId }: TwitterOpinionMapViewProps) {
           setProjections(data.projections)
           setClusters(data.clusters)
 
-          // Generate time series data
+          // Generate time series data client-side
           const startDate = new Date(data.session.config.start_date)
           const endDate = new Date(data.session.config.end_date)
-          const timeSeries = generateTimeSeriesData(
+          const timeSeries = generateTimeSeriesDataClient(
             data.projections,
             data.clusters,
             startDate,
@@ -135,10 +141,10 @@ export function TwitterOpinionMapView({ zoneId }: TwitterOpinionMapViewProps) {
         setProjections(data.projections)
         setClusters(data.clusters)
 
-        // Generate time series
+        // Generate time series on client side
         const startDate = new Date(data.session.config.start_date)
         const endDate = new Date(data.session.config.end_date)
-        const timeSeries = generateTimeSeriesData(
+        const timeSeries = generateTimeSeriesDataClient(
           data.projections,
           data.clusters,
           startDate,
@@ -149,9 +155,58 @@ export function TwitterOpinionMapView({ zoneId }: TwitterOpinionMapViewProps) {
         toast.success('Opinion map generated successfully!')
       }
     } catch (error) {
-      logger.error('[Opinion Map] Failed to load results', { error })
+      console.error('[Opinion Map] Failed to load results', error)
       toast.error('Failed to load opinion map results')
     }
+  }
+
+  // Client-side time series generation
+  function generateTimeSeriesDataClient(
+    projections: EnrichedTwitterProjection[],
+    clusters: TwitterOpinionCluster[],
+    startDate: Date,
+    endDate: Date
+  ): OpinionEvolutionData[] {
+    const granularity = calculateGranularity(
+      Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))
+    )
+
+    // Generate buckets
+    const buckets = granularity === 'day'
+      ? eachDayOfInterval({ start: startDate, end: endDate })
+      : eachHourOfInterval({ start: startDate, end: endDate })
+
+    // Initialize data
+    const data: OpinionEvolutionData[] = buckets.map(bucket => {
+      const dataPoint: OpinionEvolutionData = {
+        date: format(bucket, granularity === 'day' ? 'MMM dd' : 'MMM dd HH:mm')
+      }
+      clusters.forEach(c => {
+        dataPoint[`cluster_${c.cluster_id}`] = 0
+      })
+      return dataPoint
+    })
+
+    // Count tweets per bucket/cluster
+    projections.forEach(proj => {
+      const tweetDate = new Date(proj.twitter_created_at)
+      const normalized = granularity === 'day' ? startOfDay(tweetDate) : startOfHour(tweetDate)
+      
+      const bucketIndex = buckets.findIndex(b => {
+        const bucketNorm = granularity === 'day' ? startOfDay(b) : startOfHour(b)
+        return bucketNorm.getTime() === normalized.getTime()
+      })
+
+      if (bucketIndex >= 0 && bucketIndex < data.length) {
+        const key = `cluster_${proj.cluster_id}` as keyof OpinionEvolutionData
+        const current = data[bucketIndex][key]
+        if (typeof current === 'number') {
+          data[bucketIndex][key] = current + 1
+        }
+      }
+    })
+
+    return data
   }
 
   const handleGenerate = async (config: {
