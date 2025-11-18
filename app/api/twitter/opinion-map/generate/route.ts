@@ -104,7 +104,11 @@ export async function POST(request: NextRequest) {
     )
 
     // Schedule QStash worker
-    const workerUrl = `${env.appUrl}/api/webhooks/qstash/opinion-map-worker`
+    // Use VERCEL_URL for preview deployments, fallback to env.appUrl for production
+    const baseUrl = process.env.VERCEL_URL 
+      ? `https://${process.env.VERCEL_URL}`
+      : env.appUrl
+    const workerUrl = `${baseUrl}/api/webhooks/qstash/opinion-map-worker`
 
     await qstash.publishJSON({
       url: workerUrl,
