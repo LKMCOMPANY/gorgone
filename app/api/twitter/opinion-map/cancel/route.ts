@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Authorize
-    const hasAccess = await canAccessZone(user, session.zone_id)
+    const hasAccess = await canAccessZone(user.id, session.zone_id)
     if (!hasAccess) {
       return NextResponse.json(
         { error: 'Access denied' },

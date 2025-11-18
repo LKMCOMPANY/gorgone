@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Authorize
-    const hasAccess = await canAccessZone(user, zone_id)
+    const hasAccess = await canAccessZone(user.id, zone_id)
     if (!hasAccess) {
       logger.warn('[Opinion Map] Access denied', {
         user_id: user.id,
@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
     )
 
     // Schedule QStash worker
-    const workerUrl = `${env.nextPublic.appUrl}/api/webhooks/qstash/opinion-map-worker`
+    const workerUrl = `${env.appUrl}/api/webhooks/qstash/opinion-map-worker`
 
     await qstash.publishJSON({
       url: workerUrl,

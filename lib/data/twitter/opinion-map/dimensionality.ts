@@ -42,14 +42,17 @@ export async function reducePCA(
     .slice(0, nComponents)
     .reduce((sum, v) => sum + v, 0)
 
+  // Convert to 2D array
+  const projections2D = projections.to2DArray()
+
   logger.info('[Opinion Map] PCA reduction complete', {
     processing_time_ms: processingTime,
     explained_variance: `${(totalVariance * 100).toFixed(1)}%`,
-    output_shape: `${projections.length} x ${nComponents}`
+    output_shape: `${projections2D.length} x ${nComponents}`
   })
 
   return {
-    projections: projections.to2DArray(),
+    projections: projections2D,
     explainedVariance,
     processingTime
   }
@@ -89,9 +92,7 @@ export async function reduceUMAP3D(
     nComponents: 3,
     nNeighbors: umapConfig.nNeighbors,
     minDist: umapConfig.minDist,
-    spread: umapConfig.spread,
-    metric: 'cosine', // Best for text embeddings
-    random: () => Math.random() // Deterministic if seeded
+    spread: umapConfig.spread
   })
 
   // Fit and transform

@@ -34,13 +34,13 @@ export function TwitterOpinionMapControls({
   const [period, setPeriod] = useState<TimePeriod>('24h')
   const [sampleSize, setSampleSize] = useState(10000)
 
-  const isGenerating = session && [
+  const isGenerating = Boolean(session && [
     'pending',
     'vectorizing',
     'reducing',
     'clustering',
     'labeling'
-  ].includes(session.status)
+  ].includes(session.status))
 
   const handleGenerateClick = () => {
     const now = new Date()

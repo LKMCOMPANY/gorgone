@@ -659,6 +659,28 @@ export interface TwitterTweetProjectionWithTweet extends TwitterTweetProjection 
   tweet: TwitterTweetWithProfile;
 }
 
+// Alias for enriched projections (used in opinion map UI)
+export type EnrichedTwitterProjection = TwitterTweetProjection & {
+  tweet_id: string
+  text: string
+  twitter_created_at: string
+  author_profile_id: string
+  retweet_count: number
+  reply_count: number
+  like_count: number
+  quote_count: number
+  view_count: number
+  total_engagement: number
+  has_media: boolean
+  has_links: boolean
+  has_hashtags: boolean
+  author_name: string
+  author_username: string
+  author_verified: boolean
+  author_followers_count: number
+  raw_data: Record<string, unknown>
+}
+
 // Opinion Cluster Metadata
 export interface TwitterOpinionCluster {
   id: string;
@@ -714,7 +736,7 @@ export interface OpinionSessionConfig {
 // Opinion Evolution Data Point (for time series chart)
 export interface OpinionEvolutionData {
   date: string; // YYYY-MM-DD or YYYY-MM-DD HH:00
-  [clusterKey: `cluster_${number}`]: number; // Tweet count per cluster
+  [key: string]: string | number; // Tweet count per cluster
 }
 
 // Cluster Color Palette

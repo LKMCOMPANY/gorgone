@@ -151,47 +151,43 @@ export function TwitterOpinionTweetSlider({
         </Button>
       </div>
 
-      {/* Tweet Card (reuse from feed) */}
+      {/* Tweet Card (simplified display) */}
       <div className="animate-in">
-        <TwitterFeedCard
-          tweet={{
-            id: currentTweet.tweet_db_id,
-            tweet_id: currentTweet.tweet_id,
-            text: currentTweet.text,
-            twitter_created_at: currentTweet.twitter_created_at,
-            retweet_count: currentTweet.retweet_count,
-            reply_count: currentTweet.reply_count,
-            like_count: currentTweet.like_count,
-            quote_count: currentTweet.quote_count,
-            view_count: currentTweet.view_count,
-            total_engagement: currentTweet.total_engagement,
-            has_media: currentTweet.has_media,
-            has_links: currentTweet.has_links,
-            has_hashtags: currentTweet.has_hashtags,
-            raw_data: currentTweet.raw_data,
-            zone_id: currentTweet.zone_id,
-            author_profile_id: currentTweet.author_profile_id,
-            conversation_id: null,
-            lang: null,
-            source: null,
-            collected_at: currentTweet.created_at,
-            has_mentions: false,
-            is_reply: false,
-            in_reply_to_tweet_id: null,
-            in_reply_to_user_id: null,
-            in_reply_to_username: null,
-            tweet_url: null,
-            twitter_url: null,
-            is_processed: true,
-            sentiment_score: null,
-            embedding: null,
-            embedding_model: null,
-            embedding_created_at: null,
-            created_at: currentTweet.created_at,
-            updated_at: currentTweet.created_at
-          }}
-          zone_id={zoneId}
-        />
+        <Card className="p-4">
+          <div className="space-y-3">
+            {/* Author */}
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                <span className="text-sm font-medium">
+                  {currentTweet.author_username?.charAt(0).toUpperCase()}
+                </span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-body-sm font-medium truncate">
+                  {currentTweet.author_name}
+                </p>
+                <p className="text-caption text-muted-foreground">
+                  @{currentTweet.author_username}
+                </p>
+              </div>
+            </div>
+
+            {/* Tweet text */}
+            <p className="text-body whitespace-pre-wrap">
+              {currentTweet.text}
+            </p>
+
+            {/* Engagement stats */}
+            <div className="flex items-center gap-4 text-caption text-muted-foreground">
+              <span>❤️ {currentTweet.like_count.toLocaleString()}</span>
+              <span>🔁 {currentTweet.retweet_count.toLocaleString()}</span>
+              <span>💬 {currentTweet.reply_count.toLocaleString()}</span>
+              {currentTweet.view_count > 0 && (
+                <span>👁️ {currentTweet.view_count.toLocaleString()}</span>
+              )}
+            </div>
+          </div>
+        </Card>
       </div>
 
       {/* Cluster confidence indicator */}

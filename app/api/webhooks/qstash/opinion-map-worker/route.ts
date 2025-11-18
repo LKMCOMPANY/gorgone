@@ -64,6 +64,10 @@ export async function POST(request: NextRequest) {
     await updateSessionProgress(sessionId, 'vectorizing', 0, 'Checking embeddings...')
 
     const tweetIds = session.config.sampled_tweet_ids
+    
+    if (!tweetIds || tweetIds.length === 0) {
+      throw new Error('No sampled tweet IDs in session config')
+    }
 
     const vectorizationResult = await ensureEmbeddings(tweetIds)
 
@@ -163,7 +167,7 @@ export async function POST(request: NextRequest) {
     const projectionsToSave = tweets.map((tweet, i) => ({
       tweet_db_id: tweet.id,
       zone_id: session.zone_id,
-      session_id: sessionId,
+      session_id: session.session_id,
       x: normalizedProjections[i][0],
       y: normalizedProjections[i][1],
       z: normalizedProjections[i][2],
@@ -221,7 +225,7 @@ export async function POST(request: NextRequest) {
 
       clustersToSave.push({
         zone_id: session.zone_id,
-        session_id: sessionId,
+        session_id: session.session_id,
         cluster_id: clusterId,
         label: label.label,
         keywords: label.keywords,
@@ -231,7 +235,7 @@ export async function POST(request: NextRequest) {
         centroid_z: centroidZ,
         avg_sentiment: label.sentiment,
         coherence_score: label.confidence,
-        reasoning: label.reasoning
+        reasoning: label.reasoning || null
       })
 
       labeled++

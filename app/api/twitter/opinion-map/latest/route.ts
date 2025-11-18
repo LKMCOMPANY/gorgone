@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Authorize
-    const hasAccess = await canAccessZone(user, zoneId)
+    const hasAccess = await canAccessZone(user.id, zoneId)
     if (!hasAccess) {
       return NextResponse.json(
         { error: 'Access denied' },
