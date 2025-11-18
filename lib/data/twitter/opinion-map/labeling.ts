@@ -63,7 +63,7 @@ CRITICAL: Respond with ONLY a valid JSON object. No markdown, no additional text
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
     try {
       const { text } = await generateText({
-        model: gateway('openai/gpt-4o-mini'),
+        model: gateway.languageModel('openai/gpt-4o-mini'),
         prompt,
         temperature: 0.3,
         maxTokens: 200
