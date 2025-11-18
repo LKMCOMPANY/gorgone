@@ -131,6 +131,7 @@ export async function POST(request: NextRequest) {
       })
       
       // Delete the session since worker won't run
+      const supabase = await createSupabaseClient()
       await supabase
         .from('twitter_opinion_sessions')
         .delete()
