@@ -5,7 +5,7 @@
 
 import { embed, embedMany } from 'ai'
 import { openai } from '@ai-sdk/openai'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { logger } from '@/lib/logger'
 import type { OpinionEmbeddingResult } from '@/types'
 
@@ -80,7 +80,7 @@ export async function getEmbeddingStats(
   needs_embedding: number
   cache_hit_rate: number
 }> {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   const { count: cached } = await supabase
     .from('twitter_tweets')
@@ -117,7 +117,7 @@ export async function ensureEmbeddings(
   failed: number
   cache_hit_rate: number
 }> {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   logger.info('[Vectorization] Ensuring embeddings', {
     tweet_count: tweetIds.length

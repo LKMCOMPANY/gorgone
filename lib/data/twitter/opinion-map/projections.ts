@@ -3,7 +3,7 @@
  * Manages 3D coordinates and cluster assignments
  */
 
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { logger } from '@/lib/logger'
 import type { TwitterTweetProjection, EnrichedTwitterProjection } from '@/types'
 
@@ -17,7 +17,7 @@ import type { TwitterTweetProjection, EnrichedTwitterProjection } from '@/types'
 export async function saveProjections(
   projections: Omit<TwitterTweetProjection, 'id' | 'created_at' | 'updated_at'>[]
 ): Promise<boolean> {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   logger.info('[Opinion Map] Saving projections', {
     count: projections.length
@@ -64,7 +64,7 @@ export async function getProjections(
   zoneId: string,
   sessionId: string
 ): Promise<TwitterTweetProjection[]> {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
     const { data, error } = await supabase
     .from('twitter_tweet_projections')
@@ -93,7 +93,7 @@ export async function getEnrichedProjections(
   zoneId: string,
   sessionId: string
 ): Promise<EnrichedTwitterProjection[]> {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   logger.debug('[Opinion Map] Fetching enriched projections', {
     zone_id: zoneId,
@@ -190,7 +190,7 @@ export async function getProjectionsByCluster(
   sessionId: string,
   clusterId: number
 ): Promise<TwitterTweetProjection[]> {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
     const { data, error } = await supabase
     .from('twitter_tweet_projections')

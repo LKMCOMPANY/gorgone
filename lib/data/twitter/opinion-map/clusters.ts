@@ -3,7 +3,7 @@
  * Manages cluster metadata and statistics
  */
 
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { logger } from '@/lib/logger'
 import type { TwitterOpinionCluster } from '@/types'
 
@@ -16,7 +16,7 @@ import type { TwitterOpinionCluster } from '@/types'
 export async function saveClusters(
   clusters: Omit<TwitterOpinionCluster, 'id' | 'created_at' | 'updated_at'>[]
 ): Promise<boolean> {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   logger.info('[Opinion Map] Saving clusters', {
     count: clusters.length
@@ -46,7 +46,7 @@ export async function getClusters(
   zoneId: string,
   sessionId: string
 ): Promise<TwitterOpinionCluster[]> {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
     const { data, error } = await supabase
     .from('twitter_opinion_clusters')
@@ -74,7 +74,7 @@ export async function getClusterById(
   sessionId: string,
   clusterId: number
 ): Promise<TwitterOpinionCluster | null> {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
     const { data, error } = await supabase
     .from('twitter_opinion_clusters')
