@@ -13,6 +13,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/logger'
+import { env } from '@/lib/env'
 import {
   getSessionById,
   updateSessionProgress,
@@ -31,7 +32,37 @@ export async function POST(request: NextRequest) {
   let sessionId: string | null = null
 
   try {
-    // Parse payload
+    // =====================================================
+    // SECURITY: Verify request is from QStash
+    // =====================================================
+    
+    const qstashSignature = request.headers.get("upstash-signature")
+    
+    if (!qstashSignature) {
+      // Allow manual testing with Bearer token
+      const authHeader = request.headers.get("authorization")
+      
+      if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        logger.warn("[Opinion Map Worker] Unauthorized: Missing QStash signature")
+        return NextResponse.json(
+          { error: "Unauthorized: Missing QStash signature or auth token" },
+          { status: 401 }
+        )
+      }
+
+      const token = authHeader.substring(7)
+      if (token !== env.twitter.apiKey) {
+        return NextResponse.json(
+          { error: "Unauthorized: Invalid API key" },
+          { status: 401 }
+        )
+      }
+    }
+
+    // =====================================================
+    // PARSE PAYLOAD
+    // =====================================================
+    
     const { session_id } = await request.json()
     sessionId = session_id
 
