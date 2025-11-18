@@ -258,7 +258,7 @@ export function TwitterOpinionMapView({ zoneId }: TwitterOpinionMapViewProps) {
         description: `Estimated time: ${Math.ceil(data.estimated_time_seconds / 60)} minutes`
       })
     } catch (error) {
-      logger.error('[Opinion Map] Generation failed', { error })
+      console.error('[Opinion Map] Generation failed', error)
       toast.error('Failed to start opinion map generation', {
         description: error instanceof Error ? error.message : 'Unknown error'
       })
