@@ -4,6 +4,7 @@
  */
 
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { logger } from '@/lib/logger'
 import type { TwitterOpinionSession } from '@/types'
 
@@ -84,6 +85,7 @@ export async function getLatestSession(
 
 /**
  * Get session by session ID
+ * Uses admin client to bypass RLS (for workers without user context)
  * 
  * @param sessionId - Session ID
  * @returns Session or null
@@ -91,7 +93,7 @@ export async function getLatestSession(
 export async function getSessionById(
   sessionId: string
 ): Promise<TwitterOpinionSession | null> {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   const { data, error } = await supabase
     .from('twitter_opinion_sessions')
@@ -109,6 +111,7 @@ export async function getSessionById(
 
 /**
  * Update session progress
+ * Uses admin client to bypass RLS (for workers)
  * 
  * @param sessionId - Session ID
  * @param status - New status
@@ -121,7 +124,7 @@ export async function updateSessionProgress(
   progress: number,
   phaseMessage?: string
 ): Promise<void> {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   const updates: Partial<TwitterOpinionSession> = {
     status,
@@ -164,6 +167,7 @@ export async function updateSessionProgress(
 
 /**
  * Mark session as failed
+ * Uses admin client to bypass RLS
  * 
  * @param sessionId - Session ID
  * @param errorMessage - Error message
@@ -174,7 +178,7 @@ export async function markSessionFailed(
   errorMessage: string,
   errorStack?: string
 ): Promise<void> {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   await supabase
     .from('twitter_opinion_sessions')
