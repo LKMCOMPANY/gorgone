@@ -4,9 +4,15 @@
  */
 
 import { generateText } from 'ai'
-import { openai } from '@ai-sdk/openai'
+import { createGateway } from '@ai-sdk/gateway'
 import { logger } from '@/lib/logger'
 import type { OpinionLabelingResult } from '@/types'
+
+// Configure AI Gateway
+const gateway = createGateway({
+  apiKey: process.env.AI_GATEWAY_API_KEY,
+  baseURL: 'https://ai-gateway.vercel.sh/v1/ai'
+})
 
 const MAX_TWEETS_FOR_LABELING = 50
 const MAX_RETRIES = 3
@@ -56,9 +62,9 @@ CRITICAL: Respond with ONLY a valid JSON object. No markdown, no additional text
   // Retry with exponential backoff
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
     try {
-    const { text } = await generateText({
-        model: openai('gpt-4o-mini'),
-      prompt,
+      const { text } = await generateText({
+        model: gateway('openai/gpt-4o-mini'),
+        prompt,
         temperature: 0.3,
         maxTokens: 200
       })

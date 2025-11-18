@@ -4,10 +4,16 @@
  */
 
 import { embed, embedMany } from 'ai'
-import { openai } from '@ai-sdk/openai'
+import { createGateway } from '@ai-sdk/gateway'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { logger } from '@/lib/logger'
 import type { OpinionEmbeddingResult } from '@/types'
+
+// Configure AI Gateway
+const gateway = createGateway({
+  apiKey: process.env.AI_GATEWAY_API_KEY,
+  baseURL: 'https://ai-gateway.vercel.sh/v1/ai'
+})
 
 const EMBEDDING_MODEL = 'text-embedding-3-small'
 const MAX_CONTENT_LENGTH = 8000
@@ -190,8 +196,8 @@ export async function ensureEmbeddings(
       })
 
       // Generate embeddings (single API call for batch)
-        const result = await embedMany({
-        model: openai.embedding(EMBEDDING_MODEL),
+      const result = await embedMany({
+        model: gateway.embedding(`openai/${EMBEDDING_MODEL}`),
         values: contents
       })
 
@@ -278,7 +284,7 @@ export async function generateSingleEmbedding(
       : content
 
     const result = await embed({
-      model: openai.embedding(EMBEDDING_MODEL),
+      model: gateway.embedding(`openai/${EMBEDDING_MODEL}`),
       value: truncated
     })
 
