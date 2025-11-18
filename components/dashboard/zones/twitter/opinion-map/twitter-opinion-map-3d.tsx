@@ -7,11 +7,7 @@
 
 import { useRef, useMemo, useEffect, useState, useCallback } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import { OrbitControls } from 'three-stdlib'
-import { extend } from '@react-three/fiber'
-
-// Extend R3F with OrbitControls
-extend({ OrbitControls })
+import { OrbitControls } from '@react-three/drei'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { ZoomIn, ZoomOut, Maximize2, RotateCcw } from 'lucide-react'
@@ -276,8 +272,7 @@ export function TwitterOpinionMap3D({
 
       {/* 3D Canvas */}
       <Canvas camera={{ position: [50, 50, 100], fov: 50 }}>
-        <orbitControls
-          args={[camera, gl.domElement]}
+        <OrbitControls
           enableDamping
           dampingFactor={0.05}
           rotateSpeed={0.5}
