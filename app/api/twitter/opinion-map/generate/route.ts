@@ -9,6 +9,7 @@ import { canAccessZone } from '@/lib/auth/permissions'
 import { logger } from '@/lib/logger'
 import { Client } from '@upstash/qstash'
 import { env } from '@/lib/env'
+import { createClient as createSupabaseClient } from '@/lib/supabase/server'
 import {
   sampleTweetsStratified,
   createSession,
@@ -110,16 +111,33 @@ export async function POST(request: NextRequest) {
       : env.appUrl
     const workerUrl = `${baseUrl}/api/webhooks/qstash/opinion-map-worker`
 
-    await qstash.publishJSON({
-      url: workerUrl,
-      body: { session_id: session.session_id },
-      retries: 3
-    })
+    try {
+      const qstashResult = await qstash.publishJSON({
+        url: workerUrl,
+        body: { session_id: session.session_id },
+        retries: 3
+      })
 
-    logger.info('[Opinion Map] Worker scheduled', {
-      session_id: session.session_id,
-      worker_url: workerUrl
-    })
+      logger.info('[Opinion Map] Worker scheduled successfully', {
+        session_id: session.session_id,
+        worker_url: workerUrl,
+        message_id: qstashResult.messageId
+      })
+    } catch (qstashError) {
+      logger.error('[Opinion Map] Failed to schedule QStash worker', {
+        error: qstashError,
+        worker_url: workerUrl,
+        qstash_token: env.qstash.token ? 'present' : 'MISSING'
+      })
+      
+      // Delete the session since worker won't run
+      await supabase
+        .from('twitter_opinion_sessions')
+        .delete()
+        .eq('session_id', session.session_id)
+      
+      throw new Error('Failed to schedule background worker. Please try again.')
+    }
 
     // Estimate processing time
     const estimatedTimeSeconds = estimateProcessingTime(
