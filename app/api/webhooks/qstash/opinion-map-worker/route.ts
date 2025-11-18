@@ -11,7 +11,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { logger } from '@/lib/logger'
 import { env } from '@/lib/env'
 import {
@@ -122,7 +122,7 @@ export async function POST(request: NextRequest) {
     // FETCH EMBEDDINGS
     // ==================================================================
 
-    const supabase = await createClient()
+    const supabase = createAdminClient()
 
     const { data: tweets } = await supabase
       .from('twitter_tweets')
