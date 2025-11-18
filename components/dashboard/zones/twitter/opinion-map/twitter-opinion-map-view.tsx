@@ -119,7 +119,7 @@ export function TwitterOpinionMapView({ zoneId }: TwitterOpinionMapViewProps) {
         }
       }
     } catch (error) {
-      logger.error('[Opinion Map] Failed to load session', { error })
+      console.error('[Opinion Map] Failed to load session', error)
     } finally {
       setLoading(false)
     }
