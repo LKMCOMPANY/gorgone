@@ -148,6 +148,8 @@ export async function POST(request: NextRequest) {
   }
 }
 
+}
+
 /**
  * Estimate processing time based on tweet count and cache status
  */
