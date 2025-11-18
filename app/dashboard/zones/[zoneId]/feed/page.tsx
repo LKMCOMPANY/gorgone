@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { getZoneById } from "@/lib/data/zones";
 import { ZonePageHeader } from "@/components/dashboard/zones/zone-page-header";
-import { TwitterFeedContent } from "@/components/dashboard/zones/twitter/twitter-feed-content";
+import { TwitterFeedTabs } from "@/components/dashboard/zones/twitter/twitter-feed-tabs";
 
 interface FeedPageProps {
   params: Promise<{
@@ -9,12 +9,15 @@ interface FeedPageProps {
   }>;
   searchParams: Promise<{
     source?: string;
+    view?: string;
+    search?: string;
+    searchType?: string;
   }>;
 }
 
 export default async function FeedPage({ params, searchParams }: FeedPageProps) {
   const { zoneId } = await params;
-  const { source = "twitter" } = await searchParams;
+  const { source = "twitter", view = "feed", search, searchType } = await searchParams;
 
   const zone = await getZoneById(zoneId);
 
@@ -24,9 +27,9 @@ export default async function FeedPage({ params, searchParams }: FeedPageProps) 
 
   // Check if at least one data source is enabled
   const hasEnabledSources =
-    zone.data_sources.twitter ||
-    zone.data_sources.tiktok ||
-    zone.data_sources.media;
+    zone?.data_sources.twitter ||
+    zone?.data_sources.tiktok ||
+    zone?.data_sources.media;
 
   return (
     <div className="animate-in fade-in-0 duration-300" style={{ animationDelay: "50ms" }}>
@@ -64,9 +67,14 @@ export default async function FeedPage({ params, searchParams }: FeedPageProps) 
         </div>
       ) : (
         <div className="mt-8">
-          {/* Twitter Feed for now - will add other sources later */}
-          {source === "twitter" && zone.data_sources.twitter && (
-            <TwitterFeedContent zoneId={zoneId} />
+          {/* Twitter Content with Feed/Profiles tabs */}
+          {source === "twitter" && zone?.data_sources.twitter && (
+            <TwitterFeedTabs 
+              zoneId={zoneId}
+              initialView={view}
+              initialSearch={search}
+              initialSearchType={searchType as "keyword" | "user" | undefined}
+            />
           )}
 
           {/* Other sources placeholders */}

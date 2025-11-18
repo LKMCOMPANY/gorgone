@@ -599,10 +599,15 @@ Complete real-time Twitter monitoring integration using twitterapi.io webhooks. 
 - `twitter-rule-dialog.tsx` - Create/edit rule modal
 - `twitter-query-builder.tsx` - Visual query builder with tags
 - `twitter-tracked-profiles-tab.tsx` - Profile tagging interface (7 labels)
+- `twitter-feed-tabs.tsx` - Feed/Profiles navigation with URL-based routing
 - `twitter-feed-card.tsx` - Tweet display with engagement chart integration
 - `twitter-feed-content.tsx` - Feed container with infinite scroll
 - `twitter-feed-filters.tsx` - Advanced filtering system
 - `twitter-engagement-chart.tsx` - Engagement evolution visualization with predictions
+- `twitter-profiles-content.tsx` - Profiles container with infinite scroll
+- `twitter-profiles-filters.tsx` - Profile search and filtering system
+- `twitter-profile-card.tsx` - Profile display with stats tabs (50/50 layout)
+- `twitter-profiles-skeleton.tsx` - Loading state for profiles
 
 **Worker** (`lib/workers/twitter/`):
 - `deduplicator.ts` - Process incoming tweets, normalize profiles, extract entities
@@ -636,9 +641,12 @@ Complete real-time Twitter monitoring integration using twitterapi.io webhooks. 
 - ✅ Real-time engagement tracking with manual refresh
 - ✅ Tracking status display (Active/Paused badges)
 - ✅ Prediction visualization (3-hour forecasts)
+- ✅ **Profiles tab with complete stats + ratios** (NEW)
+- ✅ **Bidirectional navigation Feed ↔ Profiles** (NEW)
+- ✅ **Profile analytics with RPC SQL aggregation** (NEW)
+- ✅ **Government/Business badges + censorship alerts** (NEW)
 
 **Future Features** (prepared):
-- Profiles tab with stats + ratios
 - Thread Mapping with diagram view
 - 3D Opinion Mapping (UMAP vectorization - embedding column ready)
 - Real-time alerts (acceleration, peaks)

@@ -468,3 +468,150 @@ export async function updateProfileStats(profileId: string): Promise<void> {
   }
 }
 
+/**
+ * Interface for profile with aggregated stats
+ * Extended version of TwitterProfile with zone-specific statistics
+ */
+export interface TwitterProfileWithStats extends TwitterProfile {
+  tweet_count: number;
+  original_posts: number;
+  replies: number;
+  retweets: number;
+  total_engagement: number;
+  avg_engagement_per_tweet: number;
+  total_likes: number;
+  total_retweets: number;
+  total_replies: number;
+  total_quotes: number;
+  total_views: number;
+  reply_ratio: number;
+  retweet_ratio: number;
+  original_ratio: number;
+  tags: TwitterProfileZoneTag[];
+}
+
+/**
+ * Get profiles with aggregated statistics for a zone
+ * Optimized with SQL aggregation for high-performance
+ * 
+ * @param zoneId - Zone ID
+ * @param options - Filtering and pagination options
+ * @returns Array of profiles with stats
+ */
+export async function getProfilesWithStats(
+  zoneId: string,
+  options: {
+    limit?: number;
+    offset?: number;
+    sortBy?: "followers" | "engagement" | "tweets" | "recent";
+    search?: string;
+    profileTagType?: TwitterProfileTagType;
+    verified_only?: boolean;
+    min_followers?: number;
+    min_tweets?: number;
+  } = {}
+): Promise<TwitterProfileWithStats[]> {
+  try {
+    const supabase = createAdminClient();
+    const {
+      limit = 20,
+      offset = 0,
+      sortBy = "followers",
+      search,
+      profileTagType,
+      verified_only,
+      min_followers,
+      min_tweets,
+    } = options;
+
+    // SQL query with aggregation - industry best practice for analytics
+    // Single query instead of N+1 for scalability
+    const { data: profiles, error } = await supabase.rpc(
+      "get_profiles_with_stats_for_zone",
+      {
+        p_zone_id: zoneId,
+      }
+    );
+
+    if (error) {
+      logger.error("Error calling RPC function:", error);
+      return [];
+    }
+
+    if (!profiles || profiles.length === 0) {
+      return [];
+    }
+
+    // Get all tags for these profiles in one query (efficient)
+    const profileIds = profiles.map((p: any) => p.id);
+    const { data: allTags } = await supabase
+      .from("twitter_profile_zone_tags")
+      .select("*")
+      .eq("zone_id", zoneId)
+      .in("profile_id", profileIds);
+
+    // Attach tags to each profile
+    let processedProfiles = profiles.map((p: any) => ({
+      ...p,
+      tags: (allTags as TwitterProfileZoneTag[])?.filter(
+        (tag) => tag.profile_id === p.id
+      ) || [],
+    })) as TwitterProfileWithStats[];
+
+    // Apply client-side filters
+    if (search) {
+      const searchLower = search.toLowerCase().replace("@", "");
+      processedProfiles = processedProfiles.filter(
+        (p) =>
+          p.username.toLowerCase().includes(searchLower) ||
+          p.name.toLowerCase().includes(searchLower) ||
+          (p.description && p.description.toLowerCase().includes(searchLower))
+      );
+    }
+
+    if (verified_only) {
+      processedProfiles = processedProfiles.filter(
+        (p) => p.is_verified || p.is_blue_verified
+      );
+    }
+
+    if (min_followers) {
+      processedProfiles = processedProfiles.filter(
+        (p) => p.followers_count >= min_followers
+      );
+    }
+
+    if (min_tweets) {
+      processedProfiles = processedProfiles.filter(
+        (p) => p.tweet_count >= min_tweets
+      );
+    }
+
+    if (profileTagType) {
+      processedProfiles = processedProfiles.filter((p) =>
+        p.tags?.some((tag) => tag.tag_type === profileTagType)
+      );
+    }
+
+    // Sort
+    if (sortBy === "engagement") {
+      processedProfiles.sort((a, b) => b.total_engagement - a.total_engagement);
+    } else if (sortBy === "tweets") {
+      processedProfiles.sort((a, b) => b.tweet_count - a.tweet_count);
+    } else if (sortBy === "recent") {
+      processedProfiles.sort(
+        (a, b) =>
+          new Date(b.last_seen_at).getTime() - new Date(a.last_seen_at).getTime()
+      );
+    } else {
+      // followers (default)
+      processedProfiles.sort((a, b) => b.followers_count - a.followers_count);
+    }
+
+    // Pagination
+    return processedProfiles.slice(offset, offset + limit);
+  } catch (error) {
+    logger.error(`Error fetching profiles with stats for zone ${zoneId}:`, error);
+    return [];
+  }
+}

@@ -297,11 +297,12 @@ export function TwitterEngagementChart({ tweetId }: TwitterEngagementChartProps)
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "reach" | "engagement")}>
         <TabsList className="grid w-full max-w-xs grid-cols-2">
-          <TabsTrigger value="engagement" className="gap-2">
+          <TabsTrigger value="engagement" className="gap-1.5 data-[state=active]:shadow-none">
             <TrendingUp className="h-4 w-4" />
-            Engagement
+            <span className="hidden sm:inline">Engagement</span>
+            <span className="sm:hidden">Eng.</span>
           </TabsTrigger>
-          <TabsTrigger value="reach" className="gap-2">
+          <TabsTrigger value="reach" className="gap-1.5 data-[state=active]:shadow-none">
             <Eye className="h-4 w-4" />
             Reach
           </TabsTrigger>
@@ -338,10 +339,14 @@ export function TwitterEngagementChart({ tweetId }: TwitterEngagementChartProps)
                 stroke="var(--color-like_count)"
                 strokeWidth={2}
                 dot={(props: any) => {
-                  const { cx, cy, payload } = props;
+                  const { cx, cy, payload, index } = props;
+                  // Use stable key: index + timestamp + type for uniqueness
+                  const key = `like-${index}-${payload.timestamp || payload.snapshot_at}-${payload.type}`;
+                  
                   if (payload.type === "prediction") {
                     return (
                       <circle
+                        key={key}
                         cx={cx}
                         cy={cy}
                         r={4}
@@ -355,6 +360,7 @@ export function TwitterEngagementChart({ tweetId }: TwitterEngagementChartProps)
                   if (payload.type === "initial") {
                     return (
                       <circle
+                        key={key}
                         cx={cx}
                         cy={cy}
                         r={5}
@@ -364,7 +370,7 @@ export function TwitterEngagementChart({ tweetId }: TwitterEngagementChartProps)
                       />
                     );
                   }
-                  return <circle cx={cx} cy={cy} r={3} fill="var(--color-like_count)" />;
+                  return <circle key={key} cx={cx} cy={cy} r={3} fill="var(--color-like_count)" />;
                 }}
                 activeDot={{ r: 6 }}
                 connectNulls
@@ -375,10 +381,13 @@ export function TwitterEngagementChart({ tweetId }: TwitterEngagementChartProps)
                 stroke="var(--color-retweet_count)"
                 strokeWidth={2}
                 dot={(props: any) => {
-                  const { cx, cy, payload } = props;
+                  const { cx, cy, payload, index } = props;
+                  const key = `retweet-${index}-${payload.timestamp || payload.snapshot_at}-${payload.type}`;
+                  
                   if (payload.type === "prediction") {
                     return (
                       <circle
+                        key={key}
                         cx={cx}
                         cy={cy}
                         r={4}
@@ -392,6 +401,7 @@ export function TwitterEngagementChart({ tweetId }: TwitterEngagementChartProps)
                   if (payload.type === "initial") {
                     return (
                       <circle
+                        key={key}
                         cx={cx}
                         cy={cy}
                         r={5}
@@ -401,7 +411,7 @@ export function TwitterEngagementChart({ tweetId }: TwitterEngagementChartProps)
                       />
                     );
                   }
-                  return <circle cx={cx} cy={cy} r={3} fill="var(--color-retweet_count)" />;
+                  return <circle key={key} cx={cx} cy={cy} r={3} fill="var(--color-retweet_count)" />;
                 }}
                 activeDot={{ r: 6 }}
                 connectNulls
@@ -412,10 +422,13 @@ export function TwitterEngagementChart({ tweetId }: TwitterEngagementChartProps)
                 stroke="var(--color-reply_count)"
                 strokeWidth={2}
                 dot={(props: any) => {
-                  const { cx, cy, payload } = props;
+                  const { cx, cy, payload, index } = props;
+                  const key = `reply-${index}-${payload.timestamp || payload.snapshot_at}-${payload.type}`;
+                  
                   if (payload.type === "prediction") {
                     return (
                       <circle
+                        key={key}
                         cx={cx}
                         cy={cy}
                         r={4}
@@ -429,6 +442,7 @@ export function TwitterEngagementChart({ tweetId }: TwitterEngagementChartProps)
                   if (payload.type === "initial") {
                     return (
                       <circle
+                        key={key}
                         cx={cx}
                         cy={cy}
                         r={5}
@@ -438,7 +452,7 @@ export function TwitterEngagementChart({ tweetId }: TwitterEngagementChartProps)
                       />
                     );
                   }
-                  return <circle cx={cx} cy={cy} r={3} fill="var(--color-reply_count)" />;
+                  return <circle key={key} cx={cx} cy={cy} r={3} fill="var(--color-reply_count)" />;
                 }}
                 activeDot={{ r: 6 }}
                 connectNulls
@@ -449,10 +463,13 @@ export function TwitterEngagementChart({ tweetId }: TwitterEngagementChartProps)
                 stroke="var(--color-quote_count)"
                 strokeWidth={2}
                 dot={(props: any) => {
-                  const { cx, cy, payload } = props;
+                  const { cx, cy, payload, index } = props;
+                  const key = `quote-${index}-${payload.timestamp || payload.snapshot_at}-${payload.type}`;
+                  
                   if (payload.type === "prediction") {
                     return (
                       <circle
+                        key={key}
                         cx={cx}
                         cy={cy}
                         r={4}
@@ -466,6 +483,7 @@ export function TwitterEngagementChart({ tweetId }: TwitterEngagementChartProps)
                   if (payload.type === "initial") {
                     return (
                       <circle
+                        key={key}
                         cx={cx}
                         cy={cy}
                         r={5}
@@ -475,7 +493,7 @@ export function TwitterEngagementChart({ tweetId }: TwitterEngagementChartProps)
                       />
                     );
                   }
-                  return <circle cx={cx} cy={cy} r={3} fill="var(--color-quote_count)" />;
+                  return <circle key={key} cx={cx} cy={cy} r={3} fill="var(--color-quote_count)" />;
                 }}
                 activeDot={{ r: 6 }}
                 connectNulls
@@ -543,10 +561,13 @@ export function TwitterEngagementChart({ tweetId }: TwitterEngagementChartProps)
                 stroke="var(--color-view_count)"
                 strokeWidth={2}
                 dot={(props: any) => {
-                  const { cx, cy, payload } = props;
+                  const { cx, cy, payload, index } = props;
+                  const key = `view-${index}-${payload.timestamp || payload.snapshot_at}-${payload.type}`;
+                  
                   if (payload.type === "prediction") {
                     return (
                       <circle
+                        key={key}
                         cx={cx}
                         cy={cy}
                         r={4}
@@ -560,6 +581,7 @@ export function TwitterEngagementChart({ tweetId }: TwitterEngagementChartProps)
                   if (payload.type === "initial") {
                     return (
                       <circle
+                        key={key}
                         cx={cx}
                         cy={cy}
                         r={5}
@@ -569,7 +591,7 @@ export function TwitterEngagementChart({ tweetId }: TwitterEngagementChartProps)
                       />
                     );
                   }
-                  return <circle cx={cx} cy={cy} r={3} fill="var(--color-view_count)" />;
+                  return <circle key={key} cx={cx} cy={cy} r={3} fill="var(--color-view_count)" />;
                 }}
                 activeDot={{ r: 6 }}
                 connectNulls

@@ -437,6 +437,32 @@ Top profiles by engagement per zone.
 
 ---
 
+## PostgreSQL Functions
+
+### 1. `get_profiles_with_stats_for_zone(p_zone_id UUID)`
+
+Returns profiles with aggregated statistics for a zone.
+
+**Purpose**: Single-query aggregation for profile analytics (scalable for millions of profiles)
+
+**Returns**: 43 columns (all profile fields + 14 calculated stats)
+
+**Calculated Stats**:
+- `tweet_count` - Total tweets in zone
+- `original_posts` - Original posts (not replies/retweets)
+- `replies` - Reply count
+- `retweets` - Retweet count
+- `total_engagement` - Sum of all engagement
+- `avg_engagement_per_tweet` - Average engagement
+- `total_likes`, `total_retweets`, `total_replies`, `total_quotes`, `total_views`
+- `reply_ratio`, `retweet_ratio`, `original_ratio` (0-1)
+
+**Performance**: < 50ms for 1000+ profiles
+
+**Created**: 2025-11-18 (Migration: `create_profiles_stats_function`)
+
+---
+
 ### 4. `twitter_trending_hashtags`
 
 Trending hashtags analysis.

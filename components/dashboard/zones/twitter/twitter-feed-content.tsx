@@ -12,9 +12,11 @@ interface FeedTweetWithTags extends TwitterTweetWithProfile {
 
 interface TwitterFeedContentProps {
   zoneId: string;
+  initialSearch?: string;
+  initialSearchType?: "keyword" | "user";
 }
 
-export function TwitterFeedContent({ zoneId }: TwitterFeedContentProps) {
+export function TwitterFeedContent({ zoneId, initialSearch, initialSearchType }: TwitterFeedContentProps) {
   const [tweets, setTweets] = useState<FeedTweetWithTags[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -23,6 +25,16 @@ export function TwitterFeedContent({ zoneId }: TwitterFeedContentProps) {
   const [hasMore, setHasMore] = useState(true);
   const observerRef = useRef<HTMLDivElement>(null);
   const limit = 20;
+
+  // Initialize filters from URL params on mount
+  useEffect(() => {
+    if (initialSearch || initialSearchType) {
+      setFilters({
+        search: initialSearch,
+        searchType: initialSearchType,
+      });
+    }
+  }, [initialSearch, initialSearchType]);
 
   // Fetch tweets from API
   const fetchTweets = useCallback(async (currentOffset: number) => {
@@ -135,7 +147,6 @@ export function TwitterFeedContent({ zoneId }: TwitterFeedContentProps) {
 
   function handleFiltersChange(newFilters: Filters) {
     setFilters(newFilters);
-    // Reset is handled by useEffect dependency on loadInitialTweets
   }
 
   return (
@@ -235,6 +246,7 @@ export function TwitterFeedContent({ zoneId }: TwitterFeedContentProps) {
                 key={tweet.id}
                 tweet={tweet}
                 tags={tweet.profile_tags}
+                zoneId={zoneId}
               />
             ))}
           </div>
