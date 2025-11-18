@@ -62,15 +62,16 @@ export function TwitterProfileCard({ profile, zoneId }: TwitterProfileCardProps)
     ? formatDistanceToNow(new Date(profile.twitter_created_at), { addSuffix: false })
     : "Unknown";
 
-  // Extract additional data from raw_data
-  const verifiedType = profile.raw_data?.verifiedType as string | null;
-  const bioUrls = profile.raw_data?.profile_bio?.entities?.url?.urls as Array<{
+  // Extract additional data from raw_data (type-safe)
+  const rawData = profile.raw_data as any;
+  const verifiedType = rawData?.verifiedType as string | null;
+  const bioUrls = rawData?.profile_bio?.entities?.url?.urls as Array<{
     url: string;
     display_url: string;
     expanded_url: string;
   }> | undefined;
-  const withheldInCountries = profile.raw_data?.withheldInCountries as string[] | undefined;
-  const fastFollowersCount = (profile.raw_data?.fastFollowersCount as number) || 0;
+  const withheldInCountries = rawData?.withheldInCountries as string[] | undefined;
+  const fastFollowersCount = (rawData?.fastFollowersCount as number) || 0;
   
   // Check if account has suspicious bot-like behavior (only if > 100)
   const hasSuspiciousActivity = fastFollowersCount > 100;
