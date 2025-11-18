@@ -3,7 +3,7 @@
  * Ensures temporal balance across time periods
  */
 
-import { createServerClient } from '@/lib/supabase/server'
+import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/logger'
 import { differenceInDays, addDays } from 'date-fns'
 
@@ -28,7 +28,7 @@ export interface SamplingResult {
  * 
  * @param config - Sampling configuration
  * @returns Sampled tweet IDs with statistics
- * 
+ *
  * @example
  * const result = await sampleTweetsStratified({
  *   zoneId: 'zone-123',
@@ -41,7 +41,7 @@ export interface SamplingResult {
 export async function sampleTweetsStratified(
   config: SamplingConfig
 ): Promise<SamplingResult> {
-  const supabase = await createServerClient()
+  const supabase = await createClient()
   const { zoneId, startDate, endDate, targetSize } = config
 
   logger.info('[Opinion Map] Starting stratified sampling', {
@@ -52,23 +52,23 @@ export async function sampleTweetsStratified(
   })
 
   // Count total available tweets in period
-  const { count: totalAvailable } = await supabase
+    const { count: totalAvailable } = await supabase
     .from('twitter_tweets')
     .select('*', { count: 'exact', head: true })
     .eq('zone_id', zoneId)
     .gte('twitter_created_at', startDate.toISOString())
     .lte('twitter_created_at', endDate.toISOString())
 
-  if (!totalAvailable || totalAvailable === 0) {
+    if (!totalAvailable || totalAvailable === 0) {
     logger.warn('[Opinion Map] No tweets found in period', { zone_id: zoneId })
-    return {
+      return {
       samples: [],
       totalAvailable: 0,
       actualSampled: 0,
       buckets: 0,
       strategy: 'all'
     }
-  }
+    }
 
   // If fewer tweets than target, return all
   if (totalAvailable <= targetSize) {
@@ -91,8 +91,8 @@ export async function sampleTweetsStratified(
       actualSampled: allTweets?.length || 0,
       buckets: 1,
       strategy: 'all'
-    }
   }
+}
 
   // Calculate buckets (one per day)
   const days = differenceInDays(endDate, startDate) + 1

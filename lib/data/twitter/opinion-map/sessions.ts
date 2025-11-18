@@ -3,7 +3,7 @@
  * Handles clustering job lifecycle and progress tracking
  */
 
-import { createServerClient } from '@/lib/supabase/server'
+import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/logger'
 import type { TwitterOpinionSession } from '@/types'
 
@@ -20,7 +20,7 @@ export async function createSession(
   config: TwitterOpinionSession['config'],
   userId: string
 ): Promise<TwitterOpinionSession> {
-  const supabase = await createServerClient()
+  const supabase = await createClient()
 
   const sessionId = `zone_${zoneId}_${new Date().toISOString()}`
 
@@ -64,7 +64,7 @@ export async function createSession(
 export async function getLatestSession(
   zoneId: string
 ): Promise<TwitterOpinionSession | null> {
-  const supabase = await createServerClient()
+  const supabase = await createClient()
 
   const { data, error } = await supabase
     .from('twitter_opinion_sessions')
@@ -91,7 +91,7 @@ export async function getLatestSession(
 export async function getSessionById(
   sessionId: string
 ): Promise<TwitterOpinionSession | null> {
-  const supabase = await createServerClient()
+  const supabase = await createClient()
 
   const { data, error } = await supabase
     .from('twitter_opinion_sessions')
@@ -121,7 +121,7 @@ export async function updateSessionProgress(
   progress: number,
   phaseMessage?: string
 ): Promise<void> {
-  const supabase = await createServerClient()
+  const supabase = await createClient()
 
   const updates: Partial<TwitterOpinionSession> = {
     status,
@@ -174,7 +174,7 @@ export async function markSessionFailed(
   errorMessage: string,
   errorStack?: string
 ): Promise<void> {
-  const supabase = await createServerClient()
+  const supabase = await createClient()
 
   await supabase
     .from('twitter_opinion_sessions')
@@ -199,7 +199,7 @@ export async function markSessionFailed(
  * @returns Success status
  */
 export async function cancelSession(sessionId: string): Promise<boolean> {
-  const supabase = await createServerClient()
+  const supabase = await createClient()
 
   const { error } = await supabase
     .from('twitter_opinion_sessions')

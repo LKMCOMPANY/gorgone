@@ -11,7 +11,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerClient } from '@/lib/supabase/server'
+import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/logger'
 import {
   getSessionById,
@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
     // FETCH EMBEDDINGS
     // ==================================================================
 
-    const supabase = await createServerClient()
+    const supabase = await createClient()
 
     const { data: tweets } = await supabase
       .from('twitter_tweets')

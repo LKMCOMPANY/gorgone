@@ -74,7 +74,7 @@ export async function GET(request: NextRequest) {
     logger.error('[Opinion Map] Status check failed', { error })
 
     return NextResponse.json(
-      { 
+      {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error'
       },

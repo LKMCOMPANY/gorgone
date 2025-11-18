@@ -3,7 +3,7 @@
  * Groups tweets by cluster over time
  */
 
-import { 
+import {
   startOfHour,
   startOfDay,
   eachHourOfInterval,
@@ -12,7 +12,7 @@ import {
   format 
 } from 'date-fns'
 import { logger } from '@/lib/logger'
-import type { 
+import type {
   EnrichedTwitterProjection, 
   OpinionEvolutionData,
   TwitterOpinionCluster 
@@ -35,7 +35,7 @@ export function calculateGranularity(days: number): Granularity {
 /**
  * Generate time series data for evolution chart
  * Groups projections by cluster over time
- * 
+ *
  * @param projections - Enriched projections with tweet data
  * @param clusters - Cluster metadata
  * @param startDate - Period start

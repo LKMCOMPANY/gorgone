@@ -5,7 +5,7 @@
 
 import { embed, embedMany } from 'ai'
 import { openai } from '@ai-sdk/openai'
-import { createServerClient } from '@/lib/supabase/server'
+import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/logger'
 import type { OpinionEmbeddingResult } from '@/types'
 
@@ -80,7 +80,7 @@ export async function getEmbeddingStats(
   needs_embedding: number
   cache_hit_rate: number
 }> {
-  const supabase = await createServerClient()
+  const supabase = await createClient()
 
   const { count: cached } = await supabase
     .from('twitter_tweets')
@@ -117,7 +117,7 @@ export async function ensureEmbeddings(
   failed: number
   cache_hit_rate: number
 }> {
-  const supabase = await createServerClient()
+  const supabase = await createClient()
 
   logger.info('[Vectorization] Ensuring embeddings', {
     tweet_count: tweetIds.length
@@ -142,12 +142,12 @@ export async function ensureEmbeddings(
       total: tweetIds.length
     })
 
-    return {
-      success: true,
+      return {
+        success: true,
       total_tweets: tweetIds.length,
       already_vectorized: alreadyVectorized,
       newly_vectorized: 0,
-      failed: 0,
+        failed: 0,
       cache_hit_rate: 1.0
     }
   }
@@ -163,17 +163,17 @@ export async function ensureEmbeddings(
   let newlyVectorized = 0
   let failed = 0
 
-  for (let i = 0; i < tweetsNeedingEmbedding.length; i += BATCH_SIZE) {
+    for (let i = 0; i < tweetsNeedingEmbedding.length; i += BATCH_SIZE) {
     const batch = tweetsNeedingEmbedding.slice(i, i + BATCH_SIZE)
 
     logger.debug('[Vectorization] Processing batch', {
-      batch: Math.floor(i / BATCH_SIZE) + 1,
+        batch: Math.floor(i / BATCH_SIZE) + 1,
       total_batches: Math.ceil(tweetsNeedingEmbedding.length / BATCH_SIZE),
       size: batch.length
     })
 
-    try {
-      // Enrich content for each tweet
+      try {
+        // Enrich content for each tweet
       const contents = batch.map(tweet => {
         // Extract author info from raw_data
         const author = (tweet.raw_data as any)?.author || {}
@@ -190,21 +190,21 @@ export async function ensureEmbeddings(
       })
 
       // Generate embeddings (single API call for batch)
-      const result = await embedMany({
+        const result = await embedMany({
         model: openai.embedding(EMBEDDING_MODEL),
         values: contents
       })
 
       // Update database
-      for (let j = 0; j < batch.length; j++) {
-        try {
+        for (let j = 0; j < batch.length; j++) {
+          try {
           await supabase
             .from('twitter_tweets')
-            .update({
-              embedding: result.embeddings[j],
+              .update({
+                embedding: result.embeddings[j],
               embedding_model: EMBEDDING_MODEL,
               embedding_created_at: new Date().toISOString()
-            })
+              })
             .eq('id', batch[j].id)
 
           newlyVectorized++
@@ -222,19 +222,19 @@ export async function ensureEmbeddings(
         tokens_used: result.usage?.tokens || 0
       })
 
-      // Small delay between batches (rate limit protection)
-      if (i + BATCH_SIZE < tweetsNeedingEmbedding.length) {
+        // Small delay between batches (rate limit protection)
+        if (i + BATCH_SIZE < tweetsNeedingEmbedding.length) {
         await new Promise(resolve => setTimeout(resolve, 2000))
-      }
+        }
 
-    } catch (batchError) {
+      } catch (batchError) {
       logger.error('[Vectorization] Batch failed', {
-        batch: Math.floor(i / BATCH_SIZE) + 1,
+          batch: Math.floor(i / BATCH_SIZE) + 1,
         error: batchError
       })
       failed += batch.length
+      }
     }
-  }
 
   const cacheHitRate = alreadyVectorized / tweetIds.length
 
@@ -246,7 +246,7 @@ export async function ensureEmbeddings(
     cache_hit_rate: `${(cacheHitRate * 100).toFixed(1)}%`
   })
 
-  return {
+    return {
     success: failed === 0,
     total_tweets: tweetIds.length,
     already_vectorized: alreadyVectorized,
@@ -274,7 +274,7 @@ export async function generateSingleEmbedding(
     }
 
     const truncated = content.length > MAX_CONTENT_LENGTH
-      ? content.slice(0, MAX_CONTENT_LENGTH)
+        ? content.slice(0, MAX_CONTENT_LENGTH)
       : content
 
     const result = await embed({

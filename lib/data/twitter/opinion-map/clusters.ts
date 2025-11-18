@@ -3,7 +3,7 @@
  * Manages cluster metadata and statistics
  */
 
-import { createServerClient } from '@/lib/supabase/server'
+import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/logger'
 import type { TwitterOpinionCluster } from '@/types'
 
@@ -16,7 +16,7 @@ import type { TwitterOpinionCluster } from '@/types'
 export async function saveClusters(
   clusters: Omit<TwitterOpinionCluster, 'id' | 'created_at' | 'updated_at'>[]
 ): Promise<boolean> {
-  const supabase = await createServerClient()
+  const supabase = await createClient()
 
   logger.info('[Opinion Map] Saving clusters', {
     count: clusters.length
@@ -46,9 +46,9 @@ export async function getClusters(
   zoneId: string,
   sessionId: string
 ): Promise<TwitterOpinionCluster[]> {
-  const supabase = await createServerClient()
+  const supabase = await createClient()
 
-  const { data, error } = await supabase
+    const { data, error } = await supabase
     .from('twitter_opinion_clusters')
     .select('*')
     .eq('zone_id', zoneId)
@@ -74,16 +74,16 @@ export async function getClusterById(
   sessionId: string,
   clusterId: number
 ): Promise<TwitterOpinionCluster | null> {
-  const supabase = await createServerClient()
+  const supabase = await createClient()
 
-  const { data, error } = await supabase
+    const { data, error } = await supabase
     .from('twitter_opinion_clusters')
     .select('*')
     .eq('session_id', sessionId)
     .eq('cluster_id', clusterId)
     .maybeSingle()
 
-  if (error) {
+    if (error) {
     logger.error('[Opinion Map] Failed to get cluster', { error })
     return null
   }

@@ -14,7 +14,7 @@ const BASE_RETRY_DELAY = 5000
 
 /**
  * Generate a descriptive label for a cluster using AI
- * 
+ *
  * @param tweets - Array of tweet texts from the cluster
  * @param clusterId - Cluster identifier
  * @returns Label, keywords, and sentiment analysis
@@ -56,31 +56,31 @@ CRITICAL: Respond with ONLY a valid JSON object. No markdown, no additional text
   // Retry with exponential backoff
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
     try {
-      const { text } = await generateText({
+    const { text } = await generateText({
         model: openai('gpt-4o-mini'),
-        prompt,
+      prompt,
         temperature: 0.3,
         maxTokens: 200
       })
 
-      // Parse response
+    // Parse response
       const parsed = parseAIResponse(text)
 
       logger.info('[Opinion Map] Cluster labeled successfully', {
         cluster_id: clusterId,
-        label: parsed.label,
+      label: parsed.label,
         sentiment: parsed.sentiment
       })
 
-      return {
+    return {
         label: parsed.label,
-        keywords,
+      keywords,
         sentiment: parsed.sentiment,
-        confidence: 0.8,
+      confidence: 0.8,
         reasoning: parsed.reasoning
       }
 
-    } catch (error) {
+  } catch (error) {
       const isRateLimit = error instanceof Error && (
         error.message.includes('rate limit') ||
         error.message.includes('429')
@@ -117,11 +117,11 @@ CRITICAL: Respond with ONLY a valid JSON object. No markdown, no additional text
     ? keywords.slice(0, 3).join(', ')
     : `Cluster ${clusterId}`
 
-  return {
-    label: fallbackLabel,
-    keywords,
-    sentiment: 0,
-    confidence: 0.3,
+    return {
+      label: fallbackLabel,
+      keywords,
+      sentiment: 0,
+      confidence: 0.3,
     reasoning: 'Generated from keywords (AI unavailable)'
   }
 }

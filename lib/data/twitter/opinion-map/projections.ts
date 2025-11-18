@@ -3,7 +3,7 @@
  * Manages 3D coordinates and cluster assignments
  */
 
-import { createServerClient } from '@/lib/supabase/server'
+import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/logger'
 import type { TwitterTweetProjection, EnrichedTwitterProjection } from '@/types'
 
@@ -17,7 +17,7 @@ import type { TwitterTweetProjection, EnrichedTwitterProjection } from '@/types'
 export async function saveProjections(
   projections: Omit<TwitterTweetProjection, 'id' | 'created_at' | 'updated_at'>[]
 ): Promise<boolean> {
-  const supabase = await createServerClient()
+  const supabase = await createClient()
 
   logger.info('[Opinion Map] Saving projections', {
     count: projections.length
@@ -25,14 +25,14 @@ export async function saveProjections(
 
   const BATCH_SIZE = 1000
 
-  for (let i = 0; i < projections.length; i += BATCH_SIZE) {
+    for (let i = 0; i < projections.length; i += BATCH_SIZE) {
     const batch = projections.slice(i, i + BATCH_SIZE)
 
     const { error } = await supabase
       .from('twitter_tweet_projections')
       .insert(batch)
 
-    if (error) {
+      if (error) {
       logger.error('[Opinion Map] Failed to save projections batch', {
         batch: Math.floor(i / BATCH_SIZE) + 1,
         error
@@ -44,7 +44,7 @@ export async function saveProjections(
       batch: Math.floor(i / BATCH_SIZE) + 1,
       total_batches: Math.ceil(projections.length / BATCH_SIZE)
     })
-  }
+    }
 
   logger.info('[Opinion Map] All projections saved', {
     count: projections.length
@@ -64,9 +64,9 @@ export async function getProjections(
   zoneId: string,
   sessionId: string
 ): Promise<TwitterTweetProjection[]> {
-  const supabase = await createServerClient()
+  const supabase = await createClient()
 
-  const { data, error } = await supabase
+    const { data, error } = await supabase
     .from('twitter_tweet_projections')
     .select('*')
     .eq('zone_id', zoneId)
@@ -93,17 +93,17 @@ export async function getEnrichedProjections(
   zoneId: string,
   sessionId: string
 ): Promise<EnrichedTwitterProjection[]> {
-  const supabase = await createServerClient()
+  const supabase = await createClient()
 
   logger.debug('[Opinion Map] Fetching enriched projections', {
     zone_id: zoneId,
     session_id: sessionId
   })
 
-  const { data, error } = await supabase
+    const { data, error } = await supabase
     .from('twitter_tweet_projections')
     .select(`
-      *,
+        *,
       tweet:twitter_tweets!tweet_db_id (
         tweet_id,
         text,
@@ -125,7 +125,7 @@ export async function getEnrichedProjections(
           is_blue_verified,
           followers_count
         )
-      )
+        )
     `)
     .eq('zone_id', zoneId)
     .eq('session_id', sessionId)
@@ -190,15 +190,15 @@ export async function getProjectionsByCluster(
   sessionId: string,
   clusterId: number
 ): Promise<TwitterTweetProjection[]> {
-  const supabase = await createServerClient()
+  const supabase = await createClient()
 
-  const { data, error } = await supabase
+    const { data, error } = await supabase
     .from('twitter_tweet_projections')
     .select('*')
     .eq('session_id', sessionId)
     .eq('cluster_id', clusterId)
 
-  if (error) {
+        if (error) {
     logger.error('[Opinion Map] Failed to get cluster projections', { error })
     return []
   }
