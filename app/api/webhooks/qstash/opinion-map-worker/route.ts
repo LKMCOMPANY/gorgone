@@ -141,15 +141,57 @@ export async function POST(request: NextRequest) {
 
     const operationalContext = zone?.operational_context || null
 
-    const { data: tweets } = await supabase
-      .from('twitter_tweets')
-      .select('id, tweet_id, text, embedding, raw_data')
-      .in('id', tweetIds)
-      .not('embedding', 'is', null)
+    // Fetch tweets in batches to avoid PostgreSQL IN clause limit (~1000 items)
+    const FETCH_BATCH_SIZE = 500
+    const tweets: any[] = []
+
+    logger.info('[Opinion Map Worker] Fetching embeddings in batches', {
+      total_tweet_ids: tweetIds.length,
+      batch_size: FETCH_BATCH_SIZE,
+      total_batches: Math.ceil(tweetIds.length / FETCH_BATCH_SIZE)
+    })
+
+    for (let i = 0; i < tweetIds.length; i += FETCH_BATCH_SIZE) {
+      const batchIds = tweetIds.slice(i, i + FETCH_BATCH_SIZE)
+      
+      const { data: batchTweets, error } = await supabase
+        .from('twitter_tweets')
+        .select('id, tweet_id, text, embedding, raw_data')
+        .in('id', batchIds)
+        .not('embedding', 'is', null)
+
+      if (error) {
+        logger.error('[Opinion Map Worker] Failed to fetch batch', {
+          batch_index: Math.floor(i / FETCH_BATCH_SIZE),
+          batch_size: batchIds.length,
+          error: error.message
+        })
+        throw new Error(`Failed to fetch embeddings batch: ${error.message}`)
+      }
+
+      if (batchTweets && batchTweets.length > 0) {
+        tweets.push(...batchTweets)
+        logger.debug('[Opinion Map Worker] Batch fetched', {
+          batch_index: Math.floor(i / FETCH_BATCH_SIZE) + 1,
+          fetched: batchTweets.length,
+          cumulative_total: tweets.length
+        })
+      }
+    }
 
     if (!tweets || tweets.length === 0) {
+      logger.error('[Opinion Map Worker] No vectorized tweets found after batched fetch', {
+        total_tweet_ids: tweetIds.length,
+        batches_processed: Math.ceil(tweetIds.length / FETCH_BATCH_SIZE)
+      })
       throw new Error('No vectorized tweets found')
     }
+
+    logger.info('[Opinion Map Worker] All embeddings fetched successfully', {
+      total_fetched: tweets.length,
+      requested: tweetIds.length,
+      fetch_rate: `${((tweets.length / tweetIds.length) * 100).toFixed(1)}%`
+    })
 
     // Parse embeddings (Supabase returns vectors as strings)
     const embeddings = tweets.map(t => {

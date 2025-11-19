@@ -88,14 +88,23 @@ export async function getEmbeddingStats(
 }> {
   const supabase = createAdminClient()
 
-  const { count: cached } = await supabase
-    .from('twitter_tweets')
-    .select('*', { count: 'exact', head: true })
-    .in('id', tweetIds)
-    .not('embedding', 'is', null)
+  // Count cached embeddings in batches to avoid PostgreSQL IN clause limit
+  const BATCH_SIZE = 500
+  let cachedCount = 0
+
+  for (let i = 0; i < tweetIds.length; i += BATCH_SIZE) {
+    const batchIds = tweetIds.slice(i, i + BATCH_SIZE)
+    
+    const { count } = await supabase
+      .from('twitter_tweets')
+      .select('*', { count: 'exact', head: true })
+      .in('id', batchIds)
+      .not('embedding', 'is', null)
+
+    cachedCount += count || 0
+  }
 
   const total = tweetIds.length
-  const cachedCount = cached || 0
   const needsEmbedding = total - cachedCount
 
   return {
@@ -129,19 +138,30 @@ export async function ensureEmbeddings(
     tweet_count: tweetIds.length
   })
 
-  // Get tweets that need vectorization
-  const { data: tweetsNeedingEmbedding } = await supabase
-    .from('twitter_tweets')
-    .select(`
-      id,
-      tweet_id,
-      text,
-      raw_data
-    `)
-    .in('id', tweetIds)
-    .is('embedding', null)
+  // Get tweets that need vectorization (in batches to avoid IN clause limit)
+  const BATCH_SIZE = 500
+  const tweetsNeedingEmbedding: any[] = []
 
-  const alreadyVectorized = tweetIds.length - (tweetsNeedingEmbedding?.length || 0)
+  for (let i = 0; i < tweetIds.length; i += BATCH_SIZE) {
+    const batchIds = tweetIds.slice(i, i + BATCH_SIZE)
+    
+    const { data: batchTweets } = await supabase
+      .from('twitter_tweets')
+      .select(`
+        id,
+        tweet_id,
+        text,
+        raw_data
+      `)
+      .in('id', batchIds)
+      .is('embedding', null)
+
+    if (batchTweets && batchTweets.length > 0) {
+      tweetsNeedingEmbedding.push(...batchTweets)
+    }
+  }
+
+  const alreadyVectorized = tweetIds.length - tweetsNeedingEmbedding.length
 
   if (!tweetsNeedingEmbedding || tweetsNeedingEmbedding.length === 0) {
     logger.info('[Vectorization] All tweets already vectorized (100% cache hit)', {

@@ -156,26 +156,45 @@ export async function getProfilesByZone(
 
     const profileIds = [...new Set(tweetData.map((t) => t.author_profile_id))];
 
-    // Get profiles
-    let query = supabase
-      .from("twitter_profiles")
-      .select("*")
-      .in("id", profileIds);
+    // Get profiles (in batches if needed to avoid IN clause limit)
+    const BATCH_SIZE = 500
+    const allProfiles: TwitterProfile[] = []
 
-    // Sort
-    if (sortBy === "followers") {
-      query = query.order("followers_count", { ascending: false });
-    } else if (sortBy === "tweets") {
-      query = query.order("total_tweets_collected", { ascending: false });
+    for (let i = 0; i < profileIds.length; i += BATCH_SIZE) {
+      const batchIds = profileIds.slice(i, i + BATCH_SIZE)
+      
+      let query = supabase
+        .from("twitter_profiles")
+        .select("*")
+        .in("id", batchIds)
+      
+      // Sort
+      if (sortBy === "followers") {
+        query = query.order("followers_count", { ascending: false })
+      } else if (sortBy === "tweets") {
+        query = query.order("total_tweets_collected", { ascending: false })
+      }
+      
+      const { data: batchProfiles, error } = await query
+      
+      if (error) throw error
+      
+      if (batchProfiles) {
+        allProfiles.push(...(batchProfiles as TwitterProfile[]))
+      }
     }
 
-    query = query.range(offset, offset + limit - 1);
+    // Apply sorting across all batches if needed
+    if (sortBy === "followers") {
+      allProfiles.sort((a, b) => (b.followers_count || 0) - (a.followers_count || 0))
+    } else if (sortBy === "tweets") {
+      allProfiles.sort((a, b) => (b.total_tweets_collected || 0) - (a.total_tweets_collected || 0))
+    }
 
-    const { data, error } = await query;
+    // Apply pagination after sorting
+    const paginatedProfiles = allProfiles.slice(offset, offset + limit)
 
-    if (error) throw error;
-
-    return (data as TwitterProfile[]) || [];
+    return paginatedProfiles
   } catch (error) {
     logger.error(`Error fetching profiles for zone ${zoneId}:`, error);
     return [];
@@ -542,13 +561,24 @@ export async function getProfilesWithStats(
       return [];
     }
 
-    // Get all tags for these profiles in one query (efficient)
+    // Get all tags for these profiles in batches (efficient and safe)
     const profileIds = profiles.map((p: any) => p.id);
-    const { data: allTags } = await supabase
-      .from("twitter_profile_zone_tags")
-      .select("*")
-      .eq("zone_id", zoneId)
-      .in("profile_id", profileIds);
+    const BATCH_SIZE = 500
+    const allTags: TwitterProfileZoneTag[] = []
+
+    for (let i = 0; i < profileIds.length; i += BATCH_SIZE) {
+      const batchIds = profileIds.slice(i, i + BATCH_SIZE)
+      
+      const { data: batchTags } = await supabase
+        .from("twitter_profile_zone_tags")
+        .select("*")
+        .eq("zone_id", zoneId)
+        .in("profile_id", batchIds)
+      
+      if (batchTags) {
+        allTags.push(...(batchTags as TwitterProfileZoneTag[]))
+      }
+    }
 
     // Attach tags to each profile
     let processedProfiles = profiles.map((p: any) => ({

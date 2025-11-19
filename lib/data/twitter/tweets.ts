@@ -425,14 +425,11 @@ export async function getFilteredTweets(
 
     // Filter by verified authors if requested
     if (filters.verified_only) {
-      // This requires a join, so we'll do it differently
-      const { data: profiles } = await supabase
-        .from("twitter_profiles")
-        .select("id")
-        .eq("is_verified", true);
-
-      const verifiedProfileIds = profiles?.map((p) => p.id) || [];
-      query = query.in("author_profile_id", verifiedProfileIds);
+      // Use a better approach: filter using a subquery-like pattern
+      // Instead of loading all verified IDs, we use a join
+      query = query
+        .not("author_profile_id", "is", null)
+        .filter("author:twitter_profiles.is_verified", "eq", true);
     }
 
     query = query
