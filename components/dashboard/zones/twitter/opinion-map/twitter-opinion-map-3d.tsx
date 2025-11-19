@@ -452,7 +452,6 @@ function CameraAutoFit({
     // Update controls target
     controlsRef.current.target.copy(center)
     controlsRef.current.update()
-    })
   }, [projections, camera, controlsRef, centerRef, optimalDistanceRef])
 
   // Auto-fit on first frames when controls are ready
