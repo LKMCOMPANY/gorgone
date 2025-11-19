@@ -9,7 +9,6 @@ import { useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import { TwitterFeedCard } from '../twitter-feed-card'
 import { mapProjectionToTweet, sortByEngagement } from '@/lib/data/twitter/opinion-map/mapping'
 import type { 

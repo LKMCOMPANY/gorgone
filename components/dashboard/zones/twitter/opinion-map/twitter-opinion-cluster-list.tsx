@@ -5,8 +5,6 @@
  * Modern card design with AI-generated descriptions
  */
 
-import { useState, useEffect } from 'react'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -69,7 +67,7 @@ export function TwitterOpinionClusterList({
   const color = getOpinionClusterColor(currentCluster.cluster_id)
 
   return (
-    <div className="flex flex-col h-[900px]">
+    <div className="space-y-0">
       {/* Navigation Header */}
       <div className="flex items-center justify-between p-4 border-b border-border">
         <Button
@@ -127,8 +125,7 @@ export function TwitterOpinionClusterList({
       </div>
 
       {/* Cluster Card */}
-      <ScrollArea className="flex-1">
-        <div className="p-4 space-y-4 animate-in fade-in-0 duration-300">
+      <div className="p-4 space-y-4 animate-in fade-in-0 duration-300">
           {/* Main Card */}
           <Card className="p-6 space-y-4 border-border shadow-sm">
             {/* Header */}
@@ -295,8 +292,7 @@ export function TwitterOpinionClusterList({
               )
             })}
           </div>
-        </div>
-      </ScrollArea>
+      </div>
     </div>
   )
 }
