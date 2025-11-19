@@ -103,13 +103,21 @@ export async function POST(request: NextRequest) {
     const vectorizationResult = await ensureEmbeddings(tweetIds)
 
     if (!vectorizationResult.success) {
-      throw new Error('Vectorization failed')
+      throw new Error(`Vectorization failed: ${vectorizationResult.failed} tweets failed to vectorize`)
     }
 
     logger.info('[Opinion Map Worker] Vectorization complete', {
       cache_hit_rate: `${(vectorizationResult.cache_hit_rate * 100).toFixed(1)}%`,
-      newly_vectorized: vectorizationResult.newly_vectorized
+      newly_vectorized: vectorizationResult.newly_vectorized,
+      failed: vectorizationResult.failed,
+      total_vectorized: vectorizationResult.already_vectorized + vectorizationResult.newly_vectorized
     })
+
+    // Check if we have enough vectorized tweets
+    const totalVectorized = vectorizationResult.already_vectorized + vectorizationResult.newly_vectorized
+    if (totalVectorized < tweetIds.length * 0.5) {
+      throw new Error(`Insufficient vectorized tweets: only ${totalVectorized}/${tweetIds.length} (${((totalVectorized/tweetIds.length)*100).toFixed(1)}%) have embeddings`)
+    }
 
     await updateSessionProgress(
       sessionId,

@@ -236,7 +236,9 @@ export async function ensureEmbeddings(
       } catch (batchError) {
       logger.error('[Vectorization] Batch failed', {
           batch: Math.floor(i / BATCH_SIZE) + 1,
-        error: batchError
+        error: batchError,
+        error_message: batchError instanceof Error ? batchError.message : String(batchError),
+        error_stack: batchError instanceof Error ? batchError.stack : undefined
       })
       failed += batch.length
       }
