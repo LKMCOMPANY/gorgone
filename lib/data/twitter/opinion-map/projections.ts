@@ -121,6 +121,7 @@ export async function getEnrichedProjections(
         author:twitter_profiles!author_profile_id (
           name,
           username,
+          profile_picture_url,
           is_verified,
           is_blue_verified,
           followers_count
@@ -168,6 +169,7 @@ export async function getEnrichedProjections(
     author_profile_id: proj.tweet.author.id,
     author_name: proj.tweet.author.name,
     author_username: proj.tweet.author.username,
+    author_profile_picture_url: proj.tweet.author.profile_picture_url,
     author_verified: proj.tweet.author.is_verified || proj.tweet.author.is_blue_verified,
     author_followers_count: proj.tweet.author.followers_count
   }))

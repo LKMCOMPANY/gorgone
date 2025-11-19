@@ -676,6 +676,7 @@ export type EnrichedTwitterProjection = TwitterTweetProjection & {
   has_hashtags: boolean
   author_name: string
   author_username: string
+  author_profile_picture_url: string | null
   author_verified: boolean
   author_followers_count: number
   raw_data: Record<string, unknown>

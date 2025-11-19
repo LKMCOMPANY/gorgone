@@ -22,7 +22,7 @@ export function mapProjectionToTweet(projection: EnrichedTwitterProjection): Twi
     twitter_user_id: '', // Not available in projection
     username: projection.author_username,
     name: projection.author_name,
-    profile_picture_url: null, // Not available in projection
+    profile_picture_url: projection.author_profile_picture_url,
     cover_picture_url: null,
     description: null,
     location: null,
