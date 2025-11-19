@@ -260,19 +260,22 @@ function TweetPoint({
 }
 
 /**
- * Auto-Rotate with Smooth Animation
+ * Auto-Rotate with Smooth Animation - Maintains Optimal Zoom
  */
 function AutoRotate({ 
   enabled, 
   controlsRef,
-  centerRef
+  centerRef,
+  optimalDistanceRef
 }: { 
   enabled: boolean
   controlsRef: React.RefObject<any>
   centerRef: React.MutableRefObject<THREE.Vector3>
+  optimalDistanceRef: React.MutableRefObject<number>
 }) {
   const [isUserInteracting, setIsUserInteracting] = useState(false)
   const timeoutRef = useRef<NodeJS.Timeout | undefined>(undefined)
+  const angleRef = useRef(0)
 
   useEffect(() => {
     const controls = controlsRef.current
@@ -299,18 +302,34 @@ function AutoRotate({
     }
   }, [controlsRef])
 
+  // Initialize angle from current camera position when enabling
+  const { camera } = useThree()
+  
+  useEffect(() => {
+    if (enabled) {
+      const center = centerRef.current
+      angleRef.current = Math.atan2(
+        camera.position.z - center.z,
+        camera.position.x - center.x
+      )
+    }
+  }, [enabled, camera])
+
   useFrame((state) => {
     if (enabled && !isUserInteracting && controlsRef.current) {
       const controls = controlsRef.current
       const center = centerRef.current
       
-      // Smooth rotation with easing
-      const angle = state.clock.getElapsedTime() * 0.08 // Slower, more elegant
-      const currentRadius = state.camera.position.distanceTo(center)
+      // Use OPTIMAL distance (not current camera distance)
+      // This prevents zoom drift during rotation
+      const optimalRadius = optimalDistanceRef.current
       const currentHeight = state.camera.position.y
       
-      state.camera.position.x = Math.sin(angle) * currentRadius + center.x
-      state.camera.position.z = Math.cos(angle) * currentRadius + center.z
+      // Smooth rotation
+      angleRef.current += 0.008 // Elegant speed
+      
+      state.camera.position.x = Math.sin(angleRef.current) * optimalRadius + center.x
+      state.camera.position.z = Math.cos(angleRef.current) * optimalRadius + center.z
       state.camera.position.y = currentHeight
       
       state.camera.lookAt(center)
@@ -379,12 +398,14 @@ function CameraAutoFit({
   projections, 
   controlsRef,
   resetTrigger,
-  centerRef
+  centerRef,
+  optimalDistanceRef
 }: { 
   projections: EnrichedTwitterProjection[]
   controlsRef: React.MutableRefObject<any>
   resetTrigger: number
   centerRef: React.MutableRefObject<THREE.Vector3>
+  optimalDistanceRef: React.MutableRefObject<number>
 }) {
   const { camera } = useThree()
   const hasInitialized = useRef(false)
@@ -399,7 +420,7 @@ function CameraAutoFit({
     const center = box.getCenter(new THREE.Vector3())
     const size = box.getSize(new THREE.Vector3())
     
-    // Store center for auto-rotate
+    // IMPORTANT: Update center FIRST
     centerRef.current.copy(center)
     
     // Calculate optimal distance with minimal padding
@@ -410,15 +431,20 @@ function CameraAutoFit({
     const padding = 0.75
     const distance = Math.abs(maxDim / Math.sin(fov / 2)) * padding
     
-    // Elegant 45° viewing angle
+    // Elegant 45° viewing angle for positioning
     const angle = Math.PI / 4.5
+    const horizontalDistance = distance * 0.75
     const position = new THREE.Vector3(
-      center.x + Math.cos(angle) * distance * 0.75,
+      center.x + Math.cos(angle) * horizontalDistance,
       center.y + distance * 0.65,
-      center.z + Math.sin(angle) * distance * 0.75
+      center.z + Math.sin(angle) * horizontalDistance
     )
     
-    // Apply position immediately
+    // STORE optimal distance (actual distance from camera to center)
+    const actualDistance = position.distanceTo(center)
+    optimalDistanceRef.current = actualDistance
+    
+    // Apply position
     camera.position.copy(position)
     camera.lookAt(center)
     camera.updateProjectionMatrix()
@@ -426,7 +452,14 @@ function CameraAutoFit({
     // Update controls target
     controlsRef.current.target.copy(center)
     controlsRef.current.update()
-  }, [projections, camera, controlsRef, centerRef])
+    
+    console.log('[3D Map] Zoom applied:', {
+      center: center.toArray(),
+      optimalDistance: actualDistance.toFixed(2),
+      padding,
+      maxDim: maxDim.toFixed(2)
+    })
+  }, [projections, camera, controlsRef, centerRef, optimalDistanceRef])
 
   // Auto-fit on first frames when controls are ready
   useFrame(() => {
@@ -464,7 +497,8 @@ function SceneContent({
   controlsRef,
   autoRotate,
   resetTrigger,
-  centerRef
+  centerRef,
+  optimalDistanceRef
 }: any) {
 
   return (
@@ -474,11 +508,13 @@ function SceneContent({
         controlsRef={controlsRef}
         resetTrigger={resetTrigger}
         centerRef={centerRef}
+        optimalDistanceRef={optimalDistanceRef}
       />
       <AutoRotate 
         enabled={autoRotate} 
         controlsRef={controlsRef}
         centerRef={centerRef}
+        optimalDistanceRef={optimalDistanceRef}
       />
       
       {/* Premium Multi-Layer Lighting System */}
@@ -661,7 +697,9 @@ export function TwitterOpinionMap3D({
   const [resetTrigger, setResetTrigger] = useState(0)
   const controlsRef = useRef<any>(null)
   const containerRef = useRef<HTMLDivElement>(null)
+  // Refs for optimal camera position (updated by CameraAutoFit)
   const centerRef = useRef<THREE.Vector3>(new THREE.Vector3(50, 50, 50))
+  const optimalDistanceRef = useRef<number>(100)
 
   const handlePointClick = useCallback((projection: EnrichedTwitterProjection) => {
     onSelectTweet(projection.tweet_id, projection.cluster_id)
@@ -870,6 +908,7 @@ export function TwitterOpinionMap3D({
           autoRotate={autoRotate}
           resetTrigger={resetTrigger}
           centerRef={centerRef}
+          optimalDistanceRef={optimalDistanceRef}
         />
       </Canvas>
 
