@@ -37,8 +37,12 @@ function normalizeArticle(
     source_uri: apiArticle.source.uri,
     source_title: apiArticle.source.title,
     source_description: apiArticle.source.description || null,
-    source_location_country: apiArticle.source.location?.country?.label || null,
-    source_location_label: apiArticle.source.location?.label || null,
+    source_location_country: typeof apiArticle.source.location?.country?.label === 'string' 
+      ? apiArticle.source.location.country.label 
+      : apiArticle.source.location?.country?.label?.eng || null,
+    source_location_label: typeof apiArticle.source.location?.label === 'string'
+      ? apiArticle.source.location.label
+      : apiArticle.source.location?.label?.eng || null,
     authors: apiArticle.authors || [],
     image_url: apiArticle.image || null,
     videos: apiArticle.videos || [],
@@ -74,8 +78,12 @@ function normalizeSource(
     title: apiSource.title,
     website_url: null,
     description: apiSource.description || null,
-    location_country: apiSource.location?.country?.label || null,
-    location_label: apiSource.location?.label || null,
+    location_country: typeof apiSource.location?.country?.label === 'string'
+      ? apiSource.location.country.label
+      : apiSource.location?.country?.label?.eng || null,
+    location_label: typeof apiSource.location?.label === 'string'
+      ? apiSource.location.label
+      : apiSource.location?.label?.eng || null,
     importance_rank: apiSource.ranking?.importanceRank || null,
     alexa_global_rank: apiSource.ranking?.alexaGlobalRank || null,
     alexa_country_rank: apiSource.ranking?.alexaCountryRank || null,
