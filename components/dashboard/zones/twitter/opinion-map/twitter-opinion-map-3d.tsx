@@ -582,6 +582,43 @@ function SceneContent({
         material-transparent
       />
 
+      {/* 3D Axes - Modern & Elegant */}
+      <group position={[0, 0, 0]}>
+        {/* X Axis - Red */}
+        <arrowHelper
+          args={[
+            new THREE.Vector3(1, 0, 0),
+            new THREE.Vector3(0, 0, 0),
+            110,
+            isDark ? '#ef4444' : '#dc2626',
+            8,
+            4
+          ]}
+        />
+        {/* Y Axis - Green */}
+        <arrowHelper
+          args={[
+            new THREE.Vector3(0, 1, 0),
+            new THREE.Vector3(0, 0, 0),
+            110,
+            isDark ? '#10b981' : '#059669',
+            8,
+            4
+          ]}
+        />
+        {/* Z Axis - Blue */}
+        <arrowHelper
+          args={[
+            new THREE.Vector3(0, 0, 1),
+            new THREE.Vector3(0, 0, 0),
+            110,
+            isDark ? '#3b82f6' : '#2563eb',
+            8,
+            4
+          ]}
+        />
+      </group>
+
       {/* Tweet Points with Premium Materials */}
       {projections.map((projection: any) => {
         const isOutlier = projection.cluster_id === -1
