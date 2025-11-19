@@ -343,7 +343,48 @@ function ClusterCentroids({
 }
 
 /**
- * Scene with premium lighting
+ * Calculate optimal camera position to fit all points in view
+ * Uses minimal padding for maximum zoom while keeping all points visible
+ */
+function calculateOptimalCameraPosition(
+  projections: EnrichedTwitterProjection[],
+  camera: THREE.PerspectiveCamera
+): { position: THREE.Vector3; target: THREE.Vector3 } {
+  if (projections.length === 0) {
+    return {
+      position: new THREE.Vector3(100, 100, 150),
+      target: new THREE.Vector3(50, 50, 50)
+    }
+  }
+
+  // Calculate bounding box of all points
+  const positions = projections.map((p: any) => new THREE.Vector3(p.x, p.y, p.z))
+  const box = new THREE.Box3().setFromPoints(positions)
+  const center = box.getCenter(new THREE.Vector3())
+  const size = box.getSize(new THREE.Vector3())
+  
+  // Get max dimension for uniform framing
+  const maxDim = Math.max(size.x, size.y, size.z)
+  const fov = camera.fov * (Math.PI / 180)
+  
+  // Minimal padding: 1.05 = 5% margin for perfect tight framing
+  // All points will be visible with maximum zoom
+  const padding = 1.05
+  const distance = Math.abs(maxDim / Math.sin(fov / 2)) * padding
+  
+  // Position camera at 45° angle for best 3D perspective
+  const angle = Math.PI / 4 // 45 degrees
+  const position = new THREE.Vector3(
+    center.x + Math.cos(angle) * distance * 0.7,
+    center.y + distance * 0.6,
+    center.z + Math.sin(angle) * distance * 0.7
+  )
+  
+  return { position, target: center }
+}
+
+/**
+ * Scene with premium lighting and optimal camera positioning
  */
 function SceneContent({ 
   projections,
@@ -353,42 +394,34 @@ function SceneContent({
   handlePointHover,
   handleCentroidClick,
   controlsRef,
-  autoRotate
+  autoRotate,
+  onCameraReady
 }: any) {
   const { camera } = useThree()
 
-  // Auto-fit camera with fixed center - optimized for tight framing
+  // Auto-fit camera on projection changes
   useEffect(() => {
     if (projections.length === 0) return
 
-    const centerPoint = new THREE.Vector3(50, 50, 50)
-    const positions = projections.map((p: any) => new THREE.Vector3(p.x, p.y, p.z))
-    const box = new THREE.Box3().setFromPoints(positions)
-    const size = box.getSize(new THREE.Vector3())
-    
-    // Calculate optimal distance to fit all points tightly
-    const maxDim = Math.max(size.x, size.y, size.z)
-    const fov = (camera as THREE.PerspectiveCamera).fov * (Math.PI / 180)
-    
-    // Tight framing: 1.1 = 10% padding (vs 1.3 = 30% before)
-    // This keeps all points visible while maximizing view
-    const padding = 1.1
-    let cameraDistance = Math.abs(maxDim / Math.sin(fov / 2)) * padding
-    
-    // Position camera at optimal distance
-    camera.position.set(
-      centerPoint.x + cameraDistance * 0.5,
-      centerPoint.y + cameraDistance * 0.5,
-      centerPoint.z + cameraDistance
+    const { position, target } = calculateOptimalCameraPosition(
+      projections,
+      camera as THREE.PerspectiveCamera
     )
-    camera.lookAt(centerPoint)
+    
+    camera.position.copy(position)
+    camera.lookAt(target)
     camera.updateProjectionMatrix()
 
     if (controlsRef.current) {
-      controlsRef.current.target.copy(centerPoint)
+      controlsRef.current.target.copy(target)
       controlsRef.current.update()
     }
-  }, [projections, camera, controlsRef])
+
+    // Notify parent that camera is ready with optimal position
+    if (onCameraReady) {
+      onCameraReady({ position, target })
+    }
+  }, [projections, camera, controlsRef, onCameraReady])
 
   return (
     <>
@@ -535,6 +568,7 @@ export function TwitterOpinionMap3D({
   const [isLegendCollapsed, setIsLegendCollapsed] = useState(false)
   const controlsRef = useRef<any>(null)
   const containerRef = useRef<HTMLDivElement>(null)
+  const optimalCameraRef = useRef<{ position: THREE.Vector3; target: THREE.Vector3 } | null>(null)
 
   const handlePointClick = useCallback((projection: EnrichedTwitterProjection) => {
     onSelectTweet(projection.tweet_id, projection.cluster_id)
@@ -549,11 +583,30 @@ export function TwitterOpinionMap3D({
     onSelectCluster(clusterId)
   }, [onSelectCluster])
 
-  const handleReset = () => {
-    if (controlsRef.current) {
-      controlsRef.current.reset()
-    }
-  }
+  // Store optimal camera position when calculated
+  const handleCameraReady = useCallback((optimalPosition: { position: THREE.Vector3; target: THREE.Vector3 }) => {
+    optimalCameraRef.current = optimalPosition
+  }, [])
+
+  // Reset to optimal fit-to-view position (not OrbitControls default)
+  const handleReset = useCallback(() => {
+    if (!optimalCameraRef.current || !controlsRef.current) return
+
+    const canvas = containerRef.current?.querySelector('canvas')
+    if (!canvas) return
+
+    // Get camera from canvas
+    const camera = (canvas as any).__reactFiber?.return?.memoizedProps?.camera
+    if (!camera) return
+
+    // Smoothly animate to optimal position
+    const { position, target } = optimalCameraRef.current
+    camera.position.copy(position)
+    camera.lookAt(target)
+    
+    controlsRef.current.target.copy(target)
+    controlsRef.current.update()
+  }, [])
 
   const handleDownload = () => {
     const canvas = containerRef.current?.querySelector('canvas')
@@ -738,6 +791,7 @@ export function TwitterOpinionMap3D({
           handleCentroidClick={handleCentroidClick}
           controlsRef={controlsRef}
           autoRotate={autoRotate}
+          onCameraReady={handleCameraReady}
         />
       </Canvas>
 
