@@ -1,6 +1,6 @@
 /**
- * AI-powered cluster labeling
- * Generates descriptive labels using GPT-4o-mini
+ * AI-powered cluster labeling - Enhanced with Context & Descriptions
+ * Generates descriptive labels using GPT-4o-mini with operational context
  */
 
 import { generateText } from 'ai'
@@ -19,19 +19,22 @@ const MAX_RETRIES = 3
 const BASE_RETRY_DELAY = 5000
 
 /**
- * Generate a descriptive label for a cluster using AI
+ * Generate a descriptive label for a cluster using AI with operational context
  *
  * @param tweets - Array of tweet texts from the cluster
  * @param clusterId - Cluster identifier
- * @returns Label, keywords, and sentiment analysis
+ * @param operationalContext - Optional operational context for better analysis
+ * @returns Label, keywords, sentiment analysis, and description
  */
 export async function generateClusterLabel(
   tweets: string[],
-  clusterId: number
+  clusterId: number,
+  operationalContext?: string | null
 ): Promise<OpinionLabelingResult> {
   logger.info('[Opinion Map] Generating cluster label', {
     cluster_id: clusterId,
-    tweet_count: tweets.length
+    tweet_count: tweets.length,
+    has_context: Boolean(operationalContext)
   })
 
   // Sample tweets if too many
@@ -40,23 +43,34 @@ export async function generateClusterLabel(
   // Extract keywords for context
   const keywords = extractKeywords(sampledTweets, 10)
 
-  // Build prompt
-  const prompt = `Analyze these ${sampledTweets.length} social media posts and provide:
+  // Build enhanced prompt with operational context
+  const contextSection = operationalContext 
+    ? `\n\nOperational Context:\n${operationalContext}\n\nUse this context to better understand the significance of the posts and provide more relevant analysis.`
+    : ''
+
+  const prompt = `You are analyzing social media posts to identify opinion clusters for a government-grade monitoring application.
+
+Analyze these ${sampledTweets.length} social media posts and provide:
 1. A concise descriptive label (2-4 words) capturing the main theme
-2. Overall sentiment score (-1 to 1, where -1 is very negative, 0 is neutral, 1 is very positive)
-3. Brief reasoning for the label
+2. A detailed description (1-2 sentences) explaining:
+   - The main opinion or subject discussed
+   - The type of accounts involved (supporters, critics, influencers, etc.)
+   - The significance in the given context
+3. Overall sentiment score (-1 to 1, where -1 is very negative, 0 is neutral, 1 is very positive)
+4. Brief reasoning for the label${contextSection}
 
 Posts:
 ${sampledTweets.map((t, i) => `${i + 1}. ${t}`).join('\n')}
 
 Top keywords: ${keywords.join(', ')}
 
-CRITICAL: Respond with ONLY a valid JSON object. No markdown, no additional text.
+CRITICAL: Respond with ONLY a valid JSON object. No markdown, no additional text. Be professional and objective.
 
 {
   "label": "short descriptive label",
+  "description": "Detailed 1-2 sentence description of the cluster's opinion, subjects, and account types",
   "sentiment": 0.5,
-  "reasoning": "brief explanation"
+  "reasoning": "brief explanation of why this label fits"
 }`
 
   // Retry with exponential backoff
@@ -66,7 +80,7 @@ CRITICAL: Respond with ONLY a valid JSON object. No markdown, no additional text
         model: openaiGateway('gpt-4o-mini'),
         prompt,
         temperature: 0.3,
-        maxTokens: 200
+        maxTokens: 300
       })
 
     // Parse response
@@ -75,7 +89,8 @@ CRITICAL: Respond with ONLY a valid JSON object. No markdown, no additional text
       logger.info('[Opinion Map] Cluster labeled successfully', {
         cluster_id: clusterId,
       label: parsed.label,
-        sentiment: parsed.sentiment
+        sentiment: parsed.sentiment,
+        has_description: Boolean(parsed.description)
       })
 
     return {
@@ -83,7 +98,7 @@ CRITICAL: Respond with ONLY a valid JSON object. No markdown, no additional text
       keywords,
         sentiment: parsed.sentiment,
       confidence: 0.8,
-        reasoning: parsed.reasoning
+        reasoning: parsed.description || parsed.reasoning // Use description if available, fallback to reasoning
       }
 
   } catch (error) {
@@ -123,12 +138,16 @@ CRITICAL: Respond with ONLY a valid JSON object. No markdown, no additional text
     ? keywords.slice(0, 3).join(', ')
     : `Cluster ${clusterId}`
 
+  const fallbackDescription = keywords.length > 0
+    ? `This cluster discusses topics related to ${keywords.slice(0, 5).join(', ')}. Generated from keyword analysis due to AI unavailability.`
+    : 'Cluster analysis unavailable at this time.'
+
     return {
       label: fallbackLabel,
       keywords,
       sentiment: 0,
       confidence: 0.3,
-    reasoning: 'Generated from keywords (AI unavailable)'
+    reasoning: fallbackDescription
   }
 }
 
@@ -140,6 +159,7 @@ function parseAIResponse(text: string): {
   label: string
   sentiment: number
   reasoning?: string
+  description?: string
 } {
   let jsonText = text.trim()
 

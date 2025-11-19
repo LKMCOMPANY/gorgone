@@ -32,6 +32,11 @@ export const env = {
   twitter: {
     apiKey: process.env.TWITTER_API_KEY || "",
   },
+
+  // OpenAI API
+  openai: {
+    apiKey: process.env.OPENAI_API_KEY || "",
+  },
 } as const;
 
 /**

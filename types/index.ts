@@ -739,20 +739,54 @@ export interface OpinionEvolutionData {
   [key: string]: string | number; // Tweet count per cluster
 }
 
-// Cluster Color Palette
+// Modern Cluster Color Palette - 36 perceptually distinct colors
+// Optimized for both light and dark modes with high contrast and elegance
 export const OPINION_CLUSTER_COLORS = [
-  "#0077BB", // Blue
-  "#EE7733", // Orange
-  "#009988", // Teal
-  "#CC3311", // Red
-  "#33BBEE", // Cyan
-  "#EE3377", // Magenta
-  "#BBBBBB", // Grey
-  "#000000", // Black
-  "#AA3377", // Purple
-  "#DDAA33", // Gold
-  "#004488", // Dark Blue
-  "#BB5566", // Rose
+  // Primary Vibrant Colors
+  "#3B82F6", // Blue
+  "#EF4444", // Red
+  "#10B981", // Green
+  "#F59E0B", // Amber
+  "#8B5CF6", // Purple
+  "#EC4899", // Pink
+  "#06B6D4", // Cyan
+  "#F97316", // Orange
+  
+  // Secondary Rich Colors
+  "#6366F1", // Indigo
+  "#84CC16", // Lime
+  "#14B8A6", // Teal
+  "#F43F5E", // Rose
+  "#A855F7", // Violet
+  "#EAB308", // Yellow
+  "#0EA5E9", // Sky
+  "#FB923C", // Orange Light
+  
+  // Tertiary Sophisticated Colors
+  "#8B5A3C", // Brown
+  "#64748B", // Slate
+  "#7C3AED", // Purple Deep
+  "#DC2626", // Red Dark
+  "#059669", // Emerald
+  "#D97706", // Amber Dark
+  "#2563EB", // Blue Deep
+  "#BE123C", // Rose Dark
+  
+  // Quaternary Elegant Colors
+  "#4F46E5", // Indigo Dark
+  "#65A30D", // Lime Dark
+  "#0D9488", // Teal Dark
+  "#DB2777", // Pink Dark
+  "#9333EA", // Violet Dark
+  "#CA8A04", // Yellow Dark
+  "#0284C7", // Sky Dark
+  "#EA580C", // Orange Deep
+  
+  // Accent Colors
+  "#7E22CE", // Purple Extra
+  "#16A34A", // Green Deep
+  "#0891B2", // Cyan Dark
+  "#BE185D", // Pink Extra
 ] as const;
 
 // Get cluster color by index

@@ -1,7 +1,7 @@
 'use client'
 
 /**
- * Opinion Map Main View
+ * Opinion Map Main View - Enhanced with Auto-Refresh & Progress
  * Orchestrates all opinion map components and state
  */
 
@@ -72,9 +72,16 @@ export function TwitterOpinionMapView({ zoneId }: TwitterOpinionMapViewProps) {
 
           setSession(updatedSession)
 
-          // If completed, load results
+          // If completed, load results automatically
           if (updatedSession.status === 'completed') {
             loadResults(updatedSession.session_id)
+            toast.success('Opinion map generated successfully!', {
+              description: `${updatedSession.total_tweets} tweets analyzed in ${updatedSession.total_clusters} clusters`
+            })
+          } else if (updatedSession.status === 'failed') {
+            toast.error('Opinion map generation failed', {
+              description: updatedSession.error_message || 'Unknown error'
+            })
           }
         }
       )
@@ -152,8 +159,6 @@ export function TwitterOpinionMapView({ zoneId }: TwitterOpinionMapViewProps) {
           endDate
         )
         setTimeSeriesData(timeSeries)
-
-        toast.success('Opinion map generated successfully!')
       }
     } catch (error) {
       console.error('[Opinion Map] Failed to load results', error)
@@ -254,8 +259,11 @@ export function TwitterOpinionMapView({ zoneId }: TwitterOpinionMapViewProps) {
         created_by: null
       } as TwitterOpinionSession)
 
+      // Keep previous results visible during generation
+      // They will be replaced when the new generation completes
+
       toast.success('Opinion map generation started', {
-        description: `Estimated time: ${Math.ceil(data.estimated_time_seconds / 60)} minutes`
+        description: `Processing ${data.sampled_tweets} tweets. Estimated time: ${Math.ceil(data.estimated_time_seconds / 60)} minutes`
       })
     } catch (error) {
       console.error('[Opinion Map] Generation failed', error)
@@ -277,6 +285,7 @@ export function TwitterOpinionMapView({ zoneId }: TwitterOpinionMapViewProps) {
 
       if (response.ok) {
         toast.success('Opinion map generation cancelled')
+        setSession(prev => prev ? { ...prev, status: 'cancelled' } : null)
       }
     } catch (error) {
       toast.error('Failed to cancel generation')
@@ -284,7 +293,13 @@ export function TwitterOpinionMapView({ zoneId }: TwitterOpinionMapViewProps) {
   }
 
   const handleSelectCluster = useCallback((clusterId: number) => {
-    // Find first tweet in cluster
+    // If same cluster or invalid, deselect
+    if (clusterId < 0 || (selection.type === 'selected' && clusterId === selection.clusterId)) {
+      setSelection({ type: 'none' })
+      return
+    }
+
+    // Find first tweet in cluster by engagement
     const clusterTweets = projections.filter(p => p.cluster_id === clusterId)
     const firstTweet = clusterTweets.sort((a, b) => 
       b.total_engagement - a.total_engagement
@@ -296,9 +311,9 @@ export function TwitterOpinionMapView({ zoneId }: TwitterOpinionMapViewProps) {
         tweetId: firstTweet.tweet_id,
         clusterId
       })
-      setActiveTab('tweets')
+      // Don't automatically switch tabs - let user decide
     }
-  }, [projections])
+  }, [projections, selection])
 
   const handleSelectTweet = useCallback((tweetId: string, clusterId: number) => {
     setSelection({ type: 'selected', tweetId, clusterId })
@@ -334,16 +349,16 @@ export function TwitterOpinionMapView({ zoneId }: TwitterOpinionMapViewProps) {
           onCancel={handleCancel}
         />
         
-        <Card>
-          <div className="flex flex-col items-center justify-center py-16 px-4">
+        <Card className="border-border">
+          <div className="flex flex-col items-center justify-center py-20 px-4">
             <div className="space-y-4 text-center max-w-md">
-              <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-                <Sparkles className="w-8 h-8 text-primary" />
+              <div className="mx-auto w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center">
+                <Sparkles className="w-10 h-10 text-primary" />
               </div>
               <div className="space-y-2">
-                <h3 className="text-heading-3">No Opinion Map Yet</h3>
-                <p className="text-body-sm text-muted-foreground">
-                  Generate your first 3D opinion map to visualize clusters and track evolution
+                <h3 className="text-heading-2">No Opinion Map Yet</h3>
+                <p className="text-body text-muted-foreground">
+                  Generate your first 3D opinion map to visualize clusters and track evolution over time
                 </p>
               </div>
             </div>
@@ -358,7 +373,7 @@ export function TwitterOpinionMapView({ zoneId }: TwitterOpinionMapViewProps) {
     : null
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-in fade-in-0 duration-300">
       {/* Controls */}
       <TwitterOpinionMapControls
         session={session}
@@ -367,10 +382,10 @@ export function TwitterOpinionMapView({ zoneId }: TwitterOpinionMapViewProps) {
       />
 
       {/* Main content */}
-      {projections.length > 0 && (
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Left: 3D viz + evolution chart */}
-          <div className="lg:col-span-3 space-y-6">
+      {projections.length > 0 ? (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Left: 3D viz + evolution chart (2/3 width) */}
+          <div className="lg:col-span-2 space-y-6">
             {/* 3D Visualization */}
             <TwitterOpinionMap3D
               projections={projections}
@@ -390,24 +405,27 @@ export function TwitterOpinionMapView({ zoneId }: TwitterOpinionMapViewProps) {
             />
           </div>
 
-          {/* Right: Sidebar with tabs */}
-          <Card>
+          {/* Right: Sidebar with tabs (1/3 width) */}
+          <Card className="border-border">
             <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'clusters' | 'tweets')}>
-              <div className="border-b">
-                <TabsList className="w-full h-12 bg-transparent p-0">
+              <div className="border-b border-border">
+                <TabsList className="w-full h-12 bg-transparent p-0 rounded-none">
                   <TabsTrigger 
                     value="clusters" 
-                    className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none"
+                    className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none transition-all duration-[150ms]"
                   >
                     Clusters
+                    <Badge variant="secondary" className="ml-2 text-xs">
+                      {clusters.length}
+                    </Badge>
                   </TabsTrigger>
                   <TabsTrigger 
                     value="tweets" 
-                    className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none"
+                    className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none transition-all duration-[150ms]"
                   >
-                    Tweets
+                    Posts
                     {selectedCluster && (
-                      <Badge variant="secondary" className="ml-2">
+                      <Badge variant="secondary" className="ml-2 text-xs">
                         {selectedCluster.tweet_count}
                       </Badge>
                     )}
@@ -427,10 +445,28 @@ export function TwitterOpinionMapView({ zoneId }: TwitterOpinionMapViewProps) {
               {/* Tweets Tab */}
               <TabsContent value="tweets" className="mt-0">
                 {!selectedCluster ? (
-                  <div className="p-8 text-center">
-                    <p className="text-body-sm text-muted-foreground">
-                      Select a cluster to view tweets
-                    </p>
+                  <div className="p-12 text-center">
+                    <div className="space-y-3">
+                      <div className="mx-auto w-12 h-12 rounded-full bg-muted flex items-center justify-center">
+                        <svg 
+                          className="w-6 h-6 text-muted-foreground" 
+                          fill="none" 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round" 
+                          strokeWidth="2" 
+                          viewBox="0 0 24 24" 
+                          stroke="currentColor"
+                        >
+                          <path d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" />
+                        </svg>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-body-sm font-medium">Select a cluster</p>
+                        <p className="text-body-sm text-muted-foreground">
+                          Click on the map or choose from the clusters tab
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 ) : (
                   <TwitterOpinionTweetSlider
@@ -445,8 +481,14 @@ export function TwitterOpinionMapView({ zoneId }: TwitterOpinionMapViewProps) {
             </Tabs>
           </Card>
         </div>
-      )}
+      ) : (session.status === 'pending' || 
+             session.status === 'vectorizing' || 
+             session.status === 'reducing' || 
+             session.status === 'clustering' || 
+             session.status === 'labeling') ? (
+        // Show loading state during generation
+        <TwitterOpinionMapSkeleton />
+      ) : null}
     </div>
   )
 }
-

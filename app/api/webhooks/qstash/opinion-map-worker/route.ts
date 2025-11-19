@@ -124,6 +124,15 @@ export async function POST(request: NextRequest) {
 
     const supabase = createAdminClient()
 
+    // Load zone for operational_context (for better AI labeling)
+    const { data: zone } = await supabase
+      .from('zones')
+      .select('operational_context')
+      .eq('id', session.zone_id)
+      .single()
+
+    const operationalContext = zone?.operational_context || null
+
     const { data: tweets } = await supabase
       .from('twitter_tweets')
       .select('id, tweet_id, text, embedding, raw_data')
@@ -270,7 +279,7 @@ export async function POST(request: NextRequest) {
     let labeled = 0
 
     for (const [clusterId, texts] of clusterTweets.entries()) {
-      const label = await generateClusterLabel(texts, clusterId)
+      const label = await generateClusterLabel(texts, clusterId, operationalContext)
 
       // Calculate centroid
       const projections = clusterProjections.get(clusterId)!
