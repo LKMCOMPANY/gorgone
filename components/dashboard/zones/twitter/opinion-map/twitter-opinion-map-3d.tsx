@@ -582,37 +582,37 @@ function SceneContent({
         material-transparent
       />
 
-      {/* 3D Axes - Modern & Elegant */}
+      {/* 3D Axes - Modern Minimalist (Subtle Black) */}
       <group position={[0, 0, 0]}>
-        {/* X Axis - Red */}
+        {/* X Axis */}
         <arrowHelper
           args={[
             new THREE.Vector3(1, 0, 0),
             new THREE.Vector3(0, 0, 0),
             110,
-            isDark ? '#ef4444' : '#dc2626',
+            isDark ? 'rgba(255, 255, 255, 0.25)' : 'rgba(0, 0, 0, 0.2)',
             8,
             4
           ]}
         />
-        {/* Y Axis - Green */}
+        {/* Y Axis */}
         <arrowHelper
           args={[
             new THREE.Vector3(0, 1, 0),
             new THREE.Vector3(0, 0, 0),
             110,
-            isDark ? '#10b981' : '#059669',
+            isDark ? 'rgba(255, 255, 255, 0.25)' : 'rgba(0, 0, 0, 0.2)',
             8,
             4
           ]}
         />
-        {/* Z Axis - Blue */}
+        {/* Z Axis */}
         <arrowHelper
           args={[
             new THREE.Vector3(0, 0, 1),
             new THREE.Vector3(0, 0, 0),
             110,
-            isDark ? '#3b82f6' : '#2563eb',
+            isDark ? 'rgba(255, 255, 255, 0.25)' : 'rgba(0, 0, 0, 0.2)',
             8,
             4
           ]}
