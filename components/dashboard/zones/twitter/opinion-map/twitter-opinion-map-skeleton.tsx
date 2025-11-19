@@ -1,6 +1,6 @@
 /**
  * Opinion Map Loading Skeleton - Enhanced
- * Elegant shimmer animation matching the new 2/3 - 1/3 layout
+ * Elegant shimmer animation matching the 2/3 - 1/3 layout
  */
 
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
@@ -10,14 +10,14 @@ export function TwitterOpinionMapSkeleton() {
   return (
     <div className="space-y-6 animate-in fade-in-0 duration-300">
       {/* Controls skeleton */}
-      <Card className="border-border">
+      <Card className="border-border shadow-sm">
         <CardContent className="p-4 sm:p-6">
           <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-            <div className="flex items-center gap-3 flex-1">
+            <div className="flex flex-wrap items-center gap-3 flex-1">
               <Skeleton className="h-10 w-32" />
               <Skeleton className="h-10 w-32" />
             </div>
-            <Skeleton className="h-10 w-48" />
+            <Skeleton className="h-10 w-full sm:w-48" />
           </div>
         </CardContent>
       </Card>
@@ -27,40 +27,53 @@ export function TwitterOpinionMapSkeleton() {
         {/* Left: 3D viz + chart (2/3 width) */}
         <div className="lg:col-span-2 space-y-6">
           {/* 3D canvas skeleton */}
-          <Card className="border-border">
-            <div className="relative h-[600px]">
+          <Card className="border-border shadow-xl overflow-hidden">
+            <div className="relative h-[600px] bg-gradient-to-br from-background via-background to-muted/10">
               <Skeleton className="absolute inset-0" />
-              {/* Floating elements to simulate controls */}
+              {/* Floating controls */}
               <div className="absolute top-4 right-4 space-y-2">
                 <Skeleton className="h-9 w-9 rounded-lg" />
                 <Skeleton className="h-9 w-9 rounded-lg" />
+                <Skeleton className="h-9 w-9 rounded-lg" />
               </div>
+              {/* Legend */}
+              <div className="absolute top-4 left-4">
+                <Skeleton className="h-24 w-64 rounded-lg" />
+              </div>
+              {/* Stats */}
               <div className="absolute bottom-4 left-4">
-                <Skeleton className="h-8 w-32 rounded-lg" />
+                <Skeleton className="h-10 w-40 rounded-lg" />
+              </div>
+              {/* Info */}
+              <div className="absolute bottom-4 right-4">
+                <Skeleton className="h-20 w-64 rounded-lg" />
               </div>
             </div>
           </Card>
 
           {/* Chart skeleton */}
-          <Card className="border-border">
-            <CardHeader className="space-y-1.5">
-              <Skeleton className="h-7 w-48" />
+          <Card className="border-border shadow-sm">
+            <CardHeader className="space-y-2 pb-4">
+              <Skeleton className="h-6 w-48" />
               <Skeleton className="h-4 w-full max-w-md" />
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 pb-6">
+              {/* Chart area */}
               <Skeleton className="h-[320px] w-full rounded-lg" />
-              <div className="grid grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Skeleton className="h-3 w-24" />
-                  <Skeleton className="h-6 w-16" />
-                </div>
+              
+              {/* Stats grid */}
+              <div className="grid grid-cols-3 gap-4 pt-4 border-t border-border">
                 <div className="space-y-2">
                   <Skeleton className="h-3 w-20" />
-                  <Skeleton className="h-6 w-24" />
+                  <Skeleton className="h-5 w-16" />
+                </div>
+                <div className="space-y-2">
+                  <Skeleton className="h-3 w-24" />
+                  <Skeleton className="h-5 w-20" />
                 </div>
                 <div className="space-y-2">
                   <Skeleton className="h-3 w-28" />
-                  <Skeleton className="h-6 w-12" />
+                  <Skeleton className="h-5 w-12" />
                 </div>
               </div>
             </CardContent>
@@ -68,77 +81,36 @@ export function TwitterOpinionMapSkeleton() {
         </div>
 
         {/* Right: Sidebar skeleton (1/3 width) */}
-        <Card className="border-border">
+        <Card className="border-border shadow-sm">
           {/* Tabs skeleton */}
           <div className="border-b border-border">
             <div className="flex h-12">
-              <Skeleton className="flex-1 h-full rounded-none" />
-              <Skeleton className="flex-1 h-full rounded-none" />
+              <div className="flex-1 flex items-center justify-center gap-2 border-b-2 border-primary">
+                <Skeleton className="h-4 w-16" />
+                <Skeleton className="h-5 w-6 rounded-full" />
+              </div>
+              <div className="flex-1 flex items-center justify-center gap-2">
+                <Skeleton className="h-4 w-12" />
+              </div>
             </div>
           </div>
 
           {/* Content skeleton */}
           <div className="p-4 space-y-4">
-            {/* Navigation header */}
-            <div className="flex items-center justify-between pb-4 border-b border-border">
-              <Skeleton className="h-8 w-8 rounded-md" />
-              <Skeleton className="h-5 w-32" />
-              <Skeleton className="h-8 w-8 rounded-md" />
-            </div>
-
-            {/* Progress dots */}
-            <div className="flex items-center gap-1.5 pb-4 border-b border-border">
+            {/* Cluster cards */}
+            <div className="space-y-3">
               {[...Array(6)].map((_, i) => (
-                <Skeleton key={i} className="h-1.5 flex-1" />
+                <div 
+                  key={i} 
+                  className="flex items-start gap-3 p-3 rounded-lg border border-border hover:bg-accent/5 transition-colors duration-150"
+                >
+                  <Skeleton className="w-3.5 h-3.5 rounded-full flex-shrink-0 mt-0.5" />
+                  <div className="flex-1 space-y-2 min-w-0">
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-3 w-20" />
+                  </div>
+                </div>
               ))}
-            </div>
-
-            {/* Main card */}
-            <div className="space-y-4">
-              <Card className="p-6 space-y-4 border-border">
-                {/* Header */}
-                <div className="flex items-start gap-4">
-                  <Skeleton className="w-12 h-12 rounded-lg" />
-                  <div className="flex-1 space-y-2">
-                    <Skeleton className="h-6 w-3/4" />
-                    <Skeleton className="h-4 w-1/2" />
-                  </div>
-                </div>
-
-                {/* Description */}
-                <div className="space-y-2">
-                  <Skeleton className="h-4 w-20" />
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-4 w-3/4" />
-                </div>
-
-                {/* Keywords */}
-                <div className="space-y-2">
-                  <Skeleton className="h-4 w-24" />
-                  <div className="flex flex-wrap gap-1.5">
-                    {[...Array(6)].map((_, i) => (
-                      <Skeleton key={i} className="h-6 w-16" />
-                    ))}
-                  </div>
-                </div>
-
-                {/* Metrics */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Skeleton className="h-4 w-20" />
-                    <Skeleton className="h-4 w-16" />
-                  </div>
-                  <Skeleton className="h-2 w-full rounded-full" />
-                </div>
-              </Card>
-
-              {/* Quick nav grid */}
-              <div className="grid grid-cols-2 gap-2">
-                {[...Array(4)].map((_, i) => (
-                  <Skeleton key={i} className="h-16 rounded-lg" />
-                ))}
-              </div>
             </div>
           </div>
         </Card>

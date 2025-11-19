@@ -1,11 +1,11 @@
 'use client'
 
 /**
- * Opinion Map Main View - Enhanced with Auto-Refresh & Progress
- * Orchestrates all opinion map components and state
+ * Opinion Map Main View - Enhanced Real-Time Updates
+ * Orchestrates all opinion map components with robust real-time updates
  */
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card } from '@/components/ui/card'
@@ -18,6 +18,7 @@ import { TwitterOpinionEvolutionChart } from './twitter-opinion-evolution-chart'
 import { TwitterOpinionClusterList } from './twitter-opinion-cluster-list'
 import { TwitterOpinionTweetSlider } from './twitter-opinion-tweet-slider'
 import { TwitterOpinionMapSkeleton } from './twitter-opinion-map-skeleton'
+import { TwitterOpinionMapGeneratingOverlay } from './twitter-opinion-map-generating-overlay'
 import { calculateGranularity } from '@/lib/data/twitter/opinion-map/time-series'
 import { 
   eachHourOfInterval,
@@ -38,6 +39,10 @@ interface TwitterOpinionMapViewProps {
   zoneId: string
 }
 
+// Polling intervals
+const POLLING_INTERVAL_GENERATING = 3000 // 3s during generation
+const POLLING_INTERVAL_IDLE = 30000 // 30s when idle
+
 export function TwitterOpinionMapView({ zoneId }: TwitterOpinionMapViewProps) {
   // State
   const [loading, setLoading] = useState(true)
@@ -47,15 +52,136 @@ export function TwitterOpinionMapView({ zoneId }: TwitterOpinionMapViewProps) {
   const [timeSeriesData, setTimeSeriesData] = useState<OpinionEvolutionData[]>([])
   const [selection, setSelection] = useState<OpinionSelectionState>({ type: 'none' })
   const [activeTab, setActiveTab] = useState<'clusters' | 'tweets'>('clusters')
+  
+  // Refs for polling management
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  const lastSessionIdRef = useRef<string | null>(null)
+  const mountedRef = useRef(true)
 
   const supabase = createClient()
 
-  // Load initial data
+  // Check if session is in generating state
+  const isGenerating = Boolean(session && [
+    'pending',
+    'vectorizing',
+    'reducing',
+    'clustering',
+    'labeling'
+  ].includes(session.status))
+
+  // Load session data
+  const loadSessionData = useCallback(async (silent = false) => {
+    try {
+      if (!silent && !session) {
+        setLoading(true)
+      }
+
+      const response = await fetch(
+        `/api/twitter/opinion-map/latest?zone_id=${zoneId}`
+      )
+
+      if (!response.ok) {
+        if (!silent) setLoading(false)
+        return
+      }
+
+      const data = await response.json()
+
+      if (!mountedRef.current) return
+
+      // Update session
+      const newSession = data.session as TwitterOpinionSession | null
+      setSession(newSession)
+
+      // Detect session change (new generation started)
+      if (newSession && lastSessionIdRef.current !== newSession.session_id) {
+        lastSessionIdRef.current = newSession.session_id
+
+        // Clear previous results when new session starts
+        if (newSession.status !== 'completed') {
+          // Keep old results visible but show overlay
+          // Don't clear projections/clusters yet
+        }
+
+        // Show toast for new generation
+        if (['pending', 'vectorizing'].includes(newSession.status)) {
+          toast.info('Opinion map generation started', {
+            description: 'Processing tweets. This may take a few minutes.'
+          })
+        }
+      }
+
+      // Update results if completed
+      if (newSession?.status === 'completed' && data.projections && data.clusters) {
+        setProjections(data.projections)
+        setClusters(data.clusters)
+
+        // Generate time series data client-side
+        const startDate = new Date(newSession.config.start_date)
+        const endDate = new Date(newSession.config.end_date)
+        const timeSeries = generateTimeSeriesDataClient(
+          data.projections,
+          data.clusters,
+          startDate,
+          endDate
+        )
+        setTimeSeriesData(timeSeries)
+
+        // Show success toast only if this is a new completion
+        if (lastSessionIdRef.current === newSession.session_id) {
+          toast.success('Opinion map generated successfully!', {
+            description: `${newSession.total_tweets} tweets analyzed in ${newSession.total_clusters} clusters`
+          })
+        }
+      }
+
+      if (!silent) {
+        setLoading(false)
+      }
+    } catch (error) {
+      console.error('[Opinion Map] Failed to load session', error)
+      if (!silent) {
+        setLoading(false)
+      }
+    }
+  }, [zoneId, session])
+
+  // Initial load
   useEffect(() => {
-    loadLatestSession()
+    loadSessionData(false)
+
+    return () => {
+      mountedRef.current = false
+    }
   }, [zoneId])
 
-  // Subscribe to session updates via Supabase Realtime
+  // Setup polling (more reliable than Realtime alone)
+  useEffect(() => {
+    // Clear existing interval
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current)
+      pollingIntervalRef.current = null
+    }
+
+    // Determine polling interval based on state
+    const interval = isGenerating 
+      ? POLLING_INTERVAL_GENERATING 
+      : POLLING_INTERVAL_IDLE
+
+    // Start polling
+    pollingIntervalRef.current = setInterval(() => {
+      loadSessionData(true)
+    }, interval)
+
+    return () => {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current)
+        pollingIntervalRef.current = null
+      }
+    }
+  }, [isGenerating, loadSessionData])
+
+  // Subscribe to Supabase Realtime (primary mechanism)
   useEffect(() => {
     const channel = supabase
       .channel(`opinion_map_${zoneId}`)
@@ -67,22 +193,40 @@ export function TwitterOpinionMapView({ zoneId }: TwitterOpinionMapViewProps) {
           table: 'twitter_opinion_sessions',
           filter: `zone_id=eq.${zoneId}`
         },
-        (payload) => {
+        async (payload) => {
           const updatedSession = payload.new as TwitterOpinionSession
+
+          if (!mountedRef.current) return
+
+          console.log('[Opinion Map] Realtime update:', updatedSession.status, updatedSession.progress)
 
           setSession(updatedSession)
 
-          // If completed, load results automatically
+          // If completed, load results immediately
           if (updatedSession.status === 'completed') {
-            loadResults(updatedSession.session_id)
-            toast.success('Opinion map generated successfully!', {
-              description: `${updatedSession.total_tweets} tweets analyzed in ${updatedSession.total_clusters} clusters`
-            })
+            await loadSessionData(true)
           } else if (updatedSession.status === 'failed') {
             toast.error('Opinion map generation failed', {
               description: updatedSession.error_message || 'Unknown error'
             })
           }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'twitter_opinion_sessions',
+          filter: `zone_id=eq.${zoneId}`
+        },
+        (payload) => {
+          const newSession = payload.new as TwitterOpinionSession
+          if (!mountedRef.current) return
+          
+          console.log('[Opinion Map] New session created:', newSession.session_id)
+          setSession(newSession)
+          lastSessionIdRef.current = newSession.session_id
         }
       )
       .subscribe()
@@ -91,80 +235,6 @@ export function TwitterOpinionMapView({ zoneId }: TwitterOpinionMapViewProps) {
       supabase.removeChannel(channel)
     }
   }, [zoneId])
-
-  const loadLatestSession = async () => {
-    try {
-      setLoading(true)
-
-      const response = await fetch(
-        `/api/twitter/opinion-map/latest?zone_id=${zoneId}`
-      )
-
-      if (!response.ok) {
-        setLoading(false)
-        return
-      }
-
-      const data = await response.json()
-
-      if (data.session) {
-        setSession(data.session)
-
-        if (data.session.status === 'completed' && data.projections && data.clusters) {
-          setProjections(data.projections)
-          setClusters(data.clusters)
-
-          // Generate time series data client-side
-          const startDate = new Date(data.session.config.start_date)
-          const endDate = new Date(data.session.config.end_date)
-          const timeSeries = generateTimeSeriesDataClient(
-            data.projections,
-            data.clusters,
-            startDate,
-            endDate
-          )
-          setTimeSeriesData(timeSeries)
-        }
-      }
-    } catch (error) {
-      console.error('[Opinion Map] Failed to load session', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const loadResults = async (sessionId: string) => {
-    try {
-      const response = await fetch(
-        `/api/twitter/opinion-map/status?session_id=${sessionId}`
-      )
-
-      if (!response.ok) {
-        throw new Error('Failed to load results')
-      }
-
-      const data = await response.json()
-
-      if (data.projections && data.clusters) {
-        setProjections(data.projections)
-        setClusters(data.clusters)
-
-        // Generate time series on client side
-        const startDate = new Date(data.session.config.start_date)
-        const endDate = new Date(data.session.config.end_date)
-        const timeSeries = generateTimeSeriesDataClient(
-          data.projections,
-          data.clusters,
-          startDate,
-          endDate
-        )
-        setTimeSeriesData(timeSeries)
-      }
-    } catch (error) {
-      console.error('[Opinion Map] Failed to load results', error)
-      toast.error('Failed to load opinion map results')
-    }
-  }
 
   // Client-side time series generation
   function generateTimeSeriesDataClient(
@@ -237,7 +307,8 @@ export function TwitterOpinionMapView({ zoneId }: TwitterOpinionMapViewProps) {
 
       const data = await response.json()
 
-      setSession({
+      // Create optimistic session state
+      const newSession: TwitterOpinionSession = {
         id: data.session_id,
         zone_id: zoneId,
         session_id: data.session_id,
@@ -257,14 +328,20 @@ export function TwitterOpinionMapView({ zoneId }: TwitterOpinionMapViewProps) {
         completed_at: null,
         created_at: new Date().toISOString(),
         created_by: null
-      } as TwitterOpinionSession)
+      }
 
-      // Keep previous results visible during generation
-      // They will be replaced when the new generation completes
+      setSession(newSession)
+      lastSessionIdRef.current = data.session_id
+
+      // Don't clear previous results immediately - they'll be visible under overlay
+      // They'll be replaced when new generation completes
 
       toast.success('Opinion map generation started', {
         description: `Processing ${data.sampled_tweets} tweets. Estimated time: ${Math.ceil(data.estimated_time_seconds / 60)} minutes`
       })
+
+      // Trigger immediate poll to catch first update
+      setTimeout(() => loadSessionData(true), 1000)
     } catch (error) {
       console.error('[Opinion Map] Generation failed', error)
       toast.error('Failed to start opinion map generation', {
@@ -285,7 +362,7 @@ export function TwitterOpinionMapView({ zoneId }: TwitterOpinionMapViewProps) {
 
       if (response.ok) {
         toast.success('Opinion map generation cancelled')
-        setSession(prev => prev ? { ...prev, status: 'cancelled' } : null)
+        await loadSessionData(true)
       }
     } catch (error) {
       toast.error('Failed to cancel generation')
@@ -311,7 +388,6 @@ export function TwitterOpinionMapView({ zoneId }: TwitterOpinionMapViewProps) {
         tweetId: firstTweet.tweet_id,
         clusterId
       })
-      // Don't automatically switch tabs - let user decide
     }
   }, [projections, selection])
 
@@ -335,12 +411,13 @@ export function TwitterOpinionMapView({ zoneId }: TwitterOpinionMapViewProps) {
     // Could add hover effects if needed
   }, [])
 
+  // Initial loading state
   if (loading) {
     return <TwitterOpinionMapSkeleton />
   }
 
-  // Empty state
-  if (!session || (session.status === 'completed' && projections.length === 0)) {
+  // Empty state - no session at all
+  if (!session || (session.status === 'completed' && projections.length === 0 && clusters.length === 0)) {
     return (
       <div className="space-y-6">
         <TwitterOpinionMapControls
@@ -372,6 +449,20 @@ export function TwitterOpinionMapView({ zoneId }: TwitterOpinionMapViewProps) {
     ? clusters.find(c => c.cluster_id === selection.clusterId)
     : null
 
+  // Show skeleton if generating and no previous results
+  if (isGenerating && projections.length === 0) {
+    return (
+      <div className="space-y-6">
+        <TwitterOpinionMapControls
+          session={session}
+          onGenerate={handleGenerate}
+          onCancel={handleCancel}
+        />
+        <TwitterOpinionMapSkeleton />
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6 animate-in fade-in-0 duration-300">
       {/* Controls */}
@@ -382,113 +473,114 @@ export function TwitterOpinionMapView({ zoneId }: TwitterOpinionMapViewProps) {
       />
 
       {/* Main content */}
-      {projections.length > 0 ? (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left: 3D viz + evolution chart (2/3 width) */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* 3D Visualization */}
-            <TwitterOpinionMap3D
-              projections={projections}
-              clusters={clusters}
-              selection={selection}
-              onSelectCluster={handleSelectCluster}
-              onSelectTweet={handleSelectTweet}
-              onHoverPoint={handleHoverPoint}
-            />
+      <div className="relative">
+        {/* Generating overlay - shows over existing results */}
+        {isGenerating && projections.length > 0 && (
+          <TwitterOpinionMapGeneratingOverlay session={session} />
+        )}
 
-            {/* Evolution Chart */}
-            <TwitterOpinionEvolutionChart
-              data={timeSeriesData}
-              clusters={clusters}
-              selection={selection}
-              onSelectCluster={handleSelectCluster}
-            />
-          </div>
+        {/* Results display */}
+        {projections.length > 0 && clusters.length > 0 && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Left: 3D viz + evolution chart (2/3 width) */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* 3D Visualization */}
+              <TwitterOpinionMap3D
+                projections={projections}
+                clusters={clusters}
+                selection={selection}
+                onSelectCluster={handleSelectCluster}
+                onSelectTweet={handleSelectTweet}
+                onHoverPoint={handleHoverPoint}
+              />
 
-          {/* Right: Sidebar with tabs (1/3 width) */}
-          <Card className="border-border">
-            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'clusters' | 'tweets')}>
-              <div className="border-b border-border">
-                <TabsList className="w-full h-12 bg-transparent p-0 rounded-none">
-                  <TabsTrigger 
-                    value="clusters" 
-                    className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none transition-all duration-[150ms]"
-                  >
-                    Clusters
-                    <Badge variant="secondary" className="ml-2 text-xs">
-                      {clusters.length}
-                    </Badge>
-                  </TabsTrigger>
-                  <TabsTrigger 
-                    value="tweets" 
-                    className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none transition-all duration-[150ms]"
-                  >
-                    Posts
-                    {selectedCluster && (
+              {/* Evolution Chart */}
+              <TwitterOpinionEvolutionChart
+                data={timeSeriesData}
+                clusters={clusters}
+                selection={selection}
+                onSelectCluster={handleSelectCluster}
+              />
+            </div>
+
+            {/* Right: Sidebar with tabs (1/3 width) */}
+            <Card className="border-border">
+              <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'clusters' | 'tweets')}>
+                <div className="border-b border-border">
+                  <TabsList className="w-full h-12 bg-transparent p-0 rounded-none">
+                    <TabsTrigger 
+                      value="clusters" 
+                      className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none transition-all duration-[150ms]"
+                    >
+                      Clusters
                       <Badge variant="secondary" className="ml-2 text-xs">
-                        {selectedCluster.tweet_count}
+                        {clusters.length}
                       </Badge>
-                    )}
-                  </TabsTrigger>
-                </TabsList>
-              </div>
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="tweets" 
+                      className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none transition-all duration-[150ms]"
+                    >
+                      Posts
+                      {selectedCluster && (
+                        <Badge variant="secondary" className="ml-2 text-xs">
+                          {selectedCluster.tweet_count}
+                        </Badge>
+                      )}
+                    </TabsTrigger>
+                  </TabsList>
+                </div>
 
-              {/* Clusters Tab */}
-              <TabsContent value="clusters" className="mt-0">
-                <TwitterOpinionClusterList
-                  clusters={clusters}
-                  selection={selection}
-                  onSelectCluster={handleSelectCluster}
-                />
-              </TabsContent>
+                {/* Clusters Tab */}
+                <TabsContent value="clusters" className="mt-0">
+                  <TwitterOpinionClusterList
+                    clusters={clusters}
+                    selection={selection}
+                    onSelectCluster={handleSelectCluster}
+                  />
+                </TabsContent>
 
-              {/* Tweets Tab */}
-              <TabsContent value="tweets" className="mt-0">
-                {!selectedCluster ? (
-                  <div className="p-12 text-center">
-                    <div className="space-y-3">
-                      <div className="mx-auto w-12 h-12 rounded-full bg-muted flex items-center justify-center">
-                        <svg 
-                          className="w-6 h-6 text-muted-foreground" 
-                          fill="none" 
-                          strokeLinecap="round" 
-                          strokeLinejoin="round" 
-                          strokeWidth="2" 
-                          viewBox="0 0 24 24" 
-                          stroke="currentColor"
-                        >
-                          <path d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" />
-                        </svg>
-                      </div>
-                      <div className="space-y-1">
-                        <p className="text-body-sm font-medium">Select a cluster</p>
-                        <p className="text-body-sm text-muted-foreground">
-                          Click on the map or choose from the clusters tab
-                        </p>
+                {/* Tweets Tab */}
+                <TabsContent value="tweets" className="mt-0">
+                  {!selectedCluster ? (
+                    <div className="p-12 text-center">
+                      <div className="space-y-3">
+                        <div className="mx-auto w-12 h-12 rounded-full bg-muted flex items-center justify-center">
+                          <svg 
+                            className="w-6 h-6 text-muted-foreground" 
+                            fill="none" 
+                            strokeLinecap="round" 
+                            strokeLinejoin="round" 
+                            strokeWidth="2" 
+                            viewBox="0 0 24 24" 
+                            stroke="currentColor"
+                          >
+                            <path d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" />
+                          </svg>
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-body-sm font-medium">Select a cluster</p>
+                          <p className="text-body-sm text-muted-foreground">
+                            Click on the map or choose from the clusters tab
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ) : (
-                  <TwitterOpinionTweetSlider
-                    projections={projections}
-                    cluster={selectedCluster}
-                    selection={selection}
-                    zoneId={zoneId}
-                    onTweetChange={handleTweetChange}
-                  />
-                )}
-              </TabsContent>
-            </Tabs>
-          </Card>
-        </div>
-      ) : (session.status === 'pending' || 
-             session.status === 'vectorizing' || 
-             session.status === 'reducing' || 
-             session.status === 'clustering' || 
-             session.status === 'labeling') ? (
-        // Show loading state during generation
-        <TwitterOpinionMapSkeleton />
-      ) : null}
+                  ) : (
+                    <TwitterOpinionTweetSlider
+                      projections={projections}
+                      cluster={selectedCluster}
+                      selection={selection}
+                      zoneId={zoneId}
+                      onTweetChange={handleTweetChange}
+                    />
+                  )}
+                </TabsContent>
+              </Tabs>
+            </Card>
+          </div>
+        )}
+      </div>
     </div>
   )
 }

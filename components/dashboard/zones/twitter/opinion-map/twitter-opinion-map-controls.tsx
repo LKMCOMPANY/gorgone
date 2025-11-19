@@ -1,7 +1,7 @@
 'use client'
 
 /**
- * Opinion Map Control Panel - Enhanced Progress Display
+ * Opinion Map Control Panel - Enhanced Real-Time Progress Display
  * Period selection, generation controls, and detailed progress tracking
  */
 
@@ -169,36 +169,41 @@ export function TwitterOpinionMapControls({
 
           {/* Enhanced Progress Display (when generating) */}
           {isGenerating && session && (
-            <div className="space-y-4 pt-2 border-t border-border">
+            <div className="space-y-4 pt-2 border-t border-border animate-in fade-in-0 slide-in-from-top-2 duration-300">
               {/* Phase Badge and Cancel */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   {PhaseIcon && (
-                    <div className={cn('p-2 rounded-lg bg-muted/50', phaseInfo.color)}>
-                      <PhaseIcon className="h-4 w-4" />
+                    <div className={cn(
+                      'p-2.5 rounded-lg bg-muted/50 transition-all duration-300', 
+                      phaseInfo.color
+                    )}>
+                      <PhaseIcon className="h-4 w-4 animate-spin" />
                     </div>
                   )}
-                  <div className="space-y-0.5">
+                  <div className="space-y-1">
                     <div className="flex items-center gap-2">
                       <span className="text-body-sm font-semibold">
                         {phaseInfo?.label || 'Processing'}
                       </span>
                       <Badge 
                         variant="secondary" 
-                        className="text-xs font-medium"
+                        className="text-xs font-medium px-2 py-0.5"
                       >
                         {session.progress}%
                       </Badge>
                     </div>
-                    <p className="text-caption text-muted-foreground">
-                      {session.phase_message || 'Please wait...'}
-                    </p>
+                    {session.phase_message && (
+                      <p className="text-caption text-muted-foreground">
+                        {session.phase_message}
+                      </p>
+                    )}
                   </div>
                 </div>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-9 w-9 hover:bg-destructive/10 hover:text-destructive"
+                  className="h-9 w-9 hover:bg-destructive/10 hover:text-destructive transition-all duration-[150ms]"
                   onClick={onCancel}
                   title="Cancel Generation"
                 >
@@ -206,43 +211,47 @@ export function TwitterOpinionMapControls({
                 </Button>
               </div>
 
-              {/* Progress Bar */}
+              {/* Progress Bar with smooth animation */}
               <div className="space-y-2">
                 <Progress 
                   value={session.progress} 
-                  className="h-2.5"
+                  className="h-2.5 transition-all duration-300"
                 />
                 
                 {/* Stats */}
                 <div className="flex items-center justify-between text-caption text-muted-foreground">
                   <span>
-                    {session.vectorized_tweets > 0 && session.total_tweets && (
+                    {session.vectorized_tweets > 0 && session.total_tweets ? (
                       <>
                         {session.vectorized_tweets.toLocaleString()} / {session.total_tweets.toLocaleString()} tweets
                       </>
+                    ) : (
+                      'Preparing data...'
                     )}
                   </span>
                   {session.total_clusters && (
-                    <span>
+                    <span className="font-medium">
                       {session.total_clusters} clusters detected
                     </span>
                   )}
                 </div>
               </div>
 
-              {/* Phase Timeline */}
-              <div className="flex items-center gap-1">
+              {/* Phase Timeline with smooth transitions */}
+              <div className="flex items-center gap-1.5">
                 {Object.entries(PHASE_INFO).map(([phase, info], index) => {
-                  const isPast = ['completed', 'failed'].includes(session.status) || 
-                                Object.keys(PHASE_INFO).indexOf(session.status) > index
+                  const phaseOrder = ['pending', 'vectorizing', 'reducing', 'clustering', 'labeling']
+                  const currentIndex = phaseOrder.indexOf(session.status)
+                  const isPast = currentIndex > index
                   const isCurrent = session.status === phase
                   
                   return (
                     <div
                       key={phase}
                       className={cn(
-                        'flex-1 h-1 rounded-full transition-all duration-[250ms]',
-                        isPast || isCurrent ? 'bg-primary' : 'bg-muted'
+                        'flex-1 h-1 rounded-full transition-all duration-500',
+                        isPast || isCurrent ? 'bg-primary' : 'bg-muted',
+                        isCurrent && 'animate-pulse'
                       )}
                       title={info.label}
                     />
@@ -254,7 +263,7 @@ export function TwitterOpinionMapControls({
 
           {/* Completed State */}
           {session?.status === 'completed' && !isGenerating && (
-            <div className="flex items-center gap-3 p-3 rounded-lg border border-primary/30 bg-primary/5">
+            <div className="flex items-center gap-3 p-3 rounded-lg border border-primary/30 bg-primary/5 animate-in fade-in-0 slide-in-from-top-2 duration-300">
               <div className="flex-shrink-0">
                 <div className="p-2 rounded-full bg-primary/10">
                   <Sparkles className="h-4 w-4 text-primary" />
@@ -281,7 +290,7 @@ export function TwitterOpinionMapControls({
 
           {/* Failed State */}
           {session?.status === 'failed' && (
-            <div className="flex items-center gap-3 p-3 rounded-lg border border-destructive/30 bg-destructive/5">
+            <div className="flex items-center gap-3 p-3 rounded-lg border border-destructive/30 bg-destructive/5 animate-in fade-in-0 slide-in-from-top-2 duration-300">
               <div className="flex-shrink-0">
                 <div className="p-2 rounded-full bg-destructive/10">
                   <X className="h-4 w-4 text-destructive" />
