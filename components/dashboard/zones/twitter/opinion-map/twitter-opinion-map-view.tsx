@@ -500,10 +500,14 @@ export function TwitterOpinionMapView({ zoneId }: TwitterOpinionMapViewProps) {
               />
             </div>
 
-            {/* Right: Sidebar with tabs (1/3 width) */}
-            <Card className="border-border">
-              <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'clusters' | 'tweets')}>
-                <div className="border-b border-border">
+            {/* Right: Sidebar with tabs (1/3 width) - Dynamic height */}
+            <Card className="border-border flex flex-col overflow-hidden h-[calc(100vh-240px)] min-h-[600px]">
+              <Tabs 
+                value={activeTab} 
+                onValueChange={(v) => setActiveTab(v as 'clusters' | 'tweets')}
+                className="flex flex-col h-full"
+              >
+                <div className="flex-shrink-0 border-b border-border">
                   <TabsList className="w-full h-12 bg-transparent p-0 rounded-none">
                     <TabsTrigger 
                       value="clusters" 
@@ -529,7 +533,7 @@ export function TwitterOpinionMapView({ zoneId }: TwitterOpinionMapViewProps) {
                 </div>
 
                 {/* Clusters Tab */}
-                <TabsContent value="clusters" className="mt-0">
+                <TabsContent value="clusters" className="mt-0 flex-1 min-h-0">
                   <TwitterOpinionClusterList
                     clusters={clusters}
                     selection={selection}
@@ -538,7 +542,7 @@ export function TwitterOpinionMapView({ zoneId }: TwitterOpinionMapViewProps) {
                 </TabsContent>
 
                 {/* Tweets Tab */}
-                <TabsContent value="tweets" className="mt-0">
+                <TabsContent value="tweets" className="mt-0 flex-1 min-h-0 flex flex-col">
                   {!selectedCluster ? (
                     <div className="p-12 text-center">
                       <div className="space-y-3">

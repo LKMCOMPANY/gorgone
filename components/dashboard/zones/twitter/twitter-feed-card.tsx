@@ -133,11 +133,11 @@ export function TwitterFeedCard({ tweet, tags = [], zoneId, showEngagementChart 
     : "grid grid-cols-1 lg:grid-cols-2"
 
   return (
-    <Card className="overflow-hidden transition-all duration-[250ms] hover:border-primary/30 hover:shadow-sm">
+    <Card className="w-full overflow-hidden transition-all duration-[250ms] hover:border-primary/30 hover:shadow-sm">
       {/* Content Area - Responsive Layout */}
       <div className={layoutClass}>
         {/* Tweet Content */}
-        <div className="p-4 sm:p-6 space-y-4">
+        <div className="w-full min-w-0 p-4 sm:p-6 space-y-4">
           {/* Compact Header - Meta + Author in one section */}
           <div className="space-y-3">
             {/* Meta Info Row */}
