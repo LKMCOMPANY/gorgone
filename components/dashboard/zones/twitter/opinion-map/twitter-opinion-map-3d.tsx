@@ -500,6 +500,10 @@ function SceneContent({
   const gridColor = isDark ? '#9ca3af' : '#6b7280'
   const gridOpacityMain = isDark ? 0.3 : 0.18
   const gridOpacitySecondary = isDark ? 0.15 : 0.09
+  
+  // Axes use same subtle appearance as secondary grid
+  const axisColor = gridColor
+  const axisOpacity = gridOpacitySecondary
 
   return (
     <>
@@ -582,40 +586,54 @@ function SceneContent({
         material-transparent
       />
 
-      {/* 3D Axes - Modern Minimalist (Subtle Black) */}
+      {/* 3D Axes - Ultra Subtle (Same as Grid) */}
       <group position={[0, 0, 0]}>
-        {/* X Axis */}
-        <arrowHelper
-          args={[
+        <primitive 
+          object={new THREE.ArrowHelper(
             new THREE.Vector3(1, 0, 0),
             new THREE.Vector3(0, 0, 0),
             110,
-            isDark ? 'rgba(255, 255, 255, 0.25)' : 'rgba(0, 0, 0, 0.2)',
+            new THREE.Color(axisColor).getHex(),
             8,
             4
-          ]}
+          )}
+          dispose={null}
         />
-        {/* Y Axis */}
-        <arrowHelper
-          args={[
-            new THREE.Vector3(0, 1, 0),
-            new THREE.Vector3(0, 0, 0),
-            110,
-            isDark ? 'rgba(255, 255, 255, 0.25)' : 'rgba(0, 0, 0, 0.2)',
-            8,
-            4
-          ]}
+        <primitive 
+          object={(() => {
+            const helper = new THREE.ArrowHelper(
+              new THREE.Vector3(0, 1, 0),
+              new THREE.Vector3(0, 0, 0),
+              110,
+              new THREE.Color(axisColor).getHex(),
+              8,
+              4
+            )
+            helper.line.material.opacity = axisOpacity
+            helper.line.material.transparent = true
+            helper.cone.material.opacity = axisOpacity
+            helper.cone.material.transparent = true
+            return helper
+          })()}
+          dispose={null}
         />
-        {/* Z Axis */}
-        <arrowHelper
-          args={[
-            new THREE.Vector3(0, 0, 1),
-            new THREE.Vector3(0, 0, 0),
-            110,
-            isDark ? 'rgba(255, 255, 255, 0.25)' : 'rgba(0, 0, 0, 0.2)',
-            8,
-            4
-          ]}
+        <primitive 
+          object={(() => {
+            const helper = new THREE.ArrowHelper(
+              new THREE.Vector3(0, 0, 1),
+              new THREE.Vector3(0, 0, 0),
+              110,
+              new THREE.Color(axisColor).getHex(),
+              8,
+              4
+            )
+            helper.line.material.opacity = axisOpacity
+            helper.line.material.transparent = true
+            helper.cone.material.opacity = axisOpacity
+            helper.cone.material.transparent = true
+            return helper
+          })()}
+          dispose={null}
         />
       </group>
 
