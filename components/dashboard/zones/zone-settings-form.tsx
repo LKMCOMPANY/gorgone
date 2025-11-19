@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import type { Zone, UserRole, ZoneDataSources } from "@/types";
 import { canManageZones } from "@/lib/auth/permissions";
 import { TwitterSettingsTab } from "./twitter/twitter-settings-tab";
+import { MediaSettingsTab } from "./media/media-settings-tab";
 
 interface ZoneSettingsFormProps {
   zone: Zone;
@@ -442,37 +443,7 @@ export function ZoneSettingsForm({ zone, userRole }: ZoneSettingsFormProps) {
       {/* Media Tab */}
       {dataSources.media && (
         <TabsContent value="media" className="animate-in fade-in-0 duration-300">
-          <Card className="card-padding border-border">
-            <div className="space-y-6">
-              <div className="space-y-2">
-                <h3 className="text-heading-3 flex items-center gap-2">
-                  <svg className="h-5 w-5 text-primary" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
-                    <path d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/>
-                  </svg>
-                  Media Configuration
-                </h3>
-                <p className="text-body text-muted-foreground">
-                  Configure monitoring settings for traditional media and news sources
-                </p>
-              </div>
-              <div className="rounded-lg border border-dashed border-border bg-muted/30 p-12 text-center">
-                <div className="mx-auto max-w-sm space-y-3">
-                  <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-                    <svg className="w-8 h-8 text-primary" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
-                      <path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
-                      <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                    </svg>
-                  </div>
-                  <div className="space-y-2">
-                    <p className="text-body font-medium">Configuration options coming soon</p>
-                    <p className="text-body-sm text-muted-foreground">
-                      You'll be able to configure RSS feeds, news sources, and content categories
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </Card>
+          <MediaSettingsTab zoneId={zone.id} />
         </TabsContent>
       )}
     </Tabs>

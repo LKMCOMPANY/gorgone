@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { getZoneById } from "@/lib/data/zones";
 import { ZonePageHeader } from "@/components/dashboard/zones/zone-page-header";
 import { TwitterFeedTabs } from "@/components/dashboard/zones/twitter/twitter-feed-tabs";
+import { MediaFeedContent } from "@/components/dashboard/zones/media/media-feed-content";
 
 interface FeedPageProps {
   params: Promise<{
@@ -77,8 +78,13 @@ export default async function FeedPage({ params, searchParams }: FeedPageProps) 
             />
           )}
 
-          {/* Other sources placeholders */}
-          {source !== "twitter" && (
+          {/* Media Content */}
+          {source === "media" && zone?.data_sources.media && (
+            <MediaFeedContent zoneId={zoneId} />
+          )}
+
+          {/* TikTok placeholder */}
+          {source === "tiktok" && zone?.data_sources.tiktok && (
             <div className="rounded-lg border border-dashed border-border bg-muted/30 p-12 text-center">
               <div className="mx-auto max-w-sm space-y-3">
                 <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
@@ -97,7 +103,7 @@ export default async function FeedPage({ params, searchParams }: FeedPageProps) 
                 <div className="space-y-2">
                   <p className="text-body font-medium">Feed coming soon</p>
                   <p className="text-body-sm text-muted-foreground">
-                    Posts from {source} will appear here once integration is complete
+                    TikTok videos will appear here once integration is complete
                   </p>
                 </div>
               </div>

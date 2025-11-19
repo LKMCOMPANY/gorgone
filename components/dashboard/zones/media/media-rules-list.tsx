@@ -1,0 +1,301 @@
+/**
+ * Media Rules List Component
+ * 
+ * Displays list of media monitoring rules with actions.
+ * Follows the same design patterns as Twitter rules list for consistency.
+ */
+
+"use client";
+
+import { useState } from "react";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Plus, MoreVertical, Pencil, Pause, Play, Trash2, Clock, Activity, Download } from "lucide-react";
+import { toast } from "sonner";
+import type { MediaRule } from "@/types";
+
+/**
+ * Format time distance to now (e.g., "2 hours ago")
+ */
+function formatDistanceToNow(date: Date): string {
+  const now = new Date();
+  const diff = now.getTime() - date.getTime();
+  const seconds = Math.floor(diff / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+
+  if (seconds < 60) return "just now";
+  if (minutes < 60) return `${minutes} minute${minutes !== 1 ? "s" : ""} ago`;
+  if (hours < 24) return `${hours} hour${hours !== 1 ? "s" : ""} ago`;
+  return `${days} day${days !== 1 ? "s" : ""} ago`;
+}
+
+interface MediaRulesListProps {
+  rules: MediaRule[];
+  onEdit: (rule: MediaRule) => void;
+  onCreateNew: () => void;
+  onRefresh: () => void;
+}
+
+export function MediaRulesList({
+  rules,
+  onEdit,
+  onCreateNew,
+  onRefresh,
+}: MediaRulesListProps) {
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [togglingId, setTogglingId] = useState<string | null>(null);
+  const [fetchingId, setFetchingId] = useState<string | null>(null);
+
+  /**
+   * Toggle rule active status
+   */
+  async function handleToggle(rule: MediaRule) {
+    setTogglingId(rule.id);
+    try {
+      const response = await fetch(`/api/media/rules/${rule.id}/toggle`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ is_active: !rule.is_active }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Failed to update rule");
+      }
+      
+      toast.success(rule.is_active ? "Rule paused" : "Rule activated");
+      onRefresh();
+    } catch (error) {
+      console.error("Failed to toggle rule:", error);
+      toast.error(error instanceof Error ? error.message : "Failed to update rule");
+    } finally {
+      setTogglingId(null);
+    }
+  }
+
+  /**
+   * Manually fetch articles for a rule
+   */
+  async function handleFetchNow(rule: MediaRule) {
+    setFetchingId(rule.id);
+    try {
+      const response = await fetch("/api/media/fetch", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ruleId: rule.id }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || "Failed to fetch articles");
+      }
+      
+      toast.success(data.message || "Articles fetched successfully");
+      onRefresh();
+    } catch (error) {
+      console.error("Failed to fetch articles:", error);
+      toast.error(error instanceof Error ? error.message : "Failed to fetch articles");
+    } finally {
+      setFetchingId(null);
+    }
+  }
+
+  /**
+   * Delete a rule
+   */
+  async function handleDelete(rule: MediaRule) {
+    if (
+      !confirm(
+        `Are you sure you want to delete the rule "${rule.name}"? This action cannot be undone.`
+      )
+    ) {
+      return;
+    }
+
+    setDeletingId(rule.id);
+    try {
+      const response = await fetch(`/api/media/rules/${rule.id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Failed to delete rule");
+      }
+      
+      toast.success("Rule deleted successfully");
+      onRefresh();
+    } catch (error) {
+      console.error("Failed to delete rule:", error);
+      toast.error(error instanceof Error ? error.message : "Failed to delete rule");
+    } finally {
+      setDeletingId(null);
+    }
+  }
+
+  /**
+   * Get query preview text
+   */
+  function getQueryPreview(rule: MediaRule): string {
+    const config = rule.query_config;
+    
+    if (rule.query_type === "simple") {
+      if (config.keyword) {
+        return `Keyword: "${config.keyword}"`;
+      }
+      if (config.sourceUri) {
+        return `Source: ${config.sourceUri}`;
+      }
+    } else {
+      // Advanced query - show main parameters
+      const parts: string[] = [];
+      if (config.keyword) parts.push(`"${config.keyword}"`);
+      if (config.sourceUri) parts.push(`Source: ${config.sourceUri}`);
+      if (config.lang) parts.push(`Lang: ${Array.isArray(config.lang) ? config.lang.join(", ") : config.lang}`);
+      return parts.join(" • ") || "Advanced query";
+    }
+    
+    return "No query configured";
+  }
+
+  return (
+    <Card className="card-padding">
+      <div className="space-y-5">
+        {/* Header with count and action */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <p className="text-body-sm text-muted-foreground">
+            {rules.length} monitoring rule{rules.length !== 1 ? "s" : ""}
+          </p>
+          <Button onClick={onCreateNew} size="sm" className="gap-2 w-full sm:w-auto">
+            <Plus className="h-4 w-4" />
+            <span>New Rule</span>
+          </Button>
+        </div>
+
+        {/* Rules List */}
+        <div className="space-y-3">
+          {rules.map((rule) => (
+            <div
+              key={rule.id}
+              className="card-interactive p-4 space-y-3"
+            >
+              {/* Header: Status + Name + Actions */}
+              <div className="flex items-start gap-3">
+                <Badge 
+                  variant={rule.is_active ? "default" : "secondary"}
+                  className="flex-shrink-0"
+                >
+                  {rule.is_active ? "Active" : "Paused"}
+                </Badge>
+                <div className="flex-1 min-w-0">
+                  <p className="text-body-sm font-medium truncate">
+                    {rule.name}
+                  </p>
+                  {rule.description && (
+                    <p className="text-caption text-muted-foreground line-clamp-1">
+                      {rule.description}
+                    </p>
+                  )}
+                </div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 flex-shrink-0"
+                      disabled={deletingId === rule.id || togglingId === rule.id || fetchingId === rule.id}
+                    >
+                      <MoreVertical className="h-4 w-4" />
+                      <span className="sr-only">Open menu</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuItem onClick={() => handleFetchNow(rule)}>
+                      <Download className="mr-2 h-4 w-4" />
+                      <span>Fetch Now</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => onEdit(rule)}>
+                      <Pencil className="mr-2 h-4 w-4" />
+                      <span>Edit</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleToggle(rule)}>
+                      {rule.is_active ? (
+                        <>
+                          <Pause className="mr-2 h-4 w-4" />
+                          <span>Pause</span>
+                        </>
+                      ) : (
+                        <>
+                          <Play className="mr-2 h-4 w-4" />
+                          <span>Activate</span>
+                        </>
+                      )}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => handleDelete(rule)}
+                      className="text-destructive focus:text-destructive"
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      <span>Delete</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+
+              {/* Query Preview */}
+              <div className="rounded-lg border border-dashed border-border/60 bg-muted/20 p-3">
+                <p className="text-caption font-mono text-muted-foreground break-all">
+                  {getQueryPreview(rule)}
+                </p>
+              </div>
+
+              {/* Metadata */}
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-caption text-muted-foreground">
+                <span className="flex items-center gap-1.5">
+                  <Clock className="h-3.5 w-3.5 flex-shrink-0" />
+                  <span>
+                    Fetch every{" "}
+                    {rule.fetch_interval_minutes >= 60
+                      ? `${Math.floor(rule.fetch_interval_minutes / 60)}h`
+                      : `${rule.fetch_interval_minutes}min`}
+                  </span>
+                </span>
+                {rule.last_fetched_at && (
+                  <>
+                    <span className="hidden sm:inline">•</span>
+                    <span className="flex items-center gap-1.5">
+                      <Activity className="h-3.5 w-3.5 flex-shrink-0" />
+                      <span>Last fetched {formatDistanceToNow(new Date(rule.last_fetched_at))}</span>
+                    </span>
+                  </>
+                )}
+                <span className="hidden sm:inline">•</span>
+                <span>{rule.articles_collected} articles collected</span>
+              </div>
+
+              {/* Fetch status (if error) */}
+              {rule.last_fetch_status === "error" && rule.last_fetch_error && (
+                <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3">
+                  <p className="text-caption text-destructive font-medium">
+                    Last fetch failed: {rule.last_fetch_error}
+                  </p>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    </Card>
+  );
+}
+

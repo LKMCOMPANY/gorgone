@@ -846,3 +846,122 @@ export type OpinionSelectionState =
 // ============================================================================
 // END OPINION MAP TYPES
 // ============================================================================
+
+// ============================================================================
+// MEDIA MONITORING TYPES (Event Registry API)
+// ============================================================================
+
+/**
+ * Media Article from Event Registry
+ */
+export interface MediaArticle {
+  id: string;
+  zone_id: string;
+  article_uri: string;
+  event_uri: string | null;
+  title: string;
+  body: string;
+  url: string;
+  lang: string;
+  published_at: string;
+  collected_at: string;
+  source_uri: string;
+  source_title: string;
+  source_description: string | null;
+  source_location_country: string | null;
+  source_location_label: string | null;
+  authors: any[];
+  image_url: string | null;
+  videos: any[];
+  sentiment: number | null;
+  relevance: number | null;
+  social_score: number;
+  shares_facebook: number;
+  shares_twitter: number;
+  shares_total: number;
+  categories: any[];
+  concepts: any[];
+  location_label: string | null;
+  location_country: string | null;
+  extracted_dates: any[];
+  links: any[];
+  is_duplicate: boolean;
+  duplicate_list: any[];
+  original_article_uri: string | null;
+  is_processed: boolean;
+  raw_data: any;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * Media Source (normalized)
+ */
+export interface MediaSource {
+  id: string;
+  source_uri: string;
+  title: string;
+  website_url: string | null;
+  description: string | null;
+  location_country: string | null;
+  location_label: string | null;
+  importance_rank: number | null;
+  alexa_global_rank: number | null;
+  alexa_country_rank: number | null;
+  source_type: string | null;
+  language: string | null;
+  article_count: number;
+  first_seen_at: string;
+  last_seen_at: string;
+  raw_data: any;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * Media Rule configuration
+ */
+export interface MediaRule {
+  id: string;
+  zone_id: string;
+  name: string;
+  description: string | null;
+  query_type: "simple" | "advanced";
+  query_config: Record<string, any>;
+  fetch_interval_minutes: number;
+  articles_per_fetch: number;
+  sort_by: "date" | "rel" | "sourceImportance" | "socialScore";
+  sort_asc: boolean;
+  data_types: string[];
+  force_max_data_time_window: number | null;
+  duplicate_filter: "skipDuplicates" | "keepOnlyDuplicates" | "keepAll";
+  event_filter: "skipArticlesWithoutEvent" | "keepOnlyArticlesWithoutEvent" | "keepAll";
+  include_body: boolean;
+  include_social_score: boolean;
+  include_sentiment: boolean;
+  include_concepts: boolean;
+  include_categories: boolean;
+  include_authors: boolean;
+  include_videos: boolean;
+  include_links: boolean;
+  is_active: boolean;
+  last_fetched_at: string | null;
+  last_fetch_status: string | null;
+  last_fetch_error: string | null;
+  articles_collected: number;
+  created_at: string;
+  created_by: string | null;
+  updated_at: string;
+}
+
+/**
+ * Media Rule with statistics
+ */
+export interface MediaRuleWithStats extends MediaRule {
+  recent_articles_count?: number;
+  last_24h_articles_count?: number;
+}
+
+// ============================================================================
+// END MEDIA MONITORING TYPES
+// ============================================================================

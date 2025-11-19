@@ -33,6 +33,11 @@ export const env = {
     apiKey: process.env.TWITTER_API_KEY || "",
   },
 
+  // Event Registry API (newsapi.ai)
+  eventRegistry: {
+    apiKey: process.env.EVENT_REGISTRY_API_KEY || "",
+  },
+
   // OpenAI API
   openai: {
     apiKey: process.env.OPENAI_API_KEY || "",
@@ -60,6 +65,7 @@ export function validateEnv() {
 
   const optional = {
     TWITTER_API_KEY: env.twitter.apiKey,
+    EVENT_REGISTRY_API_KEY: env.eventRegistry.apiKey,
   };
 
   const missing = Object.entries(required)
