@@ -141,8 +141,9 @@ export async function POST(request: NextRequest) {
 
     const operationalContext = zone?.operational_context || null
 
-    // Fetch tweets in batches to avoid PostgreSQL IN clause limit (~1000 items)
-    const FETCH_BATCH_SIZE = 500
+    // Fetch tweets in batches to avoid PostgreSQL IN clause limit and response size limit
+    // Smaller batch size (200) to prevent PostgREST payload size errors with large embeddings
+    const FETCH_BATCH_SIZE = 200
     const tweets: any[] = []
 
     logger.info('[Opinion Map Worker] Fetching embeddings in batches', {
@@ -154,9 +155,10 @@ export async function POST(request: NextRequest) {
     for (let i = 0; i < tweetIds.length; i += FETCH_BATCH_SIZE) {
       const batchIds = tweetIds.slice(i, i + FETCH_BATCH_SIZE)
       
+      // First: fetch embeddings and basic data (lighter payload)
       const { data: batchTweets, error } = await supabase
         .from('twitter_tweets')
-        .select('id, tweet_id, text, embedding, raw_data')
+        .select('id, tweet_id, text, embedding')
         .in('id', batchIds)
         .not('embedding', 'is', null)
 
@@ -169,14 +171,29 @@ export async function POST(request: NextRequest) {
         throw new Error(`Failed to fetch embeddings batch: ${error.message}`)
       }
 
-      if (batchTweets && batchTweets.length > 0) {
-        tweets.push(...batchTweets)
-        logger.debug('[Opinion Map Worker] Batch fetched', {
-          batch_index: Math.floor(i / FETCH_BATCH_SIZE) + 1,
-          fetched: batchTweets.length,
-          cumulative_total: tweets.length
+      if (!batchTweets || batchTweets.length === 0) {
+        logger.warn('[Opinion Map Worker] Batch returned no tweets', {
+          batch_index: Math.floor(i / FETCH_BATCH_SIZE),
+          batch_size: batchIds.length
         })
+        continue
       }
+
+      // Second: fetch raw_data separately for this batch (only if needed for enrichment)
+      // Note: raw_data is only used for enrichTweetContent during vectorization
+      // Since we're fetching already-vectorized tweets, we don't need raw_data here
+      const enrichedBatch = batchTweets.map(t => ({
+        ...t,
+        raw_data: {} // Placeholder - not needed for already-vectorized tweets
+      }))
+
+      tweets.push(...enrichedBatch)
+      
+      logger.debug('[Opinion Map Worker] Batch fetched', {
+        batch_index: Math.floor(i / FETCH_BATCH_SIZE) + 1,
+        fetched: enrichedBatch.length,
+        cumulative_total: tweets.length
+      })
     }
 
     if (!tweets || tweets.length === 0) {

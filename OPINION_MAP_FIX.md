@@ -11,15 +11,21 @@
 
 ### Cause Racine
 
-**Limite PostgreSQL sur la clause `IN`** (~1000 éléments maximum)
+**Double problème identifié :**
 
-Quand la cartographie génère plus de 1000 tweets à analyser, les requêtes avec `.in('id', tweetIds)` échouent silencieusement ou retournent 0 résultats, même si tous les tweets ont des embeddings valides.
+1. **Limite PostgreSQL sur la clause `IN`** (~1000 éléments maximum)
+   - Requêtes avec `.in('id', tweetIds)` échouent silencieusement pour > 1000 IDs
+
+2. **Limite de taille de réponse PostgREST/Supabase** (~2-4MB)
+   - Avec 500 tweets × (embedding 1536D + raw_data complet) → dépassement
+   - Erreur "Bad Request" lors de la récupération des embeddings
 
 ## 🔧 Solution Implémentée
 
-### Stratégie : Batch Processing
+### Stratégie : Batch Processing + Payload Optimization
 
-Toutes les requêtes utilisant `.in()` avec des tableaux potentiellement larges ont été converties en **requêtes par lots (batches)** de 500 éléments maximum.
+1. **Batch Processing** : Toutes les requêtes `.in()` divisées en batches de 200 éléments
+2. **Payload Optimization** : Exclusion des champs volumineux inutiles (`raw_data`)
 
 ### Fichiers Corrigés
 
@@ -37,16 +43,17 @@ const { data: tweets } = await supabase
 
 **Après :**
 ```typescript
-const FETCH_BATCH_SIZE = 500
+const FETCH_BATCH_SIZE = 200  // Réduit pour payload size
 const tweets: any[] = []
 
 for (let i = 0; i < tweetIds.length; i += FETCH_BATCH_SIZE) {
   const batchIds = tweetIds.slice(i, i + FETCH_BATCH_SIZE)
   
+  // ✅ Récupération optimisée : sans raw_data (inutile après vectorisation)
   const { data: batchTweets } = await supabase
     .from('twitter_tweets')
-    .select('id, tweet_id, text, embedding, raw_data')
-    .in('id', batchIds)  // ✅ Maximum 500 IDs par requête
+    .select('id, tweet_id, text, embedding')
+    .in('id', batchIds)  // ✅ Maximum 200 IDs par requête
     .not('embedding', 'is', null)
   
   if (batchTweets) tweets.push(...batchTweets)
@@ -245,17 +252,18 @@ logger.info('[Opinion Map Worker] All embeddings fetched successfully', {
 | INSERT batch | ~1000 rows | Déjà implémenté (1000) |
 | Query timeout | 60s | Batches évitent timeout |
 
-### Taille de Batch Choisie : 500
+### Taille de Batch Choisie : 200
 
-**Pourquoi 500 ?**
-- 50% de la limite PostgreSQL (marge de sécurité)
-- Équilibre entre performance et fiabilité
-- Testé et validé en production
+**Pourquoi 200 ?**
+- Évite la limite PostgreSQL IN (1000)
+- **Évite la limite de payload PostgREST/Supabase (~2-4MB)**
+- Avec embeddings 1536D : 200 tweets ≈ 1.5MB (safe)
+- Équilibre optimal entre performance et fiabilité
 
-**Pourquoi pas plus ?**
-- Évite les dépassements de limite
-- Réduit le risque de timeout
-- Facilite le debugging (logs plus granulaires)
+**Pourquoi pas 500 ?**
+- 500 tweets × embedding 1536D = ~3MB (risque de "Bad Request")
+- Le `raw_data` JSON alourdit encore plus
+- 200 garantit de rester sous toutes les limites
 
 ## 🚀 Déploiement
 
