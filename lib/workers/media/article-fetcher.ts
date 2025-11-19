@@ -119,6 +119,11 @@ function buildAPIParams(rule: MediaRule): any {
 
   // Merge query config
   Object.assign(params, rule.query_config);
+  
+  // IMPORTANT: If keyword is an array, use OR logic (at least one keyword matches)
+  if (Array.isArray(params.keyword) && params.keyword.length > 1 && !params.keywordOper) {
+    params.keywordOper = "or";
+  }
 
   return params;
 }

@@ -149,8 +149,12 @@ export function MediaRuleDialog({
   // Build query config based on mode
   function buildQueryConfig() {
     if (mode === "simple") {
+      // Split keywords by comma and trim
+      const keywordList = keyword.split(',').map(k => k.trim()).filter(k => k.length > 0);
+      
       return {
-        keyword: keyword.trim(),
+        keyword: keywordList.length === 1 ? keywordList[0] : keywordList,
+        ...(keywordList.length > 1 && { keywordOper: "and" }),
         ...(languages.length > 0 && { lang: languages }),
       };
     } else {
@@ -329,16 +333,16 @@ export function MediaRuleDialog({
             {/* Simple Mode */}
             <TabsContent value="simple" className="space-y-4 mt-4">
               <div className="space-y-2">
-                <Label htmlFor="keyword">Keyword *</Label>
+                <Label htmlFor="keyword">Keywords *</Label>
                 <Input
                   id="keyword"
-                  placeholder="e.g., artificial intelligence"
+                  placeholder="e.g., artificial intelligence, technology, AI"
                   value={keyword}
                   onChange={(e) => setKeyword(e.target.value)}
                   className="h-10"
                 />
                 <p className="text-caption text-muted-foreground">
-                  Articles containing this keyword will be collected
+                  Use commas to separate multiple keywords (they will be combined with AND logic)
                 </p>
               </div>
 
