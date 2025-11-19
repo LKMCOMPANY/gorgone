@@ -326,8 +326,8 @@ function AutoRotate({
       const optimalRadius = optimalDistanceRef.current
       const currentHeight = state.camera.position.y
       
-      // Ultra-smooth, elegant rotation - slow and sophisticated
-      angleRef.current += 0.004 // Half speed for premium feel
+      // Ultra-smooth, elegant rotation - zen and contemplative
+      angleRef.current += 0.002 // Slow rotation for premium, elegant feel
       
       state.camera.position.x = Math.sin(angleRef.current) * optimalRadius + center.x
       state.camera.position.z = Math.cos(angleRef.current) * optimalRadius + center.z
