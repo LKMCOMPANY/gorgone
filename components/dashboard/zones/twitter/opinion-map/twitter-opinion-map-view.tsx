@@ -56,6 +56,7 @@ export function TwitterOpinionMapView({ zoneId }: TwitterOpinionMapViewProps) {
   // Refs for polling management
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const lastSessionIdRef = useRef<string | null>(null)
+  const lastCompletedSessionIdRef = useRef<string | null>(null) // Track which session we showed toast for
   const mountedRef = useRef(true)
 
   const supabase = createClient()
@@ -127,8 +128,9 @@ export function TwitterOpinionMapView({ zoneId }: TwitterOpinionMapViewProps) {
         )
         setTimeSeriesData(timeSeries)
 
-        // Show success toast only if this is a new completion
-        if (lastSessionIdRef.current === newSession.session_id) {
+        // Show success toast only if this is a NEW completion (not already shown)
+        if (lastCompletedSessionIdRef.current !== newSession.session_id) {
+          lastCompletedSessionIdRef.current = newSession.session_id
           toast.success('Opinion map generated successfully!', {
             description: `${newSession.total_tweets} tweets analyzed in ${newSession.total_clusters} clusters`
           })
@@ -163,15 +165,13 @@ export function TwitterOpinionMapView({ zoneId }: TwitterOpinionMapViewProps) {
       pollingIntervalRef.current = null
     }
 
-    // Determine polling interval based on state
-    const interval = isGenerating 
-      ? POLLING_INTERVAL_GENERATING 
-      : POLLING_INTERVAL_IDLE
-
-    // Start polling
-    pollingIntervalRef.current = setInterval(() => {
-      loadSessionData(true)
-    }, interval)
+    // Only poll if actively generating
+    // Stop polling completely when session is completed to avoid unnecessary requests
+    if (isGenerating) {
+      pollingIntervalRef.current = setInterval(() => {
+        loadSessionData(true)
+      }, POLLING_INTERVAL_GENERATING)
+    }
 
     return () => {
       if (pollingIntervalRef.current) {
