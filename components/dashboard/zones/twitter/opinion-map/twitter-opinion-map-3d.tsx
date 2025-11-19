@@ -589,14 +589,23 @@ function SceneContent({
       {/* 3D Axes - Ultra Subtle (Same as Grid) */}
       <group position={[0, 0, 0]}>
         <primitive 
-          object={new THREE.ArrowHelper(
-            new THREE.Vector3(1, 0, 0),
-            new THREE.Vector3(0, 0, 0),
-            110,
-            new THREE.Color(axisColor).getHex(),
-            8,
-            4
-          )}
+          object={(() => {
+            const helper = new THREE.ArrowHelper(
+              new THREE.Vector3(1, 0, 0),
+              new THREE.Vector3(0, 0, 0),
+              110,
+              new THREE.Color(axisColor).getHex(),
+              8,
+              4
+            )
+            const lineMaterial = helper.line.material as THREE.LineBasicMaterial
+            const coneMaterial = helper.cone.material as THREE.MeshBasicMaterial
+            lineMaterial.opacity = axisOpacity
+            lineMaterial.transparent = true
+            coneMaterial.opacity = axisOpacity
+            coneMaterial.transparent = true
+            return helper
+          })()}
           dispose={null}
         />
         <primitive 
@@ -609,10 +618,12 @@ function SceneContent({
               8,
               4
             )
-            helper.line.material.opacity = axisOpacity
-            helper.line.material.transparent = true
-            helper.cone.material.opacity = axisOpacity
-            helper.cone.material.transparent = true
+            const lineMaterial = helper.line.material as THREE.LineBasicMaterial
+            const coneMaterial = helper.cone.material as THREE.MeshBasicMaterial
+            lineMaterial.opacity = axisOpacity
+            lineMaterial.transparent = true
+            coneMaterial.opacity = axisOpacity
+            coneMaterial.transparent = true
             return helper
           })()}
           dispose={null}
@@ -627,10 +638,12 @@ function SceneContent({
               8,
               4
             )
-            helper.line.material.opacity = axisOpacity
-            helper.line.material.transparent = true
-            helper.cone.material.opacity = axisOpacity
-            helper.cone.material.transparent = true
+            const lineMaterial = helper.line.material as THREE.LineBasicMaterial
+            const coneMaterial = helper.cone.material as THREE.MeshBasicMaterial
+            lineMaterial.opacity = axisOpacity
+            lineMaterial.transparent = true
+            coneMaterial.opacity = axisOpacity
+            coneMaterial.transparent = true
             return helper
           })()}
           dispose={null}
