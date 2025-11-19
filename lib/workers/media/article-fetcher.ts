@@ -18,6 +18,16 @@ import { logger } from "@/lib/logger";
 import type { MediaRule, MediaArticle, MediaSource } from "@/types";
 
 /**
+ * Parse location label (handles both string and object formats)
+ */
+function parseLocationLabel(label: any): string | null {
+  if (!label) return null;
+  if (typeof label === 'string') return label;
+  if (typeof label === 'object' && label.eng) return label.eng;
+  return null;
+}
+
+/**
  * Normalize Event Registry article to our database format
  */
 function normalizeArticle(
@@ -37,12 +47,8 @@ function normalizeArticle(
     source_uri: apiArticle.source.uri,
     source_title: apiArticle.source.title,
     source_description: apiArticle.source.description || null,
-    source_location_country: typeof apiArticle.source.location?.country?.label === 'string' 
-      ? apiArticle.source.location.country.label 
-      : apiArticle.source.location?.country?.label?.eng || null,
-    source_location_label: typeof apiArticle.source.location?.label === 'string'
-      ? apiArticle.source.location.label
-      : apiArticle.source.location?.label?.eng || null,
+    source_location_country: parseLocationLabel(apiArticle.source.location?.country?.label),
+    source_location_label: parseLocationLabel(apiArticle.source.location?.label),
     authors: apiArticle.authors || [],
     image_url: apiArticle.image || null,
     videos: apiArticle.videos || [],
@@ -78,12 +84,8 @@ function normalizeSource(
     title: apiSource.title,
     website_url: null,
     description: apiSource.description || null,
-    location_country: typeof apiSource.location?.country?.label === 'string'
-      ? apiSource.location.country.label
-      : apiSource.location?.country?.label?.eng || null,
-    location_label: typeof apiSource.location?.label === 'string'
-      ? apiSource.location.label
-      : apiSource.location?.label?.eng || null,
+    location_country: parseLocationLabel(apiSource.location?.country?.label),
+    location_label: parseLocationLabel(apiSource.location?.label),
     importance_rank: apiSource.ranking?.importanceRank || null,
     alexa_global_rank: apiSource.ranking?.alexaGlobalRank || null,
     alexa_country_rank: apiSource.ranking?.alexaCountryRank || null,
