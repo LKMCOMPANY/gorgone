@@ -559,19 +559,19 @@ function SceneContent({
       {/* Premium Background */}
       <PremiumBackground />
 
-      {/* Minimal Grid - Subtle Reference Lines */}
+      {/* Grid - Elegant Reference Lines */}
       <gridHelper 
         args={[100, 25]} 
         position={[50, 0, 50]}
-        material-color="#888888"
-        material-opacity={0.08}
+        material-color="#6b7280"
+        material-opacity={0.18}
         material-transparent
       />
       <gridHelper 
         args={[100, 10]} 
         position={[50, 0, 50]}
-        material-color="#888888"
-        material-opacity={0.04}
+        material-color="#6b7280"
+        material-opacity={0.09}
         material-transparent
       />
 
