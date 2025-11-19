@@ -387,9 +387,11 @@ function CameraAutoFit({
   centerRef: React.MutableRefObject<THREE.Vector3>
 }) {
   const { camera } = useThree()
+  const hasInitialized = useRef(false)
 
   const fitToView = useCallback(() => {
     if (projections.length === 0) return
+    if (!controlsRef.current) return
 
     // Calculate real bounding box
     const positions = projections.map((p: any) => new THREE.Vector3(p.x, p.y, p.z))
@@ -404,8 +406,8 @@ function CameraAutoFit({
     const maxDim = Math.max(size.x, size.y, size.z)
     const fov = (camera as THREE.PerspectiveCamera).fov * (Math.PI / 180)
     
-    // Ultra-tight framing: 0.85 for maximum zoom
-    const padding = 0.85
+    // Ultra-tight framing: 0.75 for MAXIMUM zoom
+    const padding = 0.75
     const distance = Math.abs(maxDim / Math.sin(fov / 2)) * padding
     
     // Elegant 45° viewing angle
@@ -416,21 +418,28 @@ function CameraAutoFit({
       center.z + Math.sin(angle) * distance * 0.75
     )
     
-    // Apply with smooth update
+    // Apply position immediately
     camera.position.copy(position)
     camera.lookAt(center)
     camera.updateProjectionMatrix()
 
-    if (controlsRef.current) {
-      controlsRef.current.target.copy(center)
-      controlsRef.current.update()
-    }
+    // Update controls target
+    controlsRef.current.target.copy(center)
+    controlsRef.current.update()
   }, [projections, camera, controlsRef, centerRef])
 
-  // Auto-fit on mount and projections change
+  // Auto-fit on first frames when controls are ready
+  useFrame(() => {
+    if (!hasInitialized.current && controlsRef.current && projections.length > 0) {
+      fitToView()
+      hasInitialized.current = true
+    }
+  })
+
+  // Re-fit when projections change
   useEffect(() => {
-    fitToView()
-  }, [fitToView])
+    hasInitialized.current = false
+  }, [projections])
 
   // Re-fit when reset button clicked
   useEffect(() => {
@@ -847,6 +856,7 @@ export function TwitterOpinionMap3D({
           maxDistance={350}
           maxPolarAngle={Math.PI / 1.8}
           minPolarAngle={Math.PI / 8}
+          makeDefault
         />
 
         <SceneContent
