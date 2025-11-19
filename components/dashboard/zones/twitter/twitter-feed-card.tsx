@@ -16,6 +16,7 @@ interface TwitterFeedCardProps {
   tweet: TwitterTweetWithProfile;
   tags?: TwitterProfileZoneTag[];
   zoneId: string;
+  showEngagementChart?: boolean; // Optional: show engagement evolution chart (default: true)
 }
 
 interface MediaItem {
@@ -109,7 +110,7 @@ function formatDuration(ms: number): string {
   return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
 }
 
-export function TwitterFeedCard({ tweet, tags = [], zoneId }: TwitterFeedCardProps) {
+export function TwitterFeedCard({ tweet, tags = [], zoneId, showEngagementChart = true }: TwitterFeedCardProps) {
   const [imageError, setImageError] = useState(false);
   const [mediaErrors, setMediaErrors] = useState<Set<string>>(new Set());
   
@@ -126,7 +127,7 @@ export function TwitterFeedCard({ tweet, tags = [], zoneId }: TwitterFeedCardPro
   return (
     <Card className="overflow-hidden transition-all duration-[250ms] hover:border-primary/30 hover:shadow-sm">
       {/* Content Area - Responsive Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-2">
+      <div className={showEngagementChart ? "grid grid-cols-1 lg:grid-cols-2" : "flex flex-col"}>
         {/* Tweet Content */}
         <div className="p-4 sm:p-6 space-y-4">
           {/* Compact Header - Meta + Author in one section */}
@@ -423,12 +424,14 @@ export function TwitterFeedCard({ tweet, tags = [], zoneId }: TwitterFeedCardPro
 
         </div>
 
-        {/* Engagement Chart - Right Side Desktop, Bottom Mobile */}
-        <div className="border-t lg:border-t-0 lg:border-l border-border/60 p-4 sm:p-6 bg-muted/5">
-          <div className="animate-in fade-in-0 duration-200">
-            <TwitterEngagementChart tweetId={tweet.id} />
+        {/* Engagement Chart - Right Side Desktop, Bottom Mobile (Optional) */}
+        {showEngagementChart && (
+          <div className="border-t lg:border-t-0 lg:border-l border-border/60 p-4 sm:p-6 bg-muted/5">
+            <div className="animate-in fade-in-0 duration-200">
+              <TwitterEngagementChart tweetId={tweet.id} />
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </Card>
   );

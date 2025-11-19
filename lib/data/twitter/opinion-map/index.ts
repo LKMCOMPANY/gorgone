@@ -1,78 +1,86 @@
 /**
- * Opinion Map Data Layer
+ * Opinion Map Data Layer - Module Exports
  * Centralized exports for all opinion map data operations
- * 
- * Following Gorgone V2 architecture patterns:
- * - All data access through /lib/data
- * - Strong typing
- * - Centralized logging
- * - Error handling
  */
 
-// Sampling
-export { 
-  sampleTweetsStratified,
-  calculateTimeGranularity 
-} from './sampling'
-export type { 
-  SamplingConfig, 
-  SamplingResult 
-} from './sampling'
+// Projections CRUD
+export {
+  saveProjections,
+  getProjections,
+  getEnrichedProjections,
+  getProjectionsByCluster,
+} from './projections'
 
-// Sessions
+// Clusters CRUD
+export {
+  saveClusters,
+  getClusters,
+  getClusterById,
+} from './clusters'
+
+// Sessions CRUD
 export {
   createSession,
-  getLatestSession,
   getSessionById,
+  getLatestSession,
   updateSessionProgress,
   markSessionFailed,
-  cancelSession
+  cancelSession,
 } from './sessions'
+
+// Sampling strategies
+export {
+  sampleTweetsStratified,
+  calculateTimeGranularity,
+} from './sampling'
 
 // Vectorization
 export {
   enrichTweetContent,
   getEmbeddingStats,
   ensureEmbeddings,
-  generateSingleEmbedding
+  generateSingleEmbedding,
 } from './vectorization'
 
-// Dimensionality Reduction
+// Dimensionality reduction
 export {
   reducePCA,
   reduceUMAP3D,
-  normalizeProjections3D
+  normalizeProjections3D,
 } from './dimensionality'
 
 // Clustering
 export {
   clusterKMeans,
-  autoDetectK
+  autoDetectK,
 } from './clustering'
 
 // Labeling
 export {
   generateClusterLabel,
-  extractKeywords
+  extractKeywords,
 } from './labeling'
 
-// Projections
-export {
-  saveProjections,
-  getProjections,
-  getEnrichedProjections,
-  getProjectionsByCluster
-} from './projections'
-
-// Clusters
-export {
-  saveClusters,
-  getClusters,
-  getClusterById
-} from './clusters'
-
-// Time Series
+// Time series
 export {
   generateTimeSeriesData,
-  calculateGranularity
+  calculateGranularity,
 } from './time-series'
+
+// Mapping utilities - for reusing feed components in opinion map
+export {
+  mapProjectionToTweet,
+  mapProjectionsToTweets,
+  sortByEngagement,
+  sortByRecency,
+} from './mapping'
+
+// Types (re-export from main types file)
+export type {
+  EnrichedTwitterProjection,
+  TwitterOpinionCluster,
+  TwitterOpinionSession,
+  OpinionSessionStatus,
+  OpinionSessionConfig,
+  OpinionEvolutionData,
+} from '@/types'
