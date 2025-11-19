@@ -212,7 +212,7 @@ export function TwitterOpinionClusterList({
                     className="absolute h-full rounded-full transition-all duration-[250ms]"
                     style={{
                       width: '100%',
-                      background: 'linear-gradient(to right, hsl(var(--destructive)), hsl(var(--chart-4)), hsl(var(--chart-1)))',
+                      background: 'linear-gradient(to right, #ef4444, #fbbf24, #10b981)',
                       opacity: 0.3
                     }}
                   />
