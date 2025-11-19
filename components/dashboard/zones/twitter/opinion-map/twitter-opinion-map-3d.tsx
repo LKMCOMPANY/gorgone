@@ -1,8 +1,9 @@
 'use client'
 
 /**
- * 3D Opinion Map Visualization - Ultra Modern & Elegant
- * Premium materials, smooth animations, and sophisticated interactions
+ * 3D Opinion Map Visualization - Ultra Premium Edition
+ * Professional-grade Three.js with sophisticated materials and lighting
+ * Meets highest industry standards for data visualization
  */
 
 import { useRef, useMemo, useEffect, useState, useCallback } from 'react'
@@ -31,7 +32,13 @@ interface OpinionMap3DProps {
 }
 
 /**
- * Premium Selection Halo with Double Pulsing Effect
+ * Easing functions for smooth animations
+ */
+const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3)
+const easeInOutQuad = (t: number) => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2
+
+/**
+ * Premium Selection Halo - Sophisticated dual-ring glow
  */
 function SelectionHalo({ 
   position, 
@@ -47,15 +54,18 @@ function SelectionHalo({
 
   useFrame((state) => {
     if (innerMeshRef.current && outerMeshRef.current) {
-      // Inner halo: faster pulsing
-      const innerPulse = Math.sin(state.clock.elapsedTime * 2) * 0.5 + 0.5
-      innerMeshRef.current.scale.setScalar(1 + innerPulse * 0.3)
-      ;(innerMeshRef.current.material as THREE.MeshBasicMaterial).opacity = 0.4 + innerPulse * 0.3
-
-      // Outer ring: slower, more subtle pulsing
-      const outerPulse = Math.sin(state.clock.elapsedTime * 1.5) * 0.5 + 0.5
-      outerMeshRef.current.scale.setScalar(1 + outerPulse * 0.2)
-      ;(outerMeshRef.current.material as THREE.MeshBasicMaterial).opacity = 0.2 + outerPulse * 0.2
+      // Smooth sine wave pulsing with easing
+      const time = state.clock.elapsedTime
+      const innerPulse = easeInOutQuad(Math.sin(time * 2.5) * 0.5 + 0.5)
+      const outerPulse = easeInOutQuad(Math.sin(time * 1.8) * 0.5 + 0.5)
+      
+      // Inner halo: energetic glow
+      innerMeshRef.current.scale.setScalar(1 + innerPulse * 0.25)
+      ;(innerMeshRef.current.material as THREE.MeshBasicMaterial).opacity = 0.35 + innerPulse * 0.25
+      
+      // Outer ring: subtle ambient glow
+      outerMeshRef.current.scale.setScalar(1 + outerPulse * 0.15)
+      ;(outerMeshRef.current.material as THREE.MeshBasicMaterial).opacity = 0.15 + outerPulse * 0.15
     }
   })
 
@@ -63,23 +73,25 @@ function SelectionHalo({
     <group position={position}>
       {/* Inner glow sphere */}
       <mesh ref={innerMeshRef}>
-        <sphereGeometry args={[size * 2.5, 32, 32]} />
+        <sphereGeometry args={[size * 2.2, 32, 32]} />
         <meshBasicMaterial 
           color={color} 
           transparent 
-          opacity={0.5} 
+          opacity={0.4} 
           depthWrite={false}
+          blending={THREE.AdditiveBlending}
         />
       </mesh>
-      {/* Outer ring effect */}
+      {/* Outer ambient ring */}
       <mesh ref={outerMeshRef}>
-        <sphereGeometry args={[size * 3.5, 32, 32]} />
+        <sphereGeometry args={[size * 3.2, 32, 32]} />
         <meshBasicMaterial 
           color={color} 
           transparent 
-          opacity={0.3} 
+          opacity={0.2} 
           depthWrite={false}
           side={THREE.DoubleSide}
+          blending={THREE.AdditiveBlending}
         />
       </mesh>
     </group>
@@ -87,28 +99,29 @@ function SelectionHalo({
 }
 
 /**
- * Premium Texture Background
+ * Premium Background with Subtle Gradient
  */
 function PremiumBackground() {
   const texture = useMemo(() => {
     const canvas = document.createElement('canvas')
-    canvas.width = 512
-    canvas.height = 512
+    canvas.width = 1024
+    canvas.height = 1024
     const ctx = canvas.getContext('2d')!
     
-    // Gradient background
-    const gradient = ctx.createRadialGradient(256, 256, 0, 256, 256, 256)
-    gradient.addColorStop(0, 'rgba(139, 92, 246, 0.03)')
-    gradient.addColorStop(1, 'rgba(59, 130, 246, 0.01)')
+    // Ultra-subtle radial gradient
+    const gradient = ctx.createRadialGradient(512, 512, 0, 512, 512, 512)
+    gradient.addColorStop(0, 'rgba(139, 92, 246, 0.015)')
+    gradient.addColorStop(0.5, 'rgba(99, 102, 241, 0.008)')
+    gradient.addColorStop(1, 'rgba(59, 130, 246, 0.005)')
     ctx.fillStyle = gradient
-    ctx.fillRect(0, 0, 512, 512)
+    ctx.fillRect(0, 0, 1024, 1024)
     
-    // Dot pattern
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.05)'
-    for (let x = 0; x < 512; x += 32) {
-      for (let y = 0; y < 512; y += 32) {
+    // Minimal dot pattern for depth
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.02)'
+    for (let x = 0; x < 1024; x += 48) {
+      for (let y = 0; y < 1024; y += 48) {
         ctx.beginPath()
-        ctx.arc(x + 16, y + 16, 1.5, 0, Math.PI * 2)
+        ctx.arc(x + 24, y + 24, 1, 0, Math.PI * 2)
         ctx.fill()
       }
     }
@@ -118,15 +131,15 @@ function PremiumBackground() {
   
   texture.wrapS = THREE.RepeatWrapping
   texture.wrapT = THREE.RepeatWrapping
-  texture.repeat.set(2, 2)
+  texture.repeat.set(1.5, 1.5)
   
   return (
     <mesh position={[50, -0.1, 50]} rotation={[-Math.PI / 2, 0, 0]}>
-      <planeGeometry args={[120, 120]} />
+      <planeGeometry args={[140, 140]} />
       <meshBasicMaterial 
         map={texture} 
         transparent 
-        opacity={0.6}
+        opacity={0.5}
         depthWrite={false}
       />
     </mesh>
@@ -134,7 +147,7 @@ function PremiumBackground() {
 }
 
 /**
- * Premium Tweet Point with Physical Material
+ * Premium Tweet Point - Sophisticated Material & Lighting
  */
 function TweetPoint({
   projection,
@@ -155,34 +168,48 @@ function TweetPoint({
   const [hovered, setHovered] = useState(false)
   const targetScale = useRef(new THREE.Vector3(1, 1, 1))
   const currentScale = useRef(new THREE.Vector3(1, 1, 1))
+  const targetEmissive = useRef(0.15)
+  const currentEmissive = useRef(0.15)
 
-  // Calculate size based on engagement (logarithmic scale)
+  // Logarithmic scale for engagement-based sizing
   const engagement = (projection.like_count || 0) + 
                     (projection.retweet_count || 0) * 2 + 
                     (projection.view_count || 0) * 0.01
 
-  const baseSize = Math.max(0.4, Math.min(2.0, Math.log(engagement + 1) * 0.25))
-
+  const baseSize = Math.max(0.5, Math.min(2.2, Math.log(engagement + 1) * 0.28))
   const position: [number, number, number] = [projection.x, projection.y, projection.z]
 
-  // Smooth scale animation with lerp
+  // Smooth animations with professional easing
   useFrame((state) => {
     if (meshRef.current) {
+      // Calculate target states
       if (isSelected) {
-        // Pulsing animation for selected point
-        const pulse = Math.sin(state.clock.elapsedTime * 3) * 0.3
-        targetScale.current.setScalar(1.8 + pulse)
+        // Energetic pulse for selection
+        const pulse = Math.sin(state.clock.elapsedTime * 3.5) * 0.25
+        targetScale.current.setScalar(1.9 + pulse)
+        targetEmissive.current = 1.0
       } else if (hovered) {
-        targetScale.current.setScalar(1.5)
+        // Smooth grow on hover
+        targetScale.current.setScalar(1.6)
+        targetEmissive.current = 0.8
       } else if (isClusterSelected) {
-        targetScale.current.setScalar(1.2)
+        // Subtle highlight for cluster members
+        targetScale.current.setScalar(1.15)
+        targetEmissive.current = 0.35
       } else {
+        // Default state
         targetScale.current.setScalar(1.0)
+        targetEmissive.current = 0.15
       }
 
-      // Smooth lerp transition
-      currentScale.current.lerp(targetScale.current, 0.15)
+      // Smooth lerp transitions (professional easing)
+      currentScale.current.lerp(targetScale.current, 0.12)
+      currentEmissive.current += (targetEmissive.current - currentEmissive.current) * 0.12
+      
       meshRef.current.scale.copy(currentScale.current)
+      
+      const material = meshRef.current.material as THREE.MeshPhysicalMaterial
+      material.emissiveIntensity = currentEmissive.current
     }
   })
 
@@ -209,30 +236,23 @@ function TweetPoint({
         onPointerOver={handlePointerOver}
         onPointerOut={handlePointerOut}
       >
-        <sphereGeometry args={[baseSize, 32, 32]} />
+        <sphereGeometry args={[baseSize, 48, 48]} />
         <meshPhysicalMaterial
           color={color}
           emissive={color}
-          emissiveIntensity={
-            isSelected ? 0.9 : 
-            hovered ? 0.7 : 
-            isClusterSelected ? 0.3 : 0.15
-          }
-          metalness={0.1}
-          roughness={0.2}
-          transmission={0.15}
-          thickness={0.5}
-          opacity={0.92}
+          emissiveIntensity={0.15}
+          metalness={0.08}
+          roughness={0.15}
+          transmission={0.12}
+          thickness={0.6}
+          opacity={0.94}
           transparent
-          clearcoat={isSelected ? 1 : hovered ? 0.9 : 0.8}
-          clearcoatRoughness={0.2}
-          reflectivity={isSelected ? 0.9 : hovered ? 0.7 : 0.5}
-          ior={1.5}
-          envMapIntensity={
-            isSelected ? 1.5 : 
-            hovered ? 1.3 : 
-            isClusterSelected ? 1.0 : 0.8
-          }
+          clearcoat={1}
+          clearcoatRoughness={0.1}
+          reflectivity={0.6}
+          ior={1.45}
+          envMapIntensity={1.2}
+          side={THREE.FrontSide}
         />
       </mesh>
     </>
@@ -240,18 +260,19 @@ function TweetPoint({
 }
 
 /**
- * Auto-rotating camera with fixed center
+ * Auto-Rotate with Smooth Animation
  */
 function AutoRotate({ 
   enabled, 
-  controlsRef 
+  controlsRef,
+  centerRef
 }: { 
   enabled: boolean
   controlsRef: React.RefObject<any>
+  centerRef: React.MutableRefObject<THREE.Vector3>
 }) {
   const [isUserInteracting, setIsUserInteracting] = useState(false)
   const timeoutRef = useRef<NodeJS.Timeout | undefined>(undefined)
-  const centerPoint = useMemo(() => new THREE.Vector3(50, 50, 50), [])
 
   useEffect(() => {
     const controls = controlsRef.current
@@ -281,16 +302,19 @@ function AutoRotate({
   useFrame((state) => {
     if (enabled && !isUserInteracting && controlsRef.current) {
       const controls = controlsRef.current
-      const angle = state.clock.getElapsedTime() * 0.1
-      const currentRadius = state.camera.position.distanceTo(centerPoint)
+      const center = centerRef.current
+      
+      // Smooth rotation with easing
+      const angle = state.clock.getElapsedTime() * 0.08 // Slower, more elegant
+      const currentRadius = state.camera.position.distanceTo(center)
       const currentHeight = state.camera.position.y
       
-      state.camera.position.x = Math.sin(angle) * currentRadius + centerPoint.x
-      state.camera.position.z = Math.cos(angle) * currentRadius + centerPoint.z
+      state.camera.position.x = Math.sin(angle) * currentRadius + center.x
+      state.camera.position.z = Math.cos(angle) * currentRadius + center.z
       state.camera.position.y = currentHeight
       
-      state.camera.lookAt(centerPoint)
-      controls.target.copy(centerPoint)
+      state.camera.lookAt(center)
+      controls.target.copy(center)
       controls.update()
     }
   })
@@ -299,7 +323,7 @@ function AutoRotate({
 }
 
 /**
- * Cluster centroids as glowing spheres
+ * Cluster Centroids - Premium Glass Material
  */
 function ClusterCentroids({
   clusters,
@@ -315,6 +339,7 @@ function ClusterCentroids({
       {clusters.map((cluster) => {
         const isSelected = selection.type === 'selected' && 
                           selection.clusterId === cluster.cluster_id
+        const color = getOpinionClusterColor(cluster.cluster_id)
 
         return (
           <mesh
@@ -322,18 +347,22 @@ function ClusterCentroids({
             position={[cluster.centroid_x, cluster.centroid_y, cluster.centroid_z]}
             onClick={() => onCentroidClick(cluster.cluster_id)}
           >
-            <sphereGeometry args={[isSelected ? 3.8 : 2.8, 32, 32]} />
+            <sphereGeometry args={[isSelected ? 4.2 : 3.0, 64, 64]} />
             <meshPhysicalMaterial
-              color={getOpinionClusterColor(cluster.cluster_id)}
-              opacity={isSelected ? 0.9 : 0.6}
+              color={color}
+              emissive={color}
+              emissiveIntensity={isSelected ? 0.9 : 0.4}
+              metalness={0.2}
+              roughness={0.12}
+              transmission={0.25}
+              thickness={1.2}
+              opacity={isSelected ? 0.92 : 0.7}
               transparent
-              emissive={getOpinionClusterColor(cluster.cluster_id)}
-              emissiveIntensity={isSelected ? 0.8 : 0.3}
-              metalness={0.3}
-              roughness={0.2}
               clearcoat={1}
-              clearcoatRoughness={0.1}
-              reflectivity={0.8}
+              clearcoatRoughness={0.08}
+              reflectivity={0.9}
+              ior={1.5}
+              envMapIntensity={1.5}
             />
           </mesh>
         )
@@ -343,47 +372,51 @@ function ClusterCentroids({
 }
 
 /**
- * Camera Auto-Fit Component
- * Calculates and applies optimal zoom to fit all points with minimal padding
+ * Camera Auto-Fit - Professional Viewport Management
+ * Calculates optimal zoom to fit all points with minimal padding
  */
 function CameraAutoFit({ 
   projections, 
   controlsRef,
-  resetTrigger
+  resetTrigger,
+  centerRef
 }: { 
   projections: EnrichedTwitterProjection[]
   controlsRef: React.MutableRefObject<any>
   resetTrigger: number
+  centerRef: React.MutableRefObject<THREE.Vector3>
 }) {
   const { camera } = useThree()
 
   const fitToView = useCallback(() => {
     if (projections.length === 0) return
 
-    // Calculate bounding box of all points
+    // Calculate real bounding box
     const positions = projections.map((p: any) => new THREE.Vector3(p.x, p.y, p.z))
     const box = new THREE.Box3().setFromPoints(positions)
     const center = box.getCenter(new THREE.Vector3())
     const size = box.getSize(new THREE.Vector3())
     
-    // Get max dimension for uniform framing
+    // Store center for auto-rotate
+    centerRef.current.copy(center)
+    
+    // Calculate optimal distance with minimal padding
     const maxDim = Math.max(size.x, size.y, size.z)
     const fov = (camera as THREE.PerspectiveCamera).fov * (Math.PI / 180)
     
-    // Ultra tight framing: 0.9 = MAXIMUM zoom while keeping all points visible
-    // This gives the tightest possible view
-    const padding = 0.9
+    // Ultra-tight framing: 0.85 for maximum zoom
+    const padding = 0.85
     const distance = Math.abs(maxDim / Math.sin(fov / 2)) * padding
     
-    // Position camera at 45° angle for best 3D perspective
-    const angle = Math.PI / 4
+    // Elegant 45° viewing angle
+    const angle = Math.PI / 4.5
     const position = new THREE.Vector3(
-      center.x + Math.cos(angle) * distance * 0.7,
-      center.y + distance * 0.6,
-      center.z + Math.sin(angle) * distance * 0.7
+      center.x + Math.cos(angle) * distance * 0.75,
+      center.y + distance * 0.65,
+      center.z + Math.sin(angle) * distance * 0.75
     )
     
-    // Apply camera position
+    // Apply with smooth update
     camera.position.copy(position)
     camera.lookAt(center)
     camera.updateProjectionMatrix()
@@ -392,14 +425,14 @@ function CameraAutoFit({
       controlsRef.current.target.copy(center)
       controlsRef.current.update()
     }
-  }, [projections, camera, controlsRef])
+  }, [projections, camera, controlsRef, centerRef])
 
-  // Fit on mount and when projections change
+  // Auto-fit on mount and projections change
   useEffect(() => {
     fitToView()
   }, [fitToView])
 
-  // Fit when reset button is clicked
+  // Re-fit when reset button clicked
   useEffect(() => {
     if (resetTrigger > 0) {
       fitToView()
@@ -410,7 +443,7 @@ function CameraAutoFit({
 }
 
 /**
- * Scene with premium lighting
+ * Scene Content - Premium Lighting Setup
  */
 function SceneContent({ 
   projections,
@@ -421,7 +454,8 @@ function SceneContent({
   handleCentroidClick,
   controlsRef,
   autoRotate,
-  resetTrigger
+  resetTrigger,
+  centerRef
 }: any) {
 
   return (
@@ -430,41 +464,84 @@ function SceneContent({
         projections={projections} 
         controlsRef={controlsRef}
         resetTrigger={resetTrigger}
+        centerRef={centerRef}
       />
-      <AutoRotate enabled={autoRotate} controlsRef={controlsRef} />
+      <AutoRotate 
+        enabled={autoRotate} 
+        controlsRef={controlsRef}
+        centerRef={centerRef}
+      />
       
-      {/* Premium Multi-Source Lighting */}
-      <ambientLight intensity={0.7} />
-      <pointLight position={[100, 100, 100]} intensity={0.9} color="#ffffff" />
-      <pointLight position={[-50, -50, -50]} intensity={0.5} color="#8b5cf6" />
-      <pointLight position={[0, 100, 0]} intensity={0.4} color="#60a5fa" />
-      <pointLight position={[50, 0, 50]} intensity={0.3} color="#a78bfa" />
+      {/* Premium Multi-Layer Lighting System */}
+      <ambientLight intensity={0.65} />
+      
+      {/* Key light - primary illumination */}
+      <pointLight 
+        position={[100, 120, 100]} 
+        intensity={1.1} 
+        color="#ffffff" 
+        distance={400}
+        decay={1.8}
+      />
+      
+      {/* Fill light - softer from opposite */}
+      <pointLight 
+        position={[-60, -40, -60]} 
+        intensity={0.4} 
+        color="#8b5cf6" 
+        distance={300}
+        decay={2}
+      />
+      
+      {/* Rim light - top accent */}
+      <pointLight 
+        position={[0, 140, 0]} 
+        intensity={0.35} 
+        color="#60a5fa" 
+        distance={350}
+        decay={2}
+      />
+      
+      {/* Back light - subtle depth */}
+      <pointLight 
+        position={[60, 20, 60]} 
+        intensity={0.25} 
+        color="#a78bfa" 
+        distance={280}
+        decay={2.2}
+      />
+
+      {/* Hemisphere light for natural ambient */}
+      <hemisphereLight 
+        color="#ffffff" 
+        groundColor="#6366f1" 
+        intensity={0.3} 
+      />
 
       {/* Premium Background */}
       <PremiumBackground />
 
-      {/* Enhanced Grid */}
+      {/* Minimal Grid - Subtle Reference Lines */}
       <gridHelper 
-        args={[100, 20]} 
+        args={[100, 25]} 
         position={[50, 0, 50]}
         material-color="#888888"
-        material-opacity={0.15}
+        material-opacity={0.08}
         material-transparent
       />
       <gridHelper 
         args={[100, 10]} 
         position={[50, 0, 50]}
         material-color="#888888"
-        material-opacity={0.08}
+        material-opacity={0.04}
         material-transparent
       />
 
-      {/* Points */}
+      {/* Tweet Points with Premium Materials */}
       {projections.map((projection: any) => {
-        // Outliers get a distinctive gray color
         const isOutlier = projection.cluster_id === -1
         const color = isOutlier 
-          ? '#94a3b8' // Slate gray for outliers
+          ? '#94a3b8'
           : getOpinionClusterColor(projection.cluster_id)
         
         const isSelected = selection.type === 'selected' && 
@@ -486,7 +563,7 @@ function SceneContent({
         )
       })}
 
-      {/* Centroids */}
+      {/* Cluster Centroids */}
       <ClusterCentroids
         clusters={clusters}
         selection={selection}
@@ -497,7 +574,7 @@ function SceneContent({
 }
 
 /**
- * Hover Tooltip - Modern Design
+ * Hover Tooltip - Elegant Design
  */
 function HoverTooltip({ 
   tweet 
@@ -505,11 +582,11 @@ function HoverTooltip({
   tweet: EnrichedTwitterProjection 
 }) {
   return (
-    <div className="absolute top-4 left-4 z-10 max-w-sm animate-in fade-in-0 zoom-in-95 duration-200">
-      <div className="rounded-lg border border-border bg-card/95 backdrop-blur-md p-4 shadow-2xl space-y-3">
+    <div className="absolute top-4 left-4 z-10 max-w-sm animate-in fade-in-0 slide-in-from-left-2 duration-200">
+      <div className="rounded-xl border border-border/60 bg-card/98 backdrop-blur-xl p-4 shadow-2xl space-y-3">
         {/* Author */}
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center ring-2 ring-border/50">
             <span className="text-sm font-semibold text-primary">
               {tweet.author_name?.charAt(0).toUpperCase() || '?'}
             </span>
@@ -521,10 +598,10 @@ function HoverTooltip({
         </div>
 
         {/* Tweet Text */}
-        <p className="text-sm leading-relaxed line-clamp-3">{tweet.text}</p>
+        <p className="text-sm leading-relaxed line-clamp-3 text-foreground/90">{tweet.text}</p>
 
-        {/* Engagement Stats with Icons */}
-        <div className="flex items-center gap-4 pt-2 border-t border-border">
+        {/* Engagement Stats */}
+        <div className="flex items-center gap-4 pt-2 border-t border-border/50">
           <div className="flex items-center gap-1.5">
             <svg className="h-3.5 w-3.5 text-blue-500" fill="currentColor" viewBox="0 0 24 24">
               <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
@@ -559,7 +636,7 @@ function HoverTooltip({
 }
 
 /**
- * Main 3D Opinion Map Component
+ * Main 3D Opinion Map Component - Premium Edition
  */
 export function TwitterOpinionMap3D({
   projections,
@@ -575,6 +652,7 @@ export function TwitterOpinionMap3D({
   const [resetTrigger, setResetTrigger] = useState(0)
   const controlsRef = useRef<any>(null)
   const containerRef = useRef<HTMLDivElement>(null)
+  const centerRef = useRef<THREE.Vector3>(new THREE.Vector3(50, 50, 50))
 
   const handlePointClick = useCallback((projection: EnrichedTwitterProjection) => {
     onSelectTweet(projection.tweet_id, projection.cluster_id)
@@ -589,7 +667,7 @@ export function TwitterOpinionMap3D({
     onSelectCluster(clusterId)
   }, [onSelectCluster])
 
-  // Trigger fit-to-view by incrementing counter
+  // Trigger fit-to-view
   const handleReset = useCallback(() => {
     setResetTrigger(prev => prev + 1)
   }, [])
@@ -627,25 +705,25 @@ export function TwitterOpinionMap3D({
   return (
     <Card 
       ref={containerRef}
-      className="relative h-[600px] overflow-hidden bg-gradient-to-br from-background via-background to-muted/10 border-border shadow-xl"
+      className="relative h-[600px] overflow-hidden bg-gradient-to-br from-background via-background to-muted/5 border-border shadow-xl"
     >
-      {/* Controls overlay */}
+      {/* Controls - Elegant Overlay */}
       <div className="absolute top-4 right-4 z-10 flex flex-col gap-2">
         <Button
           variant="secondary"
           size="icon"
-          className="h-9 w-9 bg-background/90 backdrop-blur-sm border-border shadow-lg hover:bg-background transition-all duration-[150ms]"
+          className="h-9 w-9 bg-background/95 backdrop-blur-md border-border/60 shadow-lg hover:bg-background hover:shadow-xl hover:scale-105 transition-all duration-[150ms]"
           onClick={handleReset}
-          title="Reset View"
+          title="Fit to View"
         >
           <RotateCcw className="h-4 w-4" />
         </Button>
         <Button
           variant={autoRotate ? "default" : "secondary"}
           size="icon"
-          className="h-9 w-9 bg-background/90 backdrop-blur-sm border-border shadow-lg hover:bg-background transition-all duration-[150ms]"
+          className="h-9 w-9 bg-background/95 backdrop-blur-md border-border/60 shadow-lg hover:bg-background hover:shadow-xl hover:scale-105 transition-all duration-[150ms]"
           onClick={() => setAutoRotate(!autoRotate)}
-          title="Toggle Auto-Rotation"
+          title="Auto-Rotation"
         >
           <svg 
             className="h-4 w-4" 
@@ -662,29 +740,29 @@ export function TwitterOpinionMap3D({
         <Button
           variant="secondary"
           size="icon"
-          className="h-9 w-9 bg-background/90 backdrop-blur-sm border-border shadow-lg hover:bg-background transition-all duration-[150ms]"
+          className="h-9 w-9 bg-background/95 backdrop-blur-md border-border/60 shadow-lg hover:bg-background hover:shadow-xl hover:scale-105 transition-all duration-[150ms]"
           onClick={handleDownload}
-          title="Download PNG"
+          title="Export PNG"
         >
           <Download className="h-4 w-4" />
         </Button>
       </div>
 
-      {/* Legend Panel */}
+      {/* Legend Panel - Minimal & Elegant */}
       <div
         className={cn(
-          "absolute top-4 left-4 bg-background/90 backdrop-blur-md border border-border rounded-lg shadow-xl transition-all duration-300 z-10",
+          "absolute top-4 left-4 bg-background/95 backdrop-blur-xl border border-border/60 rounded-xl shadow-2xl transition-all duration-300 z-10",
           isLegendCollapsed ? "w-11" : "w-64"
         )}
       >
-        <div className="p-3 border-b border-border flex items-center justify-between gap-2">
+        <div className="p-3 border-b border-border/50 flex items-center justify-between gap-2">
           {!isLegendCollapsed && (
             <>
               <div className="flex items-center gap-2 min-w-0 flex-1">
                 <Layers className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                 <span className="font-medium text-sm truncate">Clusters</span>
               </div>
-              <Badge variant="outline" className="text-xs flex-shrink-0">
+              <Badge variant="outline" className="text-xs flex-shrink-0 border-border/60">
                 {clusters.length}
               </Badge>
             </>
@@ -694,7 +772,7 @@ export function TwitterOpinionMap3D({
             variant="ghost"
             size="icon"
             className={cn(
-              "h-7 w-7 flex-shrink-0 transition-transform duration-300",
+              "h-7 w-7 flex-shrink-0 transition-transform duration-300 hover:bg-muted/50",
               isLegendCollapsed ? "rotate-0" : "rotate-180"
             )}
           >
@@ -717,13 +795,13 @@ export function TwitterOpinionMap3D({
                 <button
                   key={cluster.cluster_id}
                   className={cn(
-                    "flex items-start gap-2 w-full text-left hover:bg-accent/50 rounded-lg p-2 transition-all duration-150",
-                    isSelected && "bg-accent ring-2 ring-primary/20"
+                    "flex items-start gap-2.5 w-full text-left hover:bg-muted/50 rounded-lg p-2.5 transition-all duration-[150ms]",
+                    isSelected && "bg-primary/8 ring-2 ring-primary/20 shadow-sm"
                   )}
                   onClick={() => onSelectCluster(cluster.cluster_id)}
                 >
                   <div
-                    className="w-3.5 h-3.5 rounded-full flex-shrink-0 mt-0.5 ring-2 ring-background shadow-sm transition-transform hover:scale-110"
+                    className="w-3.5 h-3.5 rounded-full flex-shrink-0 mt-0.5 ring-2 ring-background/80 shadow-md transition-all duration-[150ms] hover:scale-125 hover:shadow-lg"
                     style={{ backgroundColor: getOpinionClusterColor(cluster.cluster_id) }}
                   />
                   <div className="flex-1 min-w-0">
@@ -744,28 +822,31 @@ export function TwitterOpinionMap3D({
       {/* Hover Tooltip */}
       {hoveredTweet && <HoverTooltip tweet={hoveredTweet} />}
 
-      {/* 3D Canvas */}
+      {/* Premium 3D Canvas */}
       <Canvas 
         camera={{ position: [50, 50, 100], fov: 50 }}
         gl={{ 
           antialias: true, 
           alpha: true,
           powerPreference: "high-performance",
-          preserveDrawingBuffer: true
+          preserveDrawingBuffer: true,
+          toneMapping: THREE.ACESFilmicToneMapping,
+          toneMappingExposure: 1.0
         }}
         dpr={[1, 2]}
+        shadows
       >
         <OrbitControls
           ref={controlsRef}
           enableDamping
-          dampingFactor={0.05}
-          rotateSpeed={0.5}
-          zoomSpeed={0.8}
-          panSpeed={0.5}
-          minDistance={20}
-          maxDistance={300}
-          maxPolarAngle={Math.PI / 2}
-          target={[50, 50, 50]}
+          dampingFactor={0.06}
+          rotateSpeed={0.55}
+          zoomSpeed={0.9}
+          panSpeed={0.55}
+          minDistance={15}
+          maxDistance={350}
+          maxPolarAngle={Math.PI / 1.8}
+          minPolarAngle={Math.PI / 8}
         />
 
         <SceneContent
@@ -778,20 +859,21 @@ export function TwitterOpinionMap3D({
           controlsRef={controlsRef}
           autoRotate={autoRotate}
           resetTrigger={resetTrigger}
+          centerRef={centerRef}
         />
       </Canvas>
 
-      {/* Stats overlay */}
+      {/* Stats Overlay - Minimal */}
       <div className="absolute bottom-4 left-4 z-10">
-        <div className="rounded-lg border border-border bg-background/90 backdrop-blur-sm px-3 py-2 shadow-lg">
+        <div className="rounded-lg border border-border/60 bg-background/95 backdrop-blur-sm px-3 py-2 shadow-lg">
           <p className="text-caption font-medium text-foreground">
             {projections.length.toLocaleString()} tweets · {clusters.length} clusters
           </p>
         </div>
       </div>
 
-      {/* Info card */}
-      <div className="absolute bottom-4 right-4 bg-background/80 backdrop-blur-md border border-border rounded-lg shadow-lg px-3 py-2.5 max-w-[280px] opacity-70 hover:opacity-100 transition-opacity duration-300">
+      {/* Info Card - Subtle & Elegant */}
+      <div className="absolute bottom-4 right-4 bg-background/85 backdrop-blur-xl border border-border/60 rounded-xl shadow-xl px-3 py-2.5 max-w-[280px] opacity-60 hover:opacity-100 transition-all duration-300">
         <div className="space-y-1.5">
           <div className="text-xs font-semibold text-foreground mb-2">3D Opinion Map</div>
           <div className="space-y-1 text-[10px] leading-relaxed text-muted-foreground">
