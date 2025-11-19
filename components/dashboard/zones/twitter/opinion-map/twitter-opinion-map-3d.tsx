@@ -452,12 +452,6 @@ function CameraAutoFit({
     // Update controls target
     controlsRef.current.target.copy(center)
     controlsRef.current.update()
-    
-    console.log('[3D Map] Zoom applied:', {
-      center: center.toArray(),
-      optimalDistance: actualDistance.toFixed(2),
-      padding,
-      maxDim: maxDim.toFixed(2)
     })
   }, [projections, camera, controlsRef, centerRef, optimalDistanceRef])
 

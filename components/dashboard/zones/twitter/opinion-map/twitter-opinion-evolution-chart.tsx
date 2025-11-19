@@ -69,18 +69,18 @@ export function TwitterOpinionEvolutionChart({
 
   return (
     <Card className="border-border shadow-sm">
-      <CardHeader className="space-y-1.5">
+      <CardHeader className="space-y-1.5 pb-4">
         <CardTitle className="text-heading-2">Opinion Evolution</CardTitle>
         <CardDescription className="text-body-sm">
           Distribution of opinion clusters over time. Click on areas to explore clusters.
         </CardDescription>
       </CardHeader>
-      <CardContent className="pt-0">
-        <ChartContainer config={chartConfig} className="h-[320px] w-full">
+      <CardContent className="pt-0 space-y-4">
+        <ChartContainer config={chartConfig} className="h-[280px] w-full">
           <AreaChart 
             data={data}
             onClick={handleClick}
-            margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+            margin={{ top: 5, right: 5, left: -20, bottom: 0 }}
           >
             <CartesianGrid 
               strokeDasharray="3 3" 
@@ -93,22 +93,28 @@ export function TwitterOpinionEvolutionChart({
               dataKey="date"
               tick={{ 
                 fill: 'hsl(var(--muted-foreground))', 
-                fontSize: 12 
+                fontSize: 11 
               }}
               tickLine={false}
               axisLine={false}
               tickMargin={8}
+              interval="preserveStartEnd"
+              minTickGap={40}
             />
             
             <YAxis
               tick={{ 
                 fill: 'hsl(var(--muted-foreground))', 
-                fontSize: 12 
+                fontSize: 11 
               }}
               tickLine={false}
               axisLine={false}
               tickMargin={8}
-              tickFormatter={(value) => value.toLocaleString()}
+              width={40}
+              tickFormatter={(value) => {
+                if (value >= 1000) return `${(value / 1000).toFixed(1)}k`
+                return value.toString()
+              }}
             />
             
             <ChartTooltip
@@ -121,22 +127,13 @@ export function TwitterOpinionEvolutionChart({
                   formatter={(value, name) => {
                     const cluster = clusters.find(c => `cluster_${c.cluster_id}` === name)
                     return [
-                      `${value} tweets`,
+                      `${value} posts`,
                       cluster?.label || name
                     ]
                   }}
                 />
               }
               cursor={{ stroke: 'hsl(var(--muted-foreground))', strokeWidth: 1, strokeDasharray: '4 4' }}
-            />
-            
-            <ChartLegend 
-              content={
-                <ChartLegendContent 
-                  nameKey="label"
-                  className="flex-wrap gap-2 text-body-sm"
-                />
-              }
             />
             
             {/* Render areas for each cluster */}
@@ -186,13 +183,45 @@ export function TwitterOpinionEvolutionChart({
           </AreaChart>
         </ChartContainer>
 
+        {/* Custom Legend - Responsive */}
+        <div className="flex flex-wrap items-center gap-2 px-1">
+          {clusters
+            .sort((a, b) => b.tweet_count - a.tweet_count)
+            .map((cluster) => {
+              const isSelected = selectedClusterId === cluster.cluster_id
+              const color = getOpinionClusterColor(cluster.cluster_id)
+              
+              return (
+                <button
+                  key={cluster.cluster_id}
+                  onClick={() => onSelectCluster(cluster.cluster_id)}
+                  className={cn(
+                    'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-caption font-medium transition-all duration-[150ms]',
+                    'border hover:border-primary/50 hover:bg-muted/50',
+                    isSelected 
+                      ? 'border-primary/50 bg-primary/10 text-foreground' 
+                      : 'border-border bg-background text-muted-foreground'
+                  )}
+                >
+                  <div
+                    className="w-2 h-2 rounded-full flex-shrink-0"
+                    style={{ backgroundColor: color }}
+                  />
+                  <span className="truncate max-w-[120px] sm:max-w-none">
+                    {cluster.label}
+                  </span>
+                </button>
+              )
+            })}
+        </div>
+
         {/* Selection Info */}
         {selectedClusterId !== null && (
-          <div className="mt-4 p-3 rounded-lg border border-primary/30 bg-primary/5 animate-in fade-in-0 duration-200">
+          <div className="p-3 rounded-lg border border-primary/30 bg-primary/5 animate-in fade-in-0 duration-200">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div
-                  className="w-3 h-3 rounded-full"
+                  className="w-3 h-3 rounded-full flex-shrink-0"
                   style={{ backgroundColor: getOpinionClusterColor(selectedClusterId) }}
                 />
                 <span className="text-body-sm font-medium">
@@ -201,29 +230,29 @@ export function TwitterOpinionEvolutionChart({
               </div>
               <button
                 onClick={() => onSelectCluster(-1)} // Deselect
-                className="text-body-sm text-muted-foreground hover:text-foreground transition-colors duration-[150ms]"
+                className="text-caption text-muted-foreground hover:text-foreground transition-colors duration-[150ms] flex-shrink-0"
               >
-                Clear selection
+                Clear
               </button>
             </div>
           </div>
         )}
 
         {/* Stats Summary */}
-        <div className="mt-4 grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-3 gap-3 sm:gap-4">
           <div className="space-y-1">
-            <p className="text-caption text-muted-foreground">Total Data Points</p>
-            <p className="text-heading-3 font-semibold">{data.length}</p>
+            <p className="text-caption text-muted-foreground">Data Points</p>
+            <p className="text-body font-semibold">{data.length}</p>
           </div>
           <div className="space-y-1">
             <p className="text-caption text-muted-foreground">Time Range</p>
-            <p className="text-body-sm font-medium">
+            <p className="text-caption sm:text-body-sm font-medium truncate">
               {data.length > 0 ? `${data[0].date} - ${data[data.length - 1].date}` : 'N/A'}
             </p>
           </div>
           <div className="space-y-1">
-            <p className="text-caption text-muted-foreground">Active Clusters</p>
-            <p className="text-heading-3 font-semibold">{clusters.length}</p>
+            <p className="text-caption text-muted-foreground">Clusters</p>
+            <p className="text-body font-semibold">{clusters.length}</p>
           </div>
         </div>
       </CardContent>

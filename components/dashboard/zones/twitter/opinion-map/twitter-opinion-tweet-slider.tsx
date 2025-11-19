@@ -8,7 +8,7 @@
 import { useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Heart, Repeat2, MessageCircle } from 'lucide-react'
 import { TwitterFeedCard } from '../twitter-feed-card'
 import { mapProjectionToTweet, sortByEngagement } from '@/lib/data/twitter/opinion-map/mapping'
 import type { 
@@ -81,9 +81,9 @@ export function TwitterOpinionTweetSlider({
 
   if (!currentTweet) {
     return (
-      <div className="p-8 text-center">
+      <div className="flex items-center justify-center py-16 px-6">
         <p className="text-body-sm text-muted-foreground">
-          No tweets in this cluster
+          No posts in this cluster
         </p>
       </div>
     )
@@ -204,9 +204,18 @@ export function TwitterOpinionTweetSlider({
                       {proj.text}
                     </p>
                     <div className="flex items-center gap-3 mt-2 text-caption text-muted-foreground">
-                      <span>❤️ {proj.like_count.toLocaleString()}</span>
-                      <span>🔁 {proj.retweet_count.toLocaleString()}</span>
-                      <span>💬 {proj.reply_count.toLocaleString()}</span>
+                      <span className="flex items-center gap-1">
+                        <Heart className="h-3 w-3" />
+                        {proj.like_count.toLocaleString()}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Repeat2 className="h-3 w-3" />
+                        {proj.retweet_count.toLocaleString()}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <MessageCircle className="h-3 w-3" />
+                        {proj.reply_count.toLocaleString()}
+                      </span>
                     </div>
                   </button>
                 ))}

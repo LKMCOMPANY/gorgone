@@ -55,7 +55,7 @@ export function TwitterOpinionClusterList({
 
   if (!currentCluster) {
     return (
-      <div className="p-8 text-center">
+      <div className="flex items-center justify-center py-16 px-6">
         <p className="text-body-sm text-muted-foreground">
           No clusters available
         </p>
@@ -152,7 +152,7 @@ export function TwitterOpinionClusterList({
                 {/* Stats */}
                 <div className="flex items-center gap-3 text-body-sm text-muted-foreground">
                   <span className="font-medium">
-                    {currentCluster.tweet_count.toLocaleString()} tweets
+                    {currentCluster.tweet_count.toLocaleString()} posts
                   </span>
                   <span>•</span>
                   <span>{percentage}% of total</span>
@@ -202,7 +202,7 @@ export function TwitterOpinionClusterList({
                   <h4 className="text-body-sm font-semibold text-foreground">
                     Sentiment
                   </h4>
-                  <span className="text-body-sm font-medium">
+                  <span className="text-caption font-medium text-muted-foreground">
                     {currentCluster.avg_sentiment > 0.2 ? 'Positive' : 
                      currentCluster.avg_sentiment < -0.2 ? 'Negative' : 'Neutral'}
                   </span>
@@ -212,7 +212,7 @@ export function TwitterOpinionClusterList({
                     className="absolute h-full rounded-full transition-all duration-[250ms]"
                     style={{
                       width: '100%',
-                      background: 'linear-gradient(to right, #ef4444, #fbbf24, #10b981)',
+                      background: 'linear-gradient(to right, hsl(var(--destructive)), hsl(var(--chart-4)), hsl(var(--chart-1)))',
                       opacity: 0.3
                     }}
                   />
@@ -286,7 +286,7 @@ export function TwitterOpinionClusterList({
                     </span>
                   </div>
                   <p className="text-caption text-muted-foreground mt-1">
-                    {cluster.tweet_count.toLocaleString()} tweets
+                    {cluster.tweet_count.toLocaleString()} posts
                   </p>
                 </button>
               )

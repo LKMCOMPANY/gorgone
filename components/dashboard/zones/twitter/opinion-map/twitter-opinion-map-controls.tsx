@@ -30,11 +30,11 @@ type TimePeriod = '3h' | '6h' | '12h' | '24h' | '3d' | '7d' | '30d'
 
 // Phase information for user-friendly display
 const PHASE_INFO = {
-  pending: { icon: Clock, label: 'Initializing', color: 'text-blue-500' },
-  vectorizing: { icon: Database, label: 'Vectorizing Tweets', color: 'text-purple-500' },
-  reducing: { icon: Brain, label: 'Reducing Dimensions', color: 'text-indigo-500' },
-  clustering: { icon: Brain, label: 'Clustering Opinions', color: 'text-violet-500' },
-  labeling: { icon: Sparkles, label: 'Generating Labels', color: 'text-pink-500' },
+  pending: { icon: Clock, label: 'Initializing', color: 'text-primary' },
+  vectorizing: { icon: Database, label: 'Vectorizing Posts', color: 'text-primary' },
+  reducing: { icon: Brain, label: 'Reducing Dimensions', color: 'text-primary' },
+  clustering: { icon: Brain, label: 'Clustering Opinions', color: 'text-primary' },
+  labeling: { icon: Sparkles, label: 'Generating Labels', color: 'text-primary' },
 }
 
 export function TwitterOpinionMapControls({
@@ -137,10 +137,10 @@ export function TwitterOpinionMapControls({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="1000">1,000 tweets</SelectItem>
-                    <SelectItem value="5000">5,000 tweets</SelectItem>
-                    <SelectItem value="10000">10,000 tweets</SelectItem>
-                    <SelectItem value="20000">20,000 tweets</SelectItem>
+                    <SelectItem value="1000">1,000 posts</SelectItem>
+                    <SelectItem value="5000">5,000 posts</SelectItem>
+                    <SelectItem value="10000">10,000 posts</SelectItem>
+                    <SelectItem value="20000">20,000 posts</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -223,7 +223,7 @@ export function TwitterOpinionMapControls({
                   <span>
                     {session.vectorized_tweets > 0 && session.total_tweets ? (
                       <>
-                        {session.vectorized_tweets.toLocaleString()} / {session.total_tweets.toLocaleString()} tweets
+                        {session.vectorized_tweets.toLocaleString()} / {session.total_tweets.toLocaleString()} posts
                       </>
                     ) : (
                       'Preparing data...'
@@ -274,7 +274,7 @@ export function TwitterOpinionMapControls({
                   Opinion map generated successfully
                 </p>
                 <div className="flex items-center gap-4 text-caption text-muted-foreground">
-                  <span>{session.total_tweets?.toLocaleString()} tweets</span>
+                  <span>{session.total_tweets?.toLocaleString()} posts</span>
                   <span>•</span>
                   <span>{session.total_clusters} clusters</span>
                   {session.execution_time_ms && (
