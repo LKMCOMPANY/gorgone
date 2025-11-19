@@ -357,7 +357,7 @@ function SceneContent({
 }: any) {
   const { camera } = useThree()
 
-  // Auto-fit camera with fixed center
+  // Auto-fit camera with fixed center - optimized for tight framing
   useEffect(() => {
     if (projections.length === 0) return
 
@@ -366,10 +366,16 @@ function SceneContent({
     const box = new THREE.Box3().setFromPoints(positions)
     const size = box.getSize(new THREE.Vector3())
     
+    // Calculate optimal distance to fit all points tightly
     const maxDim = Math.max(size.x, size.y, size.z)
     const fov = (camera as THREE.PerspectiveCamera).fov * (Math.PI / 180)
-    let cameraDistance = Math.abs(maxDim / Math.sin(fov / 2)) * 1.3
     
+    // Tight framing: 1.1 = 10% padding (vs 1.3 = 30% before)
+    // This keeps all points visible while maximizing view
+    const padding = 1.1
+    let cameraDistance = Math.abs(maxDim / Math.sin(fov / 2)) * padding
+    
+    // Position camera at optimal distance
     camera.position.set(
       centerPoint.x + cameraDistance * 0.5,
       centerPoint.y + cameraDistance * 0.5,
