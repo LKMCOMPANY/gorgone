@@ -198,8 +198,6 @@ export function TwitterOpinionMapView({ zoneId }: TwitterOpinionMapViewProps) {
 
           if (!mountedRef.current) return
 
-          console.log('[Opinion Map] Realtime update:', updatedSession.status, updatedSession.progress)
-
           setSession(updatedSession)
 
           // If completed, load results immediately
@@ -224,7 +222,6 @@ export function TwitterOpinionMapView({ zoneId }: TwitterOpinionMapViewProps) {
           const newSession = payload.new as TwitterOpinionSession
           if (!mountedRef.current) return
           
-          console.log('[Opinion Map] New session created:', newSession.session_id)
           setSession(newSession)
           lastSessionIdRef.current = newSession.session_id
         }
