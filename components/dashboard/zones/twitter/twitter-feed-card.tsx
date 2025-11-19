@@ -17,6 +17,7 @@ interface TwitterFeedCardProps {
   tags?: TwitterProfileZoneTag[];
   zoneId: string;
   showEngagementChart?: boolean; // Optional: show engagement evolution chart (default: true)
+  chartPosition?: 'side' | 'below'; // Optional: position of engagement chart (default: 'side')
 }
 
 interface MediaItem {
@@ -110,7 +111,7 @@ function formatDuration(ms: number): string {
   return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
 }
 
-export function TwitterFeedCard({ tweet, tags = [], zoneId, showEngagementChart = true }: TwitterFeedCardProps) {
+export function TwitterFeedCard({ tweet, tags = [], zoneId, showEngagementChart = true, chartPosition = 'side' }: TwitterFeedCardProps) {
   const [imageError, setImageError] = useState(false);
   const [mediaErrors, setMediaErrors] = useState<Set<string>>(new Set());
   
@@ -124,10 +125,17 @@ export function TwitterFeedCard({ tweet, tags = [], zoneId, showEngagementChart 
     setMediaErrors((prev) => new Set([...prev, url]));
   };
 
+  // Determine layout class based on chart position
+  const layoutClass = !showEngagementChart 
+    ? "flex flex-col" 
+    : chartPosition === 'below'
+    ? "flex flex-col"
+    : "grid grid-cols-1 lg:grid-cols-2"
+
   return (
     <Card className="overflow-hidden transition-all duration-[250ms] hover:border-primary/30 hover:shadow-sm">
       {/* Content Area - Responsive Layout */}
-      <div className={showEngagementChart ? "grid grid-cols-1 lg:grid-cols-2" : "flex flex-col"}>
+      <div className={layoutClass}>
         {/* Tweet Content */}
         <div className="p-4 sm:p-6 space-y-4">
           {/* Compact Header - Meta + Author in one section */}
@@ -424,9 +432,14 @@ export function TwitterFeedCard({ tweet, tags = [], zoneId, showEngagementChart 
 
         </div>
 
-        {/* Engagement Chart - Right Side Desktop, Bottom Mobile (Optional) */}
+        {/* Engagement Chart - Position adaptative (Optional) */}
         {showEngagementChart && (
-          <div className="border-t lg:border-t-0 lg:border-l border-border/60 p-4 sm:p-6 bg-muted/5">
+          <div className={cn(
+            "p-4 sm:p-6 bg-muted/5",
+            chartPosition === 'below' 
+              ? "border-t border-border/60" 
+              : "border-t lg:border-t-0 lg:border-l border-border/60"
+          )}>
             <div className="animate-in fade-in-0 duration-200">
               <TwitterEngagementChart tweetId={tweet.id} />
             </div>

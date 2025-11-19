@@ -160,6 +160,7 @@ export function TwitterOpinionTweetSlider({
             tags={[]} // Profile tags not available in projections
             zoneId={zoneId}
             showEngagementChart={true} // Show chart in slider for detailed view
+            chartPosition="below" // Chart below tweet for narrow sidebar layout
           />
 
           {/* Cluster Info */}
