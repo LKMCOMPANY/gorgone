@@ -416,10 +416,16 @@ function SceneContent({
 
       {/* Points */}
       {projections.map((projection: any) => {
-        const color = getOpinionClusterColor(projection.cluster_id)
+        // Outliers get a distinctive gray color
+        const isOutlier = projection.cluster_id === -1
+        const color = isOutlier 
+          ? '#94a3b8' // Slate gray for outliers
+          : getOpinionClusterColor(projection.cluster_id)
+        
         const isSelected = selection.type === 'selected' && 
                           selection.tweetId === projection.tweet_id
-        const isClusterSelected = selection.type === 'selected' && 
+        const isClusterSelected = !isOutlier && 
+                                 selection.type === 'selected' && 
                                  selection.clusterId === projection.cluster_id
 
         return (

@@ -99,7 +99,8 @@ export async function clusterKMeans(
   const confidence = calculateConfidence(vectors, labels, centroids)
 
   // Detect outliers (low confidence points)
-  const CONFIDENCE_THRESHOLD = 0.5
+  // Lower threshold = more tolerant (0.2 = keep points with ≥20% confidence)
+  const CONFIDENCE_THRESHOLD = 0.2
   let outlierCount = 0
 
   for (let i = 0; i < confidence.length; i++) {
