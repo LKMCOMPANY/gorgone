@@ -13,6 +13,7 @@ import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { RotateCcw, Layers, ChevronRight, Download } from 'lucide-react'
+import { useTheme } from 'next-themes'
 import type { 
   EnrichedTwitterProjection, 
   TwitterOpinionCluster,
@@ -491,8 +492,14 @@ function SceneContent({
   autoRotate,
   resetTrigger,
   centerRef,
-  optimalDistanceRef
+  optimalDistanceRef,
+  theme
 }: any) {
+  // Grid configuration based on theme
+  const isDark = theme === 'dark'
+  const gridColor = isDark ? '#9ca3af' : '#6b7280'
+  const gridOpacityMain = isDark ? 0.3 : 0.18
+  const gridOpacitySecondary = isDark ? 0.15 : 0.09
 
   return (
     <>
@@ -559,19 +566,19 @@ function SceneContent({
       {/* Premium Background */}
       <PremiumBackground />
 
-      {/* Grid - Elegant Reference Lines */}
+      {/* Grid - Elegant Reference Lines (Theme-Adaptive) */}
       <gridHelper 
         args={[100, 25]} 
         position={[50, 0, 50]}
-        material-color="#6b7280"
-        material-opacity={0.18}
+        material-color={gridColor}
+        material-opacity={gridOpacityMain}
         material-transparent
       />
       <gridHelper 
         args={[100, 10]} 
         position={[50, 0, 50]}
-        material-color="#6b7280"
-        material-opacity={0.09}
+        material-color={gridColor}
+        material-opacity={gridOpacitySecondary}
         material-transparent
       />
 
@@ -684,6 +691,7 @@ export function TwitterOpinionMap3D({
   onSelectTweet,
   onHoverPoint
 }: OpinionMap3DProps) {
+  const { theme } = useTheme()
   const [hoveredTweet, setHoveredTweet] = useState<EnrichedTwitterProjection | null>(null)
   const [autoRotate, setAutoRotate] = useState(false)
   const [isLegendCollapsed, setIsLegendCollapsed] = useState(false)
@@ -902,6 +910,7 @@ export function TwitterOpinionMap3D({
           resetTrigger={resetTrigger}
           centerRef={centerRef}
           optimalDistanceRef={optimalDistanceRef}
+          theme={theme}
         />
       </Canvas>
 
