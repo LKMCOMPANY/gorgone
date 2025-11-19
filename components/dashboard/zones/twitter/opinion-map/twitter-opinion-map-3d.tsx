@@ -343,48 +343,74 @@ function ClusterCentroids({
 }
 
 /**
- * Calculate optimal camera position to fit all points in view
- * Uses minimal padding for maximum zoom while keeping all points visible
+ * Camera Auto-Fit Component
+ * Calculates and applies optimal zoom to fit all points with minimal padding
  */
-function calculateOptimalCameraPosition(
-  projections: EnrichedTwitterProjection[],
-  camera: THREE.PerspectiveCamera
-): { position: THREE.Vector3; target: THREE.Vector3 } {
-  if (projections.length === 0) {
-    return {
-      position: new THREE.Vector3(100, 100, 150),
-      target: new THREE.Vector3(50, 50, 50)
-    }
-  }
+function CameraAutoFit({ 
+  projections, 
+  controlsRef,
+  resetTrigger
+}: { 
+  projections: EnrichedTwitterProjection[]
+  controlsRef: React.MutableRefObject<any>
+  resetTrigger: number
+}) {
+  const { camera } = useThree()
 
-  // Calculate bounding box of all points
-  const positions = projections.map((p: any) => new THREE.Vector3(p.x, p.y, p.z))
-  const box = new THREE.Box3().setFromPoints(positions)
-  const center = box.getCenter(new THREE.Vector3())
-  const size = box.getSize(new THREE.Vector3())
-  
-  // Get max dimension for uniform framing
-  const maxDim = Math.max(size.x, size.y, size.z)
-  const fov = camera.fov * (Math.PI / 180)
-  
-  // Minimal padding: 1.05 = 5% margin for perfect tight framing
-  // All points will be visible with maximum zoom
-  const padding = 1.05
-  const distance = Math.abs(maxDim / Math.sin(fov / 2)) * padding
-  
-  // Position camera at 45° angle for best 3D perspective
-  const angle = Math.PI / 4 // 45 degrees
-  const position = new THREE.Vector3(
-    center.x + Math.cos(angle) * distance * 0.7,
-    center.y + distance * 0.6,
-    center.z + Math.sin(angle) * distance * 0.7
-  )
-  
-  return { position, target: center }
+  const fitToView = useCallback(() => {
+    if (projections.length === 0) return
+
+    // Calculate bounding box of all points
+    const positions = projections.map((p: any) => new THREE.Vector3(p.x, p.y, p.z))
+    const box = new THREE.Box3().setFromPoints(positions)
+    const center = box.getCenter(new THREE.Vector3())
+    const size = box.getSize(new THREE.Vector3())
+    
+    // Get max dimension for uniform framing
+    const maxDim = Math.max(size.x, size.y, size.z)
+    const fov = (camera as THREE.PerspectiveCamera).fov * (Math.PI / 180)
+    
+    // Ultra tight framing: 0.9 = MAXIMUM zoom while keeping all points visible
+    // This gives the tightest possible view
+    const padding = 0.9
+    const distance = Math.abs(maxDim / Math.sin(fov / 2)) * padding
+    
+    // Position camera at 45° angle for best 3D perspective
+    const angle = Math.PI / 4
+    const position = new THREE.Vector3(
+      center.x + Math.cos(angle) * distance * 0.7,
+      center.y + distance * 0.6,
+      center.z + Math.sin(angle) * distance * 0.7
+    )
+    
+    // Apply camera position
+    camera.position.copy(position)
+    camera.lookAt(center)
+    camera.updateProjectionMatrix()
+
+    if (controlsRef.current) {
+      controlsRef.current.target.copy(center)
+      controlsRef.current.update()
+    }
+  }, [projections, camera, controlsRef])
+
+  // Fit on mount and when projections change
+  useEffect(() => {
+    fitToView()
+  }, [fitToView])
+
+  // Fit when reset button is clicked
+  useEffect(() => {
+    if (resetTrigger > 0) {
+      fitToView()
+    }
+  }, [resetTrigger, fitToView])
+
+  return null
 }
 
 /**
- * Scene with premium lighting and optimal camera positioning
+ * Scene with premium lighting
  */
 function SceneContent({ 
   projections,
@@ -395,36 +421,16 @@ function SceneContent({
   handleCentroidClick,
   controlsRef,
   autoRotate,
-  onCameraReady
+  resetTrigger
 }: any) {
-  const { camera } = useThree()
-
-  // Auto-fit camera on projection changes
-  useEffect(() => {
-    if (projections.length === 0) return
-
-    const { position, target } = calculateOptimalCameraPosition(
-      projections,
-      camera as THREE.PerspectiveCamera
-    )
-    
-    camera.position.copy(position)
-    camera.lookAt(target)
-    camera.updateProjectionMatrix()
-
-    if (controlsRef.current) {
-      controlsRef.current.target.copy(target)
-      controlsRef.current.update()
-    }
-
-    // Notify parent that camera is ready with optimal position
-    if (onCameraReady) {
-      onCameraReady({ position, target })
-    }
-  }, [projections, camera, controlsRef, onCameraReady])
 
   return (
     <>
+      <CameraAutoFit 
+        projections={projections} 
+        controlsRef={controlsRef}
+        resetTrigger={resetTrigger}
+      />
       <AutoRotate enabled={autoRotate} controlsRef={controlsRef} />
       
       {/* Premium Multi-Source Lighting */}
@@ -566,9 +572,9 @@ export function TwitterOpinionMap3D({
   const [hoveredTweet, setHoveredTweet] = useState<EnrichedTwitterProjection | null>(null)
   const [autoRotate, setAutoRotate] = useState(false)
   const [isLegendCollapsed, setIsLegendCollapsed] = useState(false)
+  const [resetTrigger, setResetTrigger] = useState(0)
   const controlsRef = useRef<any>(null)
   const containerRef = useRef<HTMLDivElement>(null)
-  const optimalCameraRef = useRef<{ position: THREE.Vector3; target: THREE.Vector3 } | null>(null)
 
   const handlePointClick = useCallback((projection: EnrichedTwitterProjection) => {
     onSelectTweet(projection.tweet_id, projection.cluster_id)
@@ -583,29 +589,9 @@ export function TwitterOpinionMap3D({
     onSelectCluster(clusterId)
   }, [onSelectCluster])
 
-  // Store optimal camera position when calculated
-  const handleCameraReady = useCallback((optimalPosition: { position: THREE.Vector3; target: THREE.Vector3 }) => {
-    optimalCameraRef.current = optimalPosition
-  }, [])
-
-  // Reset to optimal fit-to-view position (not OrbitControls default)
+  // Trigger fit-to-view by incrementing counter
   const handleReset = useCallback(() => {
-    if (!optimalCameraRef.current || !controlsRef.current) return
-
-    const canvas = containerRef.current?.querySelector('canvas')
-    if (!canvas) return
-
-    // Get camera from canvas
-    const camera = (canvas as any).__reactFiber?.return?.memoizedProps?.camera
-    if (!camera) return
-
-    // Smoothly animate to optimal position
-    const { position, target } = optimalCameraRef.current
-    camera.position.copy(position)
-    camera.lookAt(target)
-    
-    controlsRef.current.target.copy(target)
-    controlsRef.current.update()
+    setResetTrigger(prev => prev + 1)
   }, [])
 
   const handleDownload = () => {
@@ -791,7 +777,7 @@ export function TwitterOpinionMap3D({
           handleCentroidClick={handleCentroidClick}
           controlsRef={controlsRef}
           autoRotate={autoRotate}
-          onCameraReady={handleCameraReady}
+          resetTrigger={resetTrigger}
         />
       </Canvas>
 
