@@ -235,7 +235,13 @@ export async function toggleRuleActive(
 
     // If activating, set next poll time
     if (isActive) {
-      const rule = await getRuleById(ruleId);
+      // Fetch rule to get interval_minutes
+      const { data: rule } = await supabase
+        .from("tiktok_rules")
+        .select("interval_minutes")
+        .eq("id", ruleId)
+        .single();
+        
       if (rule) {
         const nextPollAt = new Date();
         nextPollAt.setMinutes(nextPollAt.getMinutes() + rule.interval_minutes);
@@ -265,16 +271,23 @@ export async function toggleRuleActive(
 
 /**
  * Update rule polling stats
+ * Uses admin client to bypass RLS (called from cron jobs)
  */
 export async function updateRulePollingStats(
   ruleId: string,
   videoCount: number
 ): Promise<void> {
   try {
-    const supabase = await createClient();
+    const supabase = createAdminClient();
 
-    const rule = await getRuleById(ruleId);
-    if (!rule) {
+    // Fetch rule with admin client
+    const { data: rule, error: fetchError } = await supabase
+      .from("tiktok_rules")
+      .select("*")
+      .eq("id", ruleId)
+      .single();
+
+    if (fetchError || !rule) {
       throw new Error(`Rule ${ruleId} not found`);
     }
 
