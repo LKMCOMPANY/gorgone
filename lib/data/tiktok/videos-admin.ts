@@ -6,12 +6,12 @@
 
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logger } from "@/lib/logger";
-import type { TikTokVideo } from "./videos";
+import type { TikTokVideoRecord } from "./videos";
 
 /**
  * Get video by ID (admin version for cron)
  */
-export async function getVideoByIdAdmin(videoDbId: string): Promise<TikTokVideo | null> {
+export async function getVideoByIdAdmin(videoDbId: string): Promise<TikTokVideoRecord | null> {
   try {
     const supabase = createAdminClient();
 
