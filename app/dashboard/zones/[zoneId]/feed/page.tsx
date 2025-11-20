@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { getZoneById } from "@/lib/data/zones";
 import { ZonePageHeader } from "@/components/dashboard/zones/zone-page-header";
 import { TwitterFeedTabs } from "@/components/dashboard/zones/twitter/twitter-feed-tabs";
+import { TikTokFeedContent } from "@/components/dashboard/zones/tiktok/tiktok-feed-content";
 import { MediaFeedContent } from "@/components/dashboard/zones/media/media-feed-content";
 
 interface FeedPageProps {
@@ -83,31 +84,13 @@ export default async function FeedPage({ params, searchParams }: FeedPageProps) 
             <MediaFeedContent zoneId={zoneId} />
           )}
 
-          {/* TikTok placeholder */}
+          {/* TikTok Content */}
           {source === "tiktok" && zone?.data_sources.tiktok && (
-            <div className="rounded-lg border border-dashed border-border bg-muted/30 p-12 text-center">
-              <div className="mx-auto max-w-sm space-y-3">
-                <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-                  <svg
-                    className="w-8 h-8 text-primary"
-                    fill="none"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
-                  </svg>
-                </div>
-                <div className="space-y-2">
-                  <p className="text-body font-medium">Feed coming soon</p>
-                  <p className="text-body-sm text-muted-foreground">
-                    TikTok videos will appear here once integration is complete
-                  </p>
-                </div>
-              </div>
-            </div>
+            <TikTokFeedContent
+              zoneId={zoneId}
+              initialSearch={search}
+              initialSearchType={searchType as "keyword" | "user" | undefined}
+            />
           )}
         </div>
       )}

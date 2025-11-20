@@ -33,6 +33,11 @@ export const env = {
     apiKey: process.env.TWITTER_API_KEY || "",
   },
 
+  // TikTok API (tikapi.io)
+  tiktok: {
+    apiKey: process.env.TIKTOK_API_KEY || "",
+  },
+
   // Event Registry API (newsapi.ai)
   eventRegistry: {
     apiKey: process.env.EVENT_REGISTRY_API_KEY || "",
@@ -65,6 +70,7 @@ export function validateEnv() {
 
   const optional = {
     TWITTER_API_KEY: env.twitter.apiKey,
+    TIKTOK_API_KEY: env.tiktok.apiKey,
     EVENT_REGISTRY_API_KEY: env.eventRegistry.apiKey,
   };
 

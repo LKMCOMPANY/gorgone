@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import type { Zone, UserRole, ZoneDataSources } from "@/types";
 import { canManageZones } from "@/lib/auth/permissions";
 import { TwitterSettingsTab } from "./twitter/twitter-settings-tab";
+import { TikTokSettingsTab } from "./tiktok/tiktok-settings-tab";
 import { MediaSettingsTab } from "./media/media-settings-tab";
 
 interface ZoneSettingsFormProps {
@@ -406,37 +407,7 @@ export function ZoneSettingsForm({ zone, userRole }: ZoneSettingsFormProps) {
       {/* TikTok Tab */}
       {dataSources.tiktok && (
         <TabsContent value="tiktok" className="animate-in fade-in-0 duration-300">
-          <Card className="card-padding border-border">
-            <div className="space-y-6">
-              <div className="space-y-2">
-                <h3 className="text-heading-3 flex items-center gap-2">
-                  <svg className="h-5 w-5 text-primary" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
-                  </svg>
-                  TikTok Configuration
-                </h3>
-                <p className="text-body text-muted-foreground">
-                  Configure monitoring settings for TikTok videos, hashtags, and trends
-                </p>
-              </div>
-              <div className="rounded-lg border border-dashed border-border bg-muted/30 p-12 text-center">
-                <div className="mx-auto max-w-sm space-y-3">
-                  <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-                    <svg className="w-8 h-8 text-primary" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
-                      <path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
-                      <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                    </svg>
-                  </div>
-                  <div className="space-y-2">
-                    <p className="text-body font-medium">Configuration options coming soon</p>
-                    <p className="text-body-sm text-muted-foreground">
-                      You'll be able to configure sounds, hashtags, creators, and content filters
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </Card>
+          <TikTokSettingsTab zoneId={zone.id} />
         </TabsContent>
       )}
 
