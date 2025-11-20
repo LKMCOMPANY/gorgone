@@ -7,6 +7,10 @@
     {
       "path": "/api/tiktok/engagement/update",
       "schedule": "*/30 * * * *"
+    },
+    {
+      "path": "/api/media/polling",
+      "schedule": "0 */3 * * *"
     }
   ]
 }

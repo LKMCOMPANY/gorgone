@@ -70,10 +70,11 @@ export const config = {
      * - favicon.ico (favicon file)
      * - public folder
      * - /api/webhooks (webhook endpoints from external services)
-     * - /api/tiktok/polling (QStash polling endpoint)
-     * - /api/tiktok/engagement/update (QStash engagement worker)
-     * - /api/twitter/polling (QStash polling endpoint)
+     * - /api/tiktok/polling (Vercel Cron - TikTok polling)
+     * - /api/tiktok/engagement/update (Vercel Cron - TikTok engagement)
+     * - /api/media/polling (Vercel Cron - Media polling)
+     * - /api/twitter/polling (Vercel Cron - Twitter polling)
      */
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.svg|.*\\.png|.*\\.jpg|.*\\.jpeg|.*\\.gif|.*\\.webp|api/webhooks|api/tiktok/polling|api/tiktok/engagement/update|api/twitter/polling).*)",
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.svg|.*\\.png|.*\\.jpg|.*\\.jpeg|.*\\.gif|.*\\.webp|api/webhooks|api/tiktok/polling|api/tiktok/engagement/update|api/media/polling|api/twitter/polling).*)",
   ],
 };
