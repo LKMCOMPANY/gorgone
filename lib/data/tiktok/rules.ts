@@ -310,6 +310,21 @@ export async function getRulesDueForPolling(): Promise<TikTokRule[]> {
 
     const now = new Date().toISOString();
 
+    // First, check all active rules for debugging
+    const { data: allActiveRules } = await supabase
+      .from("tiktok_rules")
+      .select("id, rule_name, is_active, next_poll_at, last_polled_at")
+      .eq("is_active", true);
+
+    logger.info(`[Polling Check] Current time: ${now}`);
+    logger.info(`[Polling Check] Found ${allActiveRules?.length || 0} active rules`);
+    
+    if (allActiveRules && allActiveRules.length > 0) {
+      allActiveRules.forEach(rule => {
+        logger.info(`[Polling Check] Rule "${rule.rule_name}": next_poll_at=${rule.next_poll_at}, last_polled_at=${rule.last_polled_at}`);
+      });
+    }
+
     const { data, error } = await supabase
       .from("tiktok_rules")
       .select("*")
@@ -321,6 +336,8 @@ export async function getRulesDueForPolling(): Promise<TikTokRule[]> {
       logger.error("Error fetching rules due for polling:", error);
       throw error;
     }
+
+    logger.info(`[Polling Check] ${data?.length || 0} rules are due for polling`);
 
     return data || [];
   } catch (error) {
