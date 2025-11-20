@@ -4,7 +4,9 @@
  */
 
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { logger } from "@/lib/logger";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 export type EngagementTier = "ultra_hot" | "hot" | "warm" | "cold";
 

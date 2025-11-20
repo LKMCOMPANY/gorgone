@@ -6,10 +6,14 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { logger } from "@/lib/logger";
-import { getVideosDueForUpdate, updateTrackingTier, incrementUpdateCount } from "@/lib/data/tiktok/engagement";
-import { getVideoById, updateVideoEngagement } from "@/lib/data/tiktok/videos";
-import { createEngagementSnapshot } from "@/lib/data/tiktok/engagement";
-import { calculateAndStoreVideoPredictions } from "@/lib/data/tiktok/predictions";
+import { 
+  getVideosDueForUpdateAdmin, 
+  updateTrackingTierAdmin, 
+  incrementUpdateCountAdmin,
+  createEngagementSnapshotAdmin 
+} from "@/lib/data/tiktok/engagement-admin";
+import { getVideoByIdAdmin, updateVideoEngagementAdmin } from "@/lib/data/tiktok/videos-admin";
+import { calculateAndStoreVideoPredictionsAdmin } from "@/lib/data/tiktok/predictions-admin";
 import { getVideoById as getVideoFromAPI } from "@/lib/api/tiktok";
 
 /**
@@ -36,7 +40,7 @@ export async function GET(request: NextRequest) {
     logger.info("TikTok engagement update worker started");
 
     // Get videos due for update (limit 20 per batch like Twitter)
-    const videoDbIds = await getVideosDueForUpdate(20);
+    const videoDbIds = await getVideosDueForUpdateAdmin(20);
 
     if (videoDbIds.length === 0) {
       logger.info("No videos due for engagement update");
@@ -56,7 +60,7 @@ export async function GET(request: NextRequest) {
     for (const videoDbId of videoDbIds) {
       try {
         // Get video from database
-        const video = await getVideoById(videoDbId);
+        const video = await getVideoByIdAdmin(videoDbId);
         if (!video) {
           logger.warn(`Video ${videoDbId} not found in database`);
           continue;
@@ -68,7 +72,7 @@ export async function GET(request: NextRequest) {
           logger.warn(`Video ${video.video_id} not found in TikTok API`);
           
           // Stop tracking if video deleted
-          await updateTrackingTier(videoDbId, "cold");
+          await updateTrackingTierAdmin(videoDbId, "cold");
           continue;
         }
 
@@ -95,20 +99,20 @@ export async function GET(request: NextRequest) {
         const velocity = hoursElapsed > 0 ? totalDelta / hoursElapsed : 0;
 
         // Create engagement snapshot
-        await createEngagementSnapshot(videoDbId, newStats, deltas, velocity);
+        await createEngagementSnapshotAdmin(videoDbId, newStats, deltas, velocity);
 
         // Update video stats in main table
-        await updateVideoEngagement(video.video_id, newStats);
+        await updateVideoEngagementAdmin(video.video_id, newStats);
 
         // Update tracking tier based on age
         const newTier = determineTier(new Date(video.tiktok_created_at));
-        await updateTrackingTier(videoDbId, newTier);
+        await updateTrackingTierAdmin(videoDbId, newTier);
 
         // Increment update count
-        await incrementUpdateCount(videoDbId);
+        await incrementUpdateCountAdmin(videoDbId);
 
         // Calculate and store predictions (after we have enough snapshots)
-        await calculateAndStoreVideoPredictions(videoDbId);
+        await calculateAndStoreVideoPredictionsAdmin(videoDbId);
 
         successCount++;
         logger.debug(`Updated engagement for video ${video.video_id}`);
