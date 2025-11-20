@@ -69,7 +69,11 @@ export const config = {
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      * - public folder
+     * - /api/webhooks (webhook endpoints from external services)
+     * - /api/tiktok/polling (QStash polling endpoint)
+     * - /api/tiktok/engagement/update (QStash engagement worker)
+     * - /api/twitter/polling (QStash polling endpoint)
      */
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.svg|.*\\.png|.*\\.jpg|.*\\.jpeg|.*\\.gif|.*\\.webp).*)",
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.svg|.*\\.png|.*\\.jpg|.*\\.jpeg|.*\\.gif|.*\\.webp|api/webhooks|api/tiktok/polling|api/tiktok/engagement/update|api/twitter/polling).*)",
   ],
 };

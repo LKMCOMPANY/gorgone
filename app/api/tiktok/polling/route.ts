@@ -5,7 +5,6 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { verifySignatureAppRouter } from "@upstash/qstash/dist/nextjs";
 import { logger } from "@/lib/logger";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getRulesDueForPolling, updateRulePollingStats } from "@/lib/data/tiktok/rules";
@@ -16,8 +15,22 @@ import { batchProcessVideos } from "@/lib/workers/tiktok/deduplicator";
  * POST /api/tiktok/polling
  * Poll TikTok API for new videos based on active rules
  */
-async function handler(request: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
+    // =====================================================
+    // SECURITY: Verify request is from QStash
+    // =====================================================
+    
+    const qstashSignature = request.headers.get("upstash-signature");
+    
+    if (!qstashSignature) {
+      logger.warn("[TikTok Polling] Unauthorized: Missing QStash signature");
+      return NextResponse.json(
+        { error: "Unauthorized: Missing QStash signature" },
+        { status: 401 }
+      );
+    }
+
     logger.info("TikTok polling worker started");
 
     // Get rules due for polling
@@ -130,6 +143,15 @@ async function handler(request: NextRequest) {
   }
 }
 
-// Export handler directly (QStash signature verification can be added later)
-export const POST = handler;
+/**
+ * GET /api/tiktok/polling
+ * Health check endpoint for QStash
+ */
+export async function GET() {
+  return NextResponse.json({
+    status: "ok",
+    service: "tiktok-polling",
+    timestamp: new Date().toISOString(),
+  });
+}
 

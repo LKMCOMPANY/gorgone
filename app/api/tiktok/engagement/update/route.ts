@@ -5,7 +5,6 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { verifySignatureAppRouter } from "@upstash/qstash/dist/nextjs";
 import { logger } from "@/lib/logger";
 import { getVideosDueForUpdate, updateTrackingTier, incrementUpdateCount } from "@/lib/data/tiktok/engagement";
 import { getVideoById, updateVideoEngagement } from "@/lib/data/tiktok/videos";
@@ -17,8 +16,22 @@ import { getVideoById as getVideoFromAPI } from "@/lib/api/tiktok";
  * POST /api/tiktok/engagement/update
  * Batch update engagement stats
  */
-async function handler(request: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
+    // =====================================================
+    // SECURITY: Verify request is from QStash
+    // =====================================================
+    
+    const qstashSignature = request.headers.get("upstash-signature");
+    
+    if (!qstashSignature) {
+      logger.warn("[TikTok Engagement Update] Unauthorized: Missing QStash signature");
+      return NextResponse.json(
+        { error: "Unauthorized: Missing QStash signature" },
+        { status: 401 }
+      );
+    }
+
     logger.info("TikTok engagement update worker started");
 
     // Get videos due for update (limit 20 per batch like Twitter)
@@ -127,6 +140,18 @@ async function handler(request: NextRequest) {
 }
 
 /**
+ * GET /api/tiktok/engagement/update
+ * Health check endpoint for QStash
+ */
+export async function GET() {
+  return NextResponse.json({
+    status: "ok",
+    service: "tiktok-engagement-update",
+    timestamp: new Date().toISOString(),
+  });
+}
+
+/**
  * Determine tier based on video age (same logic as data layer)
  */
 function determineTier(videoCreatedAt: Date): "ultra_hot" | "hot" | "warm" | "cold" {
@@ -138,7 +163,4 @@ function determineTier(videoCreatedAt: Date): "ultra_hot" | "hot" | "warm" | "co
   if (ageInHours < 12) return "warm";
   return "cold";
 }
-
-// Export handler directly (QStash signature verification can be added later)
-export const POST = handler;
 
