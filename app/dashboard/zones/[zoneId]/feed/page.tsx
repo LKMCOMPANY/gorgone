@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { getZoneById } from "@/lib/data/zones";
 import { ZonePageHeader } from "@/components/dashboard/zones/zone-page-header";
 import { TwitterFeedTabs } from "@/components/dashboard/zones/twitter/twitter-feed-tabs";
-import { TikTokFeedContent } from "@/components/dashboard/zones/tiktok/tiktok-feed-content";
+import { TikTokFeedTabs } from "@/components/dashboard/zones/tiktok/tiktok-feed-tabs";
 import { MediaFeedContent } from "@/components/dashboard/zones/media/media-feed-content";
 
 interface FeedPageProps {
@@ -84,10 +84,11 @@ export default async function FeedPage({ params, searchParams }: FeedPageProps) 
             <MediaFeedContent zoneId={zoneId} />
           )}
 
-          {/* TikTok Content */}
+          {/* TikTok Content with Feed/Profiles tabs */}
           {source === "tiktok" && zone?.data_sources.tiktok && (
-            <TikTokFeedContent
+            <TikTokFeedTabs
               zoneId={zoneId}
+              initialView={view}
               initialSearch={search}
               initialSearchType={searchType as "keyword" | "user" | undefined}
             />

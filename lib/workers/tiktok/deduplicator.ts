@@ -160,7 +160,10 @@ async function processAuthorProfile(
       .maybeSingle();
 
     if (existingProfile) {
-      // Update existing profile
+      // Get stats from API
+      const stats = (author as any).stats || {};
+
+      // Update existing profile with latest stats
       await supabase
         .from("tiktok_profiles")
         .update({
@@ -174,6 +177,10 @@ async function processAuthorProfile(
           is_private: author.privateAccount || false,
           region: author.region || null,
           language: author.language || null,
+          follower_count: stats.followerCount || 0,
+          following_count: stats.followingCount || 0,
+          heart_count: stats.heart || stats.heartCount || 0,
+          video_count: stats.videoCount || 0,
           last_seen_at: new Date().toISOString(),
           last_updated_at: new Date().toISOString(),
           total_videos_collected: supabase.rpc("increment", { x: 1 }) as any,
@@ -183,7 +190,10 @@ async function processAuthorProfile(
       return existingProfile.id;
     }
 
-    // Create new profile
+    // Get stats from API (from raw_data if available)
+    const stats = (author as any).stats || {};
+
+    // Create new profile with stats
     const { data: newProfile, error } = await supabase
       .from("tiktok_profiles")
       .insert({
@@ -199,6 +209,10 @@ async function processAuthorProfile(
         is_private: author.privateAccount || false,
         region: author.region || null,
         language: author.language || null,
+        follower_count: stats.followerCount || 0,
+        following_count: stats.followingCount || 0,
+        heart_count: stats.heart || stats.heartCount || 0,
+        video_count: stats.videoCount || 0,
         total_videos_collected: 1,
         raw_data: author as any,
       })

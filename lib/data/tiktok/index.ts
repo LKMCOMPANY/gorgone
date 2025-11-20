@@ -5,6 +5,7 @@
 export * from "./rules";
 export * from "./rules-admin";
 export * from "./profiles";
+export * from "./profiles-stats";
 export * from "./videos";
 export * from "./engagement";
 export * from "./entities";
