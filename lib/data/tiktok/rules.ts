@@ -313,7 +313,7 @@ export async function getRulesDueForPolling(): Promise<TikTokRule[]> {
     const now = new Date().toISOString();
 
     // First, check all active rules for debugging
-    const { data: allActiveRules } = supabase
+    const { data: allActiveRules } = await supabase
       .from("tiktok_rules")
       .select("id, rule_name, is_active, next_poll_at, last_polled_at")
       .eq("is_active", true);
