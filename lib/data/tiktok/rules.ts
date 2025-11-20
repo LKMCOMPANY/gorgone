@@ -4,6 +4,7 @@
  */
 
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { logger } from "@/lib/logger";
 
 export interface TikTokRule {
@@ -303,15 +304,16 @@ export async function updateRulePollingStats(
 
 /**
  * Get rules that need to be polled
+ * Uses admin client to bypass RLS (needed for cron jobs)
  */
 export async function getRulesDueForPolling(): Promise<TikTokRule[]> {
   try {
-    const supabase = await createClient();
+    const supabase = createAdminClient();
 
     const now = new Date().toISOString();
 
     // First, check all active rules for debugging
-    const { data: allActiveRules } = await supabase
+    const { data: allActiveRules } = supabase
       .from("tiktok_rules")
       .select("id, rule_name, is_active, next_poll_at, last_polled_at")
       .eq("is_active", true);
