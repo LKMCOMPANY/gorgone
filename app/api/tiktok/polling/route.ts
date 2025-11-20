@@ -15,18 +15,19 @@ import { batchProcessVideos } from "@/lib/workers/tiktok/deduplicator";
  * POST /api/tiktok/polling
  * Poll TikTok API for new videos based on active rules
  */
-export async function POST(request: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
     // =====================================================
-    // SECURITY: Verify request is from QStash
+    // SECURITY: Verify request is from Vercel Cron
     // =====================================================
     
-    const qstashSignature = request.headers.get("upstash-signature");
+    const authHeader = request.headers.get("authorization");
+    const expectedAuth = `Bearer ${process.env.CRON_SECRET}`;
     
-    if (!qstashSignature) {
-      logger.warn("[TikTok Polling] Unauthorized: Missing QStash signature");
+    if (authHeader !== expectedAuth) {
+      logger.warn("[TikTok Polling] Unauthorized: Invalid or missing cron secret");
       return NextResponse.json(
-        { error: "Unauthorized: Missing QStash signature" },
+        { error: "Unauthorized" },
         { status: 401 }
       );
     }
@@ -143,15 +144,4 @@ export async function POST(request: NextRequest) {
   }
 }
 
-/**
- * GET /api/tiktok/polling
- * Health check endpoint for QStash
- */
-export async function GET() {
-  return NextResponse.json({
-    status: "ok",
-    service: "tiktok-polling",
-    timestamp: new Date().toISOString(),
-  });
-}
 

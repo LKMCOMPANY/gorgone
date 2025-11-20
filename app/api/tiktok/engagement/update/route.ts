@@ -16,18 +16,19 @@ import { getVideoById as getVideoFromAPI } from "@/lib/api/tiktok";
  * POST /api/tiktok/engagement/update
  * Batch update engagement stats
  */
-export async function POST(request: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
     // =====================================================
-    // SECURITY: Verify request is from QStash
+    // SECURITY: Verify request is from Vercel Cron
     // =====================================================
     
-    const qstashSignature = request.headers.get("upstash-signature");
+    const authHeader = request.headers.get("authorization");
+    const expectedAuth = `Bearer ${process.env.CRON_SECRET}`;
     
-    if (!qstashSignature) {
-      logger.warn("[TikTok Engagement Update] Unauthorized: Missing QStash signature");
+    if (authHeader !== expectedAuth) {
+      logger.warn("[TikTok Engagement Update] Unauthorized: Invalid or missing cron secret");
       return NextResponse.json(
-        { error: "Unauthorized: Missing QStash signature" },
+        { error: "Unauthorized" },
         { status: 401 }
       );
     }
@@ -137,18 +138,6 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
-
-/**
- * GET /api/tiktok/engagement/update
- * Health check endpoint for QStash
- */
-export async function GET() {
-  return NextResponse.json({
-    status: "ok",
-    service: "tiktok-engagement-update",
-    timestamp: new Date().toISOString(),
-  });
 }
 
 /**
