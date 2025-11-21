@@ -216,8 +216,12 @@ export function MessageContent({ content, role, toolInvocations }: MessageConten
             img: ({ src, alt }) => {
               if (!src || src === "") return null;
               
+              // Type guard: ensure src is string
+              const srcString = typeof src === "string" ? src : "";
+              if (!srcString) return null;
+              
               // Filter out base64 SVG charts (GPT shouldn't create these anymore)
-              if (src.startsWith("data:image/svg")) {
+              if (srcString.startsWith("data:image/svg")) {
                 return (
                   <div className="my-4 rounded-lg border border-border bg-muted/10 p-4 text-center">
                     <p className="text-body-sm text-muted-foreground">
@@ -229,7 +233,7 @@ export function MessageContent({ content, role, toolInvocations }: MessageConten
               
               return (
                 <img
-                  src={src}
+                  src={srcString}
                   alt={alt || ""}
                   className="my-4 rounded-lg w-full max-w-full h-auto object-contain"
                 />
