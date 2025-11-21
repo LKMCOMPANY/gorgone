@@ -32,7 +32,7 @@ Returns articles, sources, sentiment breakdown, and coverage volume.`,
       .describe("Minimum social media engagement score"),
   }),
 
-  execute: async ({ topic, period, min_social_score }, context: ToolContext) => {
+  execute: async ({ topic, period, min_social_score }, context: any) => {
     try {
       logger.info(`[AI Tool] get_media_coverage called`, {
         topic,

@@ -28,7 +28,7 @@ Returns sentiment breakdown with percentages and examples.`,
       .describe("Time period"),
   }),
 
-  execute: async ({ topic, period }, context: ToolContext) => {
+  execute: async ({ topic, period }, context: any) => {
     try {
       logger.info(`[AI Tool] analyze_sentiment called`, {
         topic,

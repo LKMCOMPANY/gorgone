@@ -35,7 +35,7 @@ Returns top content sorted by total engagement (likes + retweets + comments + sh
     limit: z.number().min(1).max(20).default(10).describe("Number of results"),
   }),
 
-  execute: async ({ platform, period, limit }, context: ToolContext) => {
+  execute: async ({ platform, period, limit }, context: any) => {
     const { zoneId, dataSources } = context;
     try {
       logger.info(`[AI Tool] get_top_content called`, {

@@ -38,7 +38,7 @@ Returns profiles with engagement statistics and growth metrics.`,
       .describe("Sort by total engagement or follower count"),
   }),
 
-  execute: async ({ platform, period, limit, sort_by }, context: ToolContext) => {
+  execute: async ({ platform, period, limit, sort_by }, context: any) => {
     const { zoneId, dataSources } = context;
     try {
       logger.info(`[AI Tool] get_top_accounts called`, {

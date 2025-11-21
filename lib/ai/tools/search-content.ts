@@ -36,7 +36,7 @@ Searches in tweet text, video descriptions, and article titles/bodies.`,
 
   execute: async (
     { query, platforms, start_date, end_date, limit },
-    context: ToolContext
+    context: any
   ) => {
     const { zoneId, dataSources } = context;
     try {

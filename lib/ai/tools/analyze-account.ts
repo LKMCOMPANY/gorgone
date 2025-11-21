@@ -35,7 +35,7 @@ Returns comprehensive profile analysis with engagement metrics and top posts.`,
       .describe("Time period for activity analysis"),
   }),
 
-  execute: async ({ username, platform, period }, context: ToolContext) => {
+  execute: async ({ username, platform, period }, context: any) => {
     try {
       logger.info(`[AI Tool] analyze_account called`, {
         username,

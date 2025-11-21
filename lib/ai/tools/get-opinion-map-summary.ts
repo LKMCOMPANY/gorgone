@@ -26,7 +26,7 @@ Returns cluster labels, sizes, keywords, and dominant narratives from UMAP 3D an
     limit: z.number().min(1).max(20).default(10).describe("Number of top clusters"),
   }),
 
-  execute: async ({ limit }, context: ToolContext) => {
+  execute: async ({ limit }, context: any) => {
     try {
       logger.info(`[AI Tool] get_opinion_map_summary called`, {
         limit,

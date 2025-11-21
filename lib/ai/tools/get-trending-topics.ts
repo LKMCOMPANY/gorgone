@@ -34,7 +34,7 @@ Returns hashtags with usage counts and growth trends.`,
     limit: z.number().min(1).max(50).default(10).describe("Number of hashtags to return"),
   }),
 
-  execute: async ({ platform, period, limit }, context: ToolContext) => {
+  execute: async ({ platform, period, limit }, context: any) => {
     const { zoneId, dataSources } = context;
     try {
       logger.info(`[AI Tool] get_trending_topics called`, {

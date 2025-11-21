@@ -28,7 +28,7 @@ Returns volume spikes, viral content, and engagement anomalies.`,
       .describe("Anomaly detection sensitivity"),
   }),
 
-  execute: async ({ sensitivity }, context: ToolContext) => {
+  execute: async ({ sensitivity }, context: any) => {
     try {
       logger.info(`[AI Tool] detect_anomalies called`, {
         sensitivity,

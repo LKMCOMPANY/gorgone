@@ -55,7 +55,7 @@ Use this instead of creating manual SVG for bar/line/area charts.`,
 
   execute: async (
     { chart_type, title, data_type, period, custom_data },
-    context: ToolContext
+    context: any
   ) => {
     try {
       logger.info(`[AI Tool] create_visualization called`, {

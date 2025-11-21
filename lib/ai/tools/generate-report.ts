@@ -44,7 +44,7 @@ to gather the actual data for each section.`,
       .describe("Sections to include (default: all)"),
   }),
 
-  execute: async ({ period, include_sections }, context: ToolContext) => {
+  execute: async ({ period, include_sections }, context: any) => {
     try {
       logger.info(`[AI Tool] generate_report called`, {
         period,

@@ -31,7 +31,7 @@ Returns volume and engagement percentages for each profile tag type.`,
       .describe("Time period"),
   }),
 
-  execute: async ({ platform, period }, context: ToolContext) => {
+  execute: async ({ platform, period }, context: any) => {
     try {
       logger.info(`[AI Tool] get_share_of_voice called`, {
         platform,

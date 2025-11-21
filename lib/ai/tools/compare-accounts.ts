@@ -37,7 +37,7 @@ Returns side-by-side stats: followers, engagement, activity, influence.`,
       .describe("Time period for activity comparison"),
   }),
 
-  execute: async ({ usernames, platform, period }, context: ToolContext) => {
+  execute: async ({ usernames, platform, period }, context: any) => {
     try {
       logger.info(`[AI Tool] compare_accounts called`, {
         usernames,

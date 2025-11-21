@@ -30,7 +30,7 @@ Returns aggregated statistics, top content, and trending topics.`,
       .describe("Time period to analyze"),
   }),
 
-  execute: async ({ period }, context: ToolContext) => {
+  execute: async ({ period }, context: any) => {
     const { zoneId, dataSources } = context;
     try {
       logger.info(`[AI Tool] get_zone_overview called`, {
