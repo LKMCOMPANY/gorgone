@@ -4,6 +4,7 @@
  */
 
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { logger } from "@/lib/logger";
 
 export type TikTokProfileTagType = 
@@ -23,6 +24,32 @@ export interface TikTokProfileTag {
   notes?: string;
   created_at: string;
   created_by?: string;
+}
+
+/**
+ * Get TikTok profile by username
+ */
+export async function getProfileByUsername(username: string): Promise<any | null> {
+  try {
+    const supabase = createAdminClient();
+    const cleanUsername = username.replace("@", "").trim().toLowerCase();
+
+    const { data, error } = await supabase
+      .from("tiktok_profiles")
+      .select("*")
+      .eq("username", cleanUsername)
+      .maybeSingle();
+
+    if (error) {
+      if (error.code === "PGRST116") return null;
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    logger.error(`Error fetching TikTok profile ${username}:`, error);
+    return null;
+  }
 }
 
 /**

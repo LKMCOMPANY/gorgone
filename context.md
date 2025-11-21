@@ -867,6 +867,23 @@ Users are created manually by Super Admins via the Admin API:
 8. ✅ **UI Components**: Toast notifications, elegant shimmer skeletons, responsive layouts
 9. ✅ **Data Layer**: Centralized data access with type safety
 10. ✅ **Documentation**: Complete design system, architecture, and integration docs
+11. ✅ **Chat Intelligence (AL-IA)**: AI-powered chatbot for data analysis and reporting
+   - 14 AI tools covering 100% of monitoring use cases
+   - Multi-platform analysis (Twitter + TikTok + Media simultaneously)
+   - Interactive visualizations (Line/Bar/Area charts with Recharts)
+   - Markdown rendering with syntax highlighting
+   - Integrated sidebar (desktop) / Sheet overlay (mobile)
+   - Auto-context detection (follows zone navigation)
+   - Quick actions (12 predefined questions)
+   - Copy to clipboard functionality
+   - Real-time streaming responses (Vercel AI SDK + GPT-4o)
+   - 4 database tables (conversations, messages, usage, reports)
+   - Cross-platform search and comparison
+   - Opinion map integration (UMAP clustering insights)
+   - Share of voice analysis (profile tag distribution)
+   - Sentiment analysis (media + engagement-based)
+   - Anomaly detection (volume spikes, viral content)
+   - Comprehensive report generation
 
 ## Next Steps
 

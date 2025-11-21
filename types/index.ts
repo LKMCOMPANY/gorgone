@@ -965,3 +965,57 @@ export interface MediaRuleWithStats extends MediaRule {
 // ============================================================================
 // END MEDIA MONITORING TYPES
 // ============================================================================
+
+// ============================================================================
+// CHAT INTELLIGENCE TYPES
+// ============================================================================
+
+export interface ChatConversation {
+  id: string;
+  zone_id: string;
+  client_id: string;
+  user_id: string;
+  title: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ChatMessage {
+  id: string;
+  conversation_id: string;
+  role: "user" | "assistant" | "system" | "tool";
+  content: string;
+  tool_calls?: Record<string, unknown>;
+  tool_results?: Record<string, unknown>;
+  created_at: string;
+}
+
+export interface ChatUsage {
+  id: string;
+  conversation_id: string | null;
+  zone_id: string;
+  client_id: string;
+  user_id: string;
+  model: string;
+  prompt_tokens: number;
+  completion_tokens: number;
+  total_tokens: number;
+  cost_usd: number | null;
+  created_at: string;
+}
+
+export interface ChatReport {
+  id: string;
+  conversation_id: string | null;
+  zone_id: string;
+  client_id: string;
+  title: string;
+  summary: string | null;
+  content: Record<string, unknown>;
+  created_by: string;
+  created_at: string;
+}
+
+// ============================================================================
+// END CHAT INTELLIGENCE TYPES
+// ============================================================================

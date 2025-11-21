@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useSidebar } from "@/components/ui/sidebar";
 import {
   Dialog,
   DialogContent,
@@ -13,6 +14,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createZoneAction } from "@/app/actions/zones";
@@ -24,9 +31,12 @@ interface CreateZoneDialogProps {
 
 export function CreateZoneDialog({ clientId }: CreateZoneDialogProps) {
   const router = useRouter();
+  const { state } = useSidebar();
   const [open, setOpen] = useState(false);
   const [zoneName, setZoneName] = useState("");
   const [isCreating, setIsCreating] = useState(false);
+  
+  const isCollapsed = state === "collapsed";
 
   const handleCreate = async () => {
     if (!zoneName.trim()) {
@@ -63,17 +73,32 @@ export function CreateZoneDialog({ clientId }: CreateZoneDialogProps) {
     }
   };
 
+  const trigger = (
+    <Button
+      variant="outline"
+      size={isCollapsed ? "icon" : "sm"}
+      className={isCollapsed ? "h-9 w-9" : "w-full justify-start gap-2"}
+    >
+      <Plus className="h-4 w-4" />
+      {!isCollapsed && <span className="text-body-sm">Create Zone</span>}
+    </Button>
+  );
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button
-          variant="outline"
-          size="sm"
-          className="w-full justify-start gap-2 transition-all duration-[150ms] hover:bg-accent"
-        >
-          <Plus className="h-4 w-4 transition-transform duration-[150ms] group-hover:scale-110" />
-          <span className="text-body-sm">Create Zone</span>
-        </Button>
+        {isCollapsed ? (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>{trigger}</TooltipTrigger>
+              <TooltipContent side="right">
+                <p>Create Zone</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        ) : (
+          trigger
+        )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[480px] gap-0">
         <DialogHeader className="space-y-3">

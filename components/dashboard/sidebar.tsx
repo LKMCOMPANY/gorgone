@@ -17,7 +17,8 @@ import {
 import { isSuperAdmin, canManageZones } from "@/lib/auth/permissions";
 import { ZonesSidebarSection } from "@/components/dashboard/zones/zones-sidebar-section";
 import { CreateZoneDialog } from "@/components/dashboard/zones/create-zone-dialog";
-import type { UserRole, Zone } from "@/types";
+import { SidebarFooterControls } from "@/components/dashboard/sidebar-footer-controls";
+import type { UserRole, Zone, User } from "@/types";
 
 const mainMenuItems = [
   {
@@ -36,12 +37,14 @@ const adminMenuItems = [
 ];
 
 interface DashboardSidebarProps {
+  user: User;
   userRole?: UserRole | null;
   clientId?: string | null;
   zones?: Zone[];
 }
 
 export function DashboardSidebar({
+  user,
   userRole,
   clientId,
   zones = [],
@@ -105,16 +108,19 @@ export function DashboardSidebar({
         )}
       </SidebarContent>
 
-      {/* Create Zone Button - Bottom of sidebar */}
-      {showCreateZone && clientId && (
-        <SidebarFooter>
+      {/* Footer with Controls */}
+      <SidebarFooter>
+        {showCreateZone && clientId && (
           <SidebarMenu>
             <SidebarMenuItem>
               <CreateZoneDialog clientId={clientId} />
             </SidebarMenuItem>
           </SidebarMenu>
-        </SidebarFooter>
-      )}
+        )}
+        
+        {/* Theme Toggle & User Menu - Outside SidebarMenu */}
+        <SidebarFooterControls user={user} />
+      </SidebarFooter>
     </Sidebar>
   );
 }

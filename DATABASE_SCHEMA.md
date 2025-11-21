@@ -725,7 +725,119 @@ For zones with very high volume, Supabase read replicas can be added for:
 
 ---
 
-**Document Version**: 1.0  
-**Last Updated**: 2025-11-15  
+## Chat Intelligence Tables
+
+### 16. `public.chat_conversations`
+
+Chat sessions for AI assistant.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| `id` | UUID | PK, DEFAULT gen_random_uuid() | Conversation ID |
+| `zone_id` | UUID | FK to zones, NOT NULL | Parent zone |
+| `client_id` | UUID | FK to clients, NOT NULL | Parent client |
+| `user_id` | UUID | FK to auth.users, NOT NULL | Conversation owner |
+| `title` | TEXT | NULLABLE | Auto-generated from first message |
+| `created_at` | TIMESTAMPTZ | DEFAULT NOW() | |
+| `updated_at` | TIMESTAMPTZ | DEFAULT NOW() | Auto-updated on changes |
+
+**Indexes**:
+- Primary key on `id`
+- Index on `zone_id`
+- Index on `client_id`
+- Index on `user_id`
+- Index on `updated_at DESC`
+
+**RLS**: Enabled (users see only their zones' conversations)
+
+---
+
+### 17. `public.chat_messages`
+
+Individual messages in chat conversations.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| `id` | UUID | PK, DEFAULT gen_random_uuid() | Message ID |
+| `conversation_id` | UUID | FK to chat_conversations, NOT NULL | Parent conversation |
+| `role` | TEXT | CHECK (user \| assistant \| system \| tool) | Message role |
+| `content` | TEXT | NOT NULL | Message text |
+| `tool_calls` | JSONB | NULLABLE | Function calls made by AI |
+| `tool_results` | JSONB | NULLABLE | Results from tools |
+| `created_at` | TIMESTAMPTZ | DEFAULT NOW() | |
+
+**Indexes**:
+- Primary key on `id`
+- Index on `conversation_id`
+- Index on `created_at DESC`
+- Composite on `(conversation_id, created_at DESC)`
+
+**RLS**: Enabled
+
+**Triggers**:
+- Auto-generate conversation title from first user message
+
+---
+
+### 18. `public.chat_usage`
+
+Token usage and cost tracking for AI API calls.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| `id` | UUID | PK, DEFAULT gen_random_uuid() | Usage record ID |
+| `conversation_id` | UUID | FK to chat_conversations | Parent conversation |
+| `zone_id` | UUID | FK to zones, NOT NULL | Zone context |
+| `client_id` | UUID | FK to clients, NOT NULL | Client for billing |
+| `user_id` | UUID | FK to auth.users, NOT NULL | User who triggered |
+| `model` | TEXT | NOT NULL | AI model used (gpt-4o, etc.) |
+| `prompt_tokens` | INT | NOT NULL | Input tokens |
+| `completion_tokens` | INT | NOT NULL | Output tokens |
+| `total_tokens` | INT | NOT NULL | Sum of tokens |
+| `cost_usd` | NUMERIC(10,6) | NULLABLE | Calculated cost |
+| `created_at` | TIMESTAMPTZ | DEFAULT NOW() | |
+
+**Indexes**:
+- Primary key on `id`
+- Index on `conversation_id`
+- Index on `zone_id`
+- Index on `client_id`
+- Index on `user_id`
+- Index on `created_at DESC`
+
+**RLS**: Enabled (super_admin sees all, users see own)
+
+---
+
+### 19. `public.chat_reports`
+
+Saved reports generated from chat conversations.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| `id` | UUID | PK, DEFAULT gen_random_uuid() | Report ID |
+| `conversation_id` | UUID | FK to chat_conversations | Source conversation |
+| `zone_id` | UUID | FK to zones, NOT NULL | Zone analyzed |
+| `client_id` | UUID | FK to clients, NOT NULL | Client owner |
+| `title` | TEXT | NOT NULL | Report title |
+| `summary` | TEXT | NULLABLE | Executive summary |
+| `content` | JSONB | NOT NULL | Report data (markdown + stats) |
+| `created_by` | UUID | FK to auth.users, NOT NULL | Report creator |
+| `created_at` | TIMESTAMPTZ | DEFAULT NOW() | |
+
+**Indexes**:
+- Primary key on `id`
+- Index on `conversation_id`
+- Index on `zone_id`
+- Index on `client_id`
+- Index on `created_by`
+- Index on `created_at DESC`
+
+**RLS**: Enabled
+
+---
+
+**Document Version**: 1.1  
+**Last Updated**: 2025-11-21  
 **Status**: Production-Ready
 
