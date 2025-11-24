@@ -26,6 +26,7 @@ import { logger } from "@/lib/logger";
  * - search: text search query
  * - sortBy: "published_at" | "social_score" | "sentiment"
  * - sortAsc: "true" | "false"
+ * - verifiedOnly: "true" | "false" (filter to verified media sources only)
  */
 export async function GET(request: NextRequest) {
   try {
@@ -91,6 +92,9 @@ export async function GET(request: NextRequest) {
       "published_at" | "social_score" | "sentiment";
     const sortAsc = searchParams.get("sortAsc") === "true";
 
+    // Verified media filter
+    const verifiedOnly = searchParams.get("verifiedOnly") === "true";
+
     // Validate date range
     if (startDate && endDate && startDate > endDate) {
       return NextResponse.json(
@@ -123,6 +127,7 @@ export async function GET(request: NextRequest) {
       searchText,
       sortBy,
       sortAsc,
+      verifiedOnly,
     });
 
     // Get total count for pagination

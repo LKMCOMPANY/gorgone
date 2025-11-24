@@ -16,11 +16,12 @@
 "use client";
 
 import { useState } from "react";
-import { ExternalLink, ChevronDown, ChevronUp, MapPin, Tag, User, Calendar } from "lucide-react";
+import { ExternalLink, ChevronDown, ChevronUp, MapPin, Tag, User, Calendar, ShieldCheck } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { isVerifiedSource } from "@/lib/data/media/verified-sources";
 import type { MediaArticle } from "@/types";
 import { formatDistanceToNow } from "date-fns";
 
@@ -138,6 +139,7 @@ export function MediaArticleCard({ article }: MediaArticleCardProps) {
   const hasCategories = article.categories && article.categories.length > 0;
   const country = parseLocation(article.source_location_country);
   const city = parseLocation(article.source_location_label);
+  const isVerified = isVerifiedSource(article.source_uri);
 
   return (
     <Card className="p-0 overflow-hidden group transition-all duration-[250ms]">
@@ -165,10 +167,18 @@ export function MediaArticleCard({ article }: MediaArticleCardProps) {
             {/* Header: Source + Language + Sentiment */}
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-center gap-2 flex-wrap min-w-0">
-                {/* Source */}
-                <span className="text-body-sm font-medium text-foreground truncate">
-                  {article.source_title}
-                </span>
+                {/* Source with verified badge */}
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <span className="text-body-sm font-medium text-foreground truncate">
+                    {article.source_title}
+                  </span>
+                  {isVerified && (
+                    <ShieldCheck 
+                      className="h-4 w-4 text-primary flex-shrink-0" 
+                      aria-label="Verified media source"
+                    />
+                  )}
+                </div>
                 
                 {/* Location */}
                 {(city || country) && (
@@ -389,7 +399,15 @@ export function MediaArticleCard({ article }: MediaArticleCardProps) {
 
           {/* Source Details */}
           <div className="rounded-lg border border-border bg-muted/20 p-4 space-y-2">
-            <p className="text-body-sm font-medium">Source Information</p>
+            <div className="flex items-center justify-between">
+              <p className="text-body-sm font-medium">Source Information</p>
+              {isVerified && (
+                <Badge className="bg-primary/10 text-primary border-primary/20 gap-1.5">
+                  <ShieldCheck className="h-3.5 w-3.5" />
+                  <span>Verified Source</span>
+                </Badge>
+              )}
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-caption text-muted-foreground">
               <div>
                 <span className="font-medium">URI:</span> {article.source_uri}

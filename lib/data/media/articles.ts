@@ -7,6 +7,7 @@
 
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logger } from "@/lib/logger";
+import { VERIFIED_SOURCE_URIS } from "@/lib/data/media/verified-sources";
 import type { MediaArticle } from "@/types";
 
 /**
@@ -30,6 +31,7 @@ export async function getArticlesByZone(
     searchText?: string;
     sortBy?: "published_at" | "social_score" | "sentiment";
     sortAsc?: boolean;
+    verifiedOnly?: boolean;
   } = {}
 ): Promise<MediaArticle[]> {
   try {
@@ -46,6 +48,7 @@ export async function getArticlesByZone(
       searchText,
       sortBy = "published_at",
       sortAsc = false,
+      verifiedOnly = false,
     } = options;
 
     let query = supabase
@@ -71,6 +74,12 @@ export async function getArticlesByZone(
     // Source filter
     if (sourceUri && sourceUri.length > 0) {
       query = query.in("source_uri", sourceUri);
+    }
+
+    // Verified media filter
+    if (verifiedOnly) {
+      const verifiedSourcesArray = Array.from(VERIFIED_SOURCE_URIS);
+      query = query.in("source_uri", verifiedSourcesArray);
     }
 
     // Sentiment filters

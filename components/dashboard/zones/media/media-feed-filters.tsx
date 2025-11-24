@@ -18,10 +18,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, X } from "lucide-react";
+import { Search, X, ShieldCheck } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import {
   Select,
   SelectContent,
@@ -30,6 +31,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { VERIFIED_MEDIA_STATS } from "@/lib/data/media/verified-sources";
 
 export interface MediaFeedFilters {
   search: string;
@@ -40,6 +42,7 @@ export interface MediaFeedFilters {
   minSentiment: number | null;
   maxSentiment: number | null;
   sortBy: "published_at" | "social_score" | "sentiment";
+  verifiedOnly: boolean;
 }
 
 interface MediaFeedFiltersProps {
@@ -107,6 +110,7 @@ export function MediaFeedFiltersComponent({
       minSentiment: null,
       maxSentiment: null,
       sortBy: "published_at",
+      verifiedOnly: false,
     });
   }
 
@@ -117,7 +121,8 @@ export function MediaFeedFiltersComponent({
     filters.languages.length > 0 ||
     filters.sources.length > 0 ||
     filters.minSentiment !== null ||
-    filters.maxSentiment !== null;
+    filters.maxSentiment !== null ||
+    filters.verifiedOnly;
 
   return (
     <div className="space-y-4 rounded-lg border border-border bg-card p-4 transition-colors duration-[150ms]">
@@ -296,6 +301,31 @@ export function MediaFeedFiltersComponent({
               <SelectItem value="-0.2">Negative (-0.2)</SelectItem>
             </SelectContent>
           </Select>
+        </div>
+      </div>
+
+      {/* Verified Media Filter */}
+      <div className="rounded-lg border border-border bg-muted/30 p-4 transition-colors duration-[150ms] hover:bg-muted/40">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex-1 space-y-0.5">
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="h-4 w-4 text-primary flex-shrink-0" />
+              <Label htmlFor="verified-only" className="text-body-sm font-medium cursor-pointer">
+                Verified Media Only
+              </Label>
+            </div>
+            <p className="text-caption text-muted-foreground">
+              Filter to {VERIFIED_MEDIA_STATS.totalSources} trusted sources
+            </p>
+          </div>
+          <Switch
+            id="verified-only"
+            checked={filters.verifiedOnly}
+            onCheckedChange={(checked) => 
+              onFiltersChange({ ...filters, verifiedOnly: checked })
+            }
+            aria-label="Toggle verified media filter"
+          />
         </div>
       </div>
 

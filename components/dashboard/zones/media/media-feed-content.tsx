@@ -56,6 +56,7 @@ export function MediaFeedContent({ zoneId }: MediaFeedContentProps) {
     minSentiment: null,
     maxSentiment: null,
     sortBy: "published_at",
+    verifiedOnly: false,
   });
 
   // Load articles on mount and when filters change
@@ -96,6 +97,7 @@ export function MediaFeedContent({ zoneId }: MediaFeedContentProps) {
       if (filters.sources.length > 0) params.set("sourceUri", filters.sources.join(","));
       if (filters.minSentiment !== null) params.set("minSentiment", filters.minSentiment.toString());
       if (filters.maxSentiment !== null) params.set("maxSentiment", filters.maxSentiment.toString());
+      if (filters.verifiedOnly) params.set("verifiedOnly", "true");
 
       const response = await fetch(`/api/media/feed?${params}`);
       const data = await response.json();
