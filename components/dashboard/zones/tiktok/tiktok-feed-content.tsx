@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { TikTokFeedFilters, type TikTokFeedFilters as Filters } from "./tiktok-feed-filters";
+import { TikTokFeedFilters as TikTokFeedFiltersComponent, type TikTokFeedFilters } from "./tiktok-feed-filters";
 import { TikTokVideoCard } from "./tiktok-video-card";
 import { Loader2 } from "lucide-react";
 
@@ -19,7 +19,7 @@ export function TikTokFeedContent({
   const [videos, setVideos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [filters, setFilters] = useState<Filters>({});
+  const [filters, setFilters] = useState<TikTokFeedFilters>({});
   const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const observerRef = useRef<HTMLDivElement>(null);
@@ -144,14 +144,14 @@ export function TikTokFeedContent({
     };
   }, [hasMore, loading, loadingMore, loadMoreVideos]);
 
-  function handleFiltersChange(newFilters: Filters) {
+  function handleFiltersChange(newFilters: TikTokFeedFilters) {
     setFilters(newFilters);
   }
 
   return (
     <div className="space-y-6">
       {/* Filters */}
-      <TikTokFeedFilters
+      <TikTokFeedFiltersComponent
         zoneId={zoneId}
         filters={filters}
         onFiltersChange={handleFiltersChange}

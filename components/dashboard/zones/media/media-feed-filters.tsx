@@ -1,16 +1,20 @@
-"use client";
-
 /**
- * Media Feed Filters Component
+ * Media Feed Filters Component (Production Ready)
  * 
- * Following the same pattern as Twitter/TikTok filters:
- * - Search bar always visible
- * - Quick controls (Sort, Verified)
- * - Collapsible advanced filters
+ * Clean implementation following Twitter's exact pattern.
+ * No over-engineering, just best practices.
+ * 
+ * Features:
+ * - Autocomplete with debouncing (for suggestions only)
+ * - Search applied ONLY on selection or Enter key
+ * - No page reload during typing
+ * - Consistent with Twitter feed behavior
  */
 
-import { useState, useEffect } from "react";
-import { Search, X, Filter, TrendingUp, ShieldCheck, Calendar } from "lucide-react";
+"use client";
+
+import { useState, useEffect, useCallback } from "react";
+import { Search, X, Filter, TrendingUp, ShieldCheck, Calendar, Globe, Hash } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -27,6 +31,18 @@ import { cn } from "@/lib/utils";
 import { LanguageFilter } from "@/components/dashboard/zones/shared/language-filter";
 import { LocationFilter } from "@/components/dashboard/zones/shared/location-filter";
 
+// Custom debounce function
+function debounce<T extends (...args: any[]) => any>(
+  func: T,
+  delay: number
+): (...args: Parameters<T>) => void {
+  let timeoutId: NodeJS.Timeout;
+  return (...args: Parameters<T>) => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => func(...args), delay);
+  };
+}
+
 export interface MediaFeedFilters {
   search: string;
   startDate: string;
@@ -40,49 +56,120 @@ export interface MediaFeedFilters {
   verifiedOnly: boolean;
 }
 
+interface AutocompleteResult {
+  type: "keyword" | "source";
+  value: string;
+  label: string;
+  metadata?: {
+    website_url?: string;
+    location_country?: string;
+    source_type?: string;
+    article_count?: number;
+  };
+}
+
 interface MediaFeedFiltersProps {
   zoneId: string;
   filters: MediaFeedFilters;
   onFiltersChange: (filters: MediaFeedFilters) => void;
 }
 
-export function MediaFeedFiltersComponent({
+export function MediaFeedFilters({
   zoneId,
   filters,
   onFiltersChange,
 }: MediaFeedFiltersProps) {
-  const [searchInput, setSearchInput] = useState(filters.search);
-  const [sourceInput, setSourceInput] = useState("");
+  const [searchTerm, setSearchTerm] = useState(filters.search || "");
+  const [autocompleteResults, setAutocompleteResults] = useState<AutocompleteResult[]>([]);
+  const [showAutocomplete, setShowAutocomplete] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
 
-  // Debounce search input (500ms)
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (searchInput !== filters.search) {
-        onFiltersChange({ ...filters, search: searchInput });
+  // Debounced autocomplete search (NOT for filter update)
+  const debouncedSearch = useCallback(
+    debounce(async (term: string) => {
+      if (!term || term.length < 2) {
+        setAutocompleteResults([]);
+        return;
       }
-    }, 500);
 
-    return () => clearTimeout(timer);
-  }, [searchInput]);
+      setLoading(true);
+      try {
+        const response = await fetch(
+          `/api/media/autocomplete?zone_id=${zoneId}&q=${encodeURIComponent(term)}`
+        );
+        const data = await response.json();
 
-  // Clear search
-  const handleClearSearch = () => {
-    setSearchInput("");
-    onFiltersChange({ ...filters, search: "" });
+        if (data.success) {
+          setAutocompleteResults(data.results || []);
+        }
+      } catch (error) {
+        console.error("Autocomplete search failed:", error);
+      } finally {
+        setLoading(false);
+      }
+    }, 300),
+    [zoneId]
+  );
+
+  useEffect(() => {
+    debouncedSearch(searchTerm);
+  }, [searchTerm, debouncedSearch]);
+
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+    setShowAutocomplete(true);
   };
 
-  // Add source
-  const handleSourceAdd = (sourceUri: string) => {
-    const trimmed = sourceUri.trim();
-    if (trimmed && !filters.sources.includes(trimmed)) {
-      onFiltersChange({ ...filters, sources: [...filters.sources, trimmed] });
-      setSourceInput("");
+  const handleSelectAutocomplete = (result: AutocompleteResult) => {
+    if (result.type === "source") {
+      // Add source to filter list
+      if (!filters.sources.includes(result.value)) {
+        onFiltersChange({
+          ...filters,
+          sources: [...filters.sources, result.value],
+        });
+      }
+      setSearchTerm("");
+    } else {
+      // Set keyword search
+      setSearchTerm(result.value);
+      onFiltersChange({
+        ...filters,
+        search: result.value,
+      });
     }
+    setShowAutocomplete(false);
   };
 
-  // Remove source
-  const handleSourceRemove = (sourceUri: string) => {
+  const handleSearchSubmit = () => {
+    if (!searchTerm.trim()) {
+      handleClearSearch();
+      return;
+    }
+    onFiltersChange({
+      ...filters,
+      search: searchTerm.trim(),
+    });
+    setShowAutocomplete(false);
+  };
+
+  const handleClearSearch = () => {
+    setSearchTerm("");
+    onFiltersChange({
+      ...filters,
+      search: "",
+    });
+  };
+
+  const handleFilterChange = (key: keyof MediaFeedFilters, value: any) => {
+    onFiltersChange({
+      ...filters,
+      [key]: value,
+    });
+  };
+
+  const handleRemoveSource = (sourceUri: string) => {
     onFiltersChange({
       ...filters,
       sources: filters.sources.filter((s) => s !== sourceUri),
@@ -108,21 +195,77 @@ export function MediaFeedFiltersComponent({
     <Card className="card-padding space-y-4">
       {/* Search Bar */}
       <div className="relative">
-        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          type="text"
-          placeholder="Search articles by title or content..."
-          value={searchInput}
-          onChange={(e) => setSearchInput(e.target.value)}
-          className="h-11 pl-10 pr-10 transition-shadow duration-[150ms] focus-visible:shadow-[var(--shadow-sm)]"
-        />
-        {searchInput && (
-          <button
-            onClick={handleClearSearch}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors duration-[150ms] hover:text-foreground"
-          >
-            <X className="h-4 w-4" />
-          </button>
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            type="text"
+            placeholder="Search articles by title or keywords..."
+            value={searchTerm}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            onFocus={() => setShowAutocomplete(true)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                handleSearchSubmit();
+              }
+              if (e.key === "Escape") {
+                setShowAutocomplete(false);
+              }
+            }}
+            className="pl-10 pr-10 h-11 transition-shadow duration-[150ms] focus-visible:shadow-[var(--shadow-sm)]"
+          />
+          {searchTerm && (
+            <button
+              onClick={handleClearSearch}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors duration-[150ms]"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+
+        {/* Autocomplete Dropdown */}
+        {showAutocomplete && autocompleteResults.length > 0 && (
+          <div className="absolute z-50 w-full mt-2 bg-card border border-border rounded-lg shadow-lg overflow-hidden animate-in fade-in-0 slide-in-from-top-2 duration-200">
+            {autocompleteResults.map((result, index) => (
+              <button
+                key={`${result.type}-${result.value}-${index}`}
+                onClick={() => handleSelectAutocomplete(result)}
+                className="w-full px-4 py-3 flex items-center gap-3 hover:bg-muted/50 transition-colors duration-[150ms] text-left"
+              >
+                {/* Icon */}
+                <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  {result.type === "source" ? (
+                    <Globe className="h-4 w-4 text-primary" />
+                  ) : (
+                    <Hash className="h-4 w-4 text-primary" />
+                  )}
+                </div>
+
+                {/* Content */}
+                <div className="flex-1 min-w-0">
+                  <p className="text-body-sm font-medium truncate">{result.label}</p>
+                  {result.type === "source" && result.metadata?.location_country && (
+                    <p className="text-caption text-muted-foreground truncate">
+                      {result.metadata.location_country}
+                    </p>
+                  )}
+                </div>
+
+                {/* Type Badge */}
+                <Badge variant="secondary" className="text-caption flex-shrink-0">
+                  {result.type === "source" ? "Source" : "Keyword"}
+                </Badge>
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Loading indicator */}
+        {loading && (
+          <div className="absolute right-12 top-1/2 -translate-y-1/2">
+            <div className="h-4 w-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          </div>
         )}
       </div>
 
@@ -131,9 +274,7 @@ export function MediaFeedFiltersComponent({
         {/* Sort By */}
         <Select
           value={filters.sortBy}
-          onValueChange={(value: any) =>
-            onFiltersChange({ ...filters, sortBy: value })
-          }
+          onValueChange={(value: any) => handleFilterChange("sortBy", value)}
         >
           <SelectTrigger className="h-9 w-[180px] transition-shadow duration-[150ms]">
             <TrendingUp className="mr-2 h-4 w-4" />
@@ -148,9 +289,7 @@ export function MediaFeedFiltersComponent({
 
         {/* Verified Media Toggle */}
         <button
-          onClick={() =>
-            onFiltersChange({ ...filters, verifiedOnly: !filters.verifiedOnly })
-          }
+          onClick={() => handleFilterChange("verifiedOnly", !filters.verifiedOnly)}
           className={cn(
             "flex h-9 items-center gap-2 rounded-md border px-3 transition-all duration-[150ms]",
             filters.verifiedOnly
@@ -161,9 +300,7 @@ export function MediaFeedFiltersComponent({
           <div
             className={cn(
               "flex h-4 w-4 items-center justify-center rounded border-2 transition-all duration-[150ms]",
-              filters.verifiedOnly
-                ? "border-primary bg-primary"
-                : "border-muted-foreground"
+              filters.verifiedOnly ? "border-primary bg-primary" : "border-muted-foreground"
             )}
           >
             {filters.verifiedOnly && (
@@ -191,22 +328,58 @@ export function MediaFeedFiltersComponent({
           onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
           className={cn(
             "ml-auto gap-2 transition-all duration-[150ms]",
-            showAdvancedFilters && "bg-muted/50"
+            activeFiltersCount > 0 && "border-primary text-primary"
           )}
         >
           <Filter className="h-4 w-4" />
-          <span>Advanced Filters</span>
+          <span>Filters</span>
           {activeFiltersCount > 0 && (
-            <Badge variant="secondary" className="h-5 px-1.5 text-caption">
+            <Badge variant="default" className="h-5 w-5 rounded-full p-0 flex items-center justify-center">
               {activeFiltersCount}
             </Badge>
           )}
         </Button>
+
+        {/* Active Search Display */}
+        {filters.search && (
+          <Badge variant="secondary" className="gap-2">
+            <Search className="h-3 w-3" />
+            {filters.search}
+            <button
+              onClick={handleClearSearch}
+              className="hover:text-foreground transition-colors duration-[150ms]"
+            >
+              <X className="h-3 w-3" />
+            </button>
+          </Badge>
+        )}
       </div>
+
+      {/* Selected Sources */}
+      {filters.sources.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {filters.sources.map((source) => (
+            <Badge
+              key={source}
+              variant="secondary"
+              className="gap-2 capitalize"
+            >
+              <Globe className="h-3 w-3" />
+              {source}
+              <button
+                onClick={() => handleRemoveSource(source)}
+                className="hover:text-foreground transition-colors duration-[150ms]"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </Badge>
+          ))}
+        </div>
+      )}
 
       {/* Advanced Filters Panel */}
       {showAdvancedFilters && (
-        <div className="animate-in fade-in-0 slide-in-from-top-2 space-y-4 border-t border-border pt-4 duration-200">
+        <div className="space-y-4 border-t border-border pt-4 animate-in slide-in-from-top-2 fade-in-0 duration-200">
           {/* Date Range */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-2">
@@ -218,9 +391,7 @@ export function MediaFeedFiltersComponent({
                 id="date-start"
                 type="date"
                 value={filters.startDate}
-                onChange={(e) =>
-                  onFiltersChange({ ...filters, startDate: e.target.value })
-                }
+                onChange={(e) => handleFilterChange("startDate", e.target.value)}
                 className="h-10 transition-shadow duration-[150ms] focus-visible:shadow-[var(--shadow-sm)]"
               />
             </div>
@@ -232,9 +403,7 @@ export function MediaFeedFiltersComponent({
                 id="date-end"
                 type="date"
                 value={filters.endDate}
-                onChange={(e) =>
-                  onFiltersChange({ ...filters, endDate: e.target.value })
-                }
+                onChange={(e) => handleFilterChange("endDate", e.target.value)}
                 className="h-10 transition-shadow duration-[150ms] focus-visible:shadow-[var(--shadow-sm)]"
               />
             </div>
@@ -246,23 +415,13 @@ export function MediaFeedFiltersComponent({
               zoneId={zoneId}
               source="media"
               selected={filters.languages || []}
-              onChange={(languages) =>
-                onFiltersChange({
-                  ...filters,
-                  languages,
-                })
-              }
+              onChange={(languages) => handleFilterChange("languages", languages)}
             />
             <LocationFilter
               zoneId={zoneId}
               source="media"
               selected={filters.locations || []}
-              onChange={(locations) =>
-                onFiltersChange({
-                  ...filters,
-                  locations,
-                })
-              }
+              onChange={(locations) => handleFilterChange("locations", locations)}
               label="Country (Source)"
             />
           </div>
@@ -276,10 +435,7 @@ export function MediaFeedFiltersComponent({
               <Select
                 value={filters.minSentiment?.toString() || "none"}
                 onValueChange={(v) =>
-                  onFiltersChange({
-                    ...filters,
-                    minSentiment: v === "none" ? null : parseFloat(v),
-                  })
+                  handleFilterChange("minSentiment", v === "none" ? null : parseFloat(v))
                 }
               >
                 <SelectTrigger
@@ -304,10 +460,7 @@ export function MediaFeedFiltersComponent({
               <Select
                 value={filters.maxSentiment?.toString() || "none"}
                 onValueChange={(v) =>
-                  onFiltersChange({
-                    ...filters,
-                    maxSentiment: v === "none" ? null : parseFloat(v),
-                  })
+                  handleFilterChange("maxSentiment", v === "none" ? null : parseFloat(v))
                 }
               >
                 <SelectTrigger
@@ -325,46 +478,6 @@ export function MediaFeedFiltersComponent({
                 </SelectContent>
               </Select>
             </div>
-          </div>
-
-          {/* Source Filter */}
-          <div className="space-y-2">
-            <Label htmlFor="source-filter" className="text-body-sm font-medium">
-              Filter by Source
-            </Label>
-            <div className="flex gap-2">
-              <Input
-                id="source-filter"
-                placeholder="e.g., bbc.com (press Enter)"
-                value={sourceInput}
-                onChange={(e) => setSourceInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    handleSourceAdd(sourceInput);
-                  }
-                }}
-                className="h-10 transition-shadow duration-[150ms] focus-visible:shadow-[var(--shadow-sm)]"
-              />
-            </div>
-            {filters.sources.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {filters.sources.map((source) => (
-                  <Badge
-                    key={source}
-                    variant="secondary"
-                    className="gap-1 transition-colors duration-[150ms]"
-                  >
-                    <span className="max-w-[120px] truncate">{source}</span>
-                    <X
-                      className="h-3 w-3 flex-shrink-0 cursor-pointer transition-transform duration-[150ms] hover:scale-110"
-                      onClick={() => handleSourceRemove(source)}
-                      aria-label={`Remove ${source} filter`}
-                    />
-                  </Badge>
-                ))}
-              </div>
-            )}
           </div>
 
           {/* Clear Filters */}

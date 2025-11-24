@@ -17,7 +17,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { MediaArticleCard } from "./media-article-card";
-import { MediaFeedFiltersComponent, type MediaFeedFilters } from "./media-feed-filters";
+import { MediaFeedFilters as MediaFeedFiltersComponent, type MediaFeedFilters } from "./media-feed-filters";
 import { MediaFeedSkeleton } from "./media-feed-skeleton";
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
