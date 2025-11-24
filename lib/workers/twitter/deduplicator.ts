@@ -185,7 +185,7 @@ async function processAuthorProfile(
     twitter_user_id: author.id.toString(),
     username: username,
     name: author.name,
-    description: author.description || null,
+    description: author.profile_bio?.description || author.description || null,
     location: author.location || null,
     profile_picture_url: author.profilePicture || null,
     cover_picture_url: author.coverPicture || null,
