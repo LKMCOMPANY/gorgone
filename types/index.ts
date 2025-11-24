@@ -549,6 +549,20 @@ export interface TwitterAPIUser {
   profilePicture?: string;
   coverPicture?: string;
   description?: string;
+  profile_bio?: {
+    description?: string;
+    entities?: {
+      url?: {
+        urls?: Array<{
+          url: string;
+          display_url: string;
+          expanded_url: string;
+          indices?: number[];
+        }>;
+      };
+      description?: Record<string, any>;
+    };
+  };
   location?: string;
   followers?: number;
   following?: number;
