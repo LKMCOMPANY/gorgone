@@ -73,6 +73,26 @@ export function TwitterLocationHeatmap({
 
   const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || "";
 
+  // Handle map resize when layout changes (e.g., chatbot opens)
+  useEffect(() => {
+    const map = mapRef.current?.getMap();
+    if (!map) return;
+
+    const resizeObserver = new ResizeObserver(() => {
+      // Resize map when container size changes
+      map.resize();
+    });
+
+    const container = map.getContainer();
+    if (container?.parentElement) {
+      resizeObserver.observe(container.parentElement);
+    }
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, []);
+
   // Continuous rotation using Mapbox official pattern
   const onMapLoad = useRef((event: any) => {
     const map = event.target;
