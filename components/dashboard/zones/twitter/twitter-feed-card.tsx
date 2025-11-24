@@ -448,6 +448,21 @@ export function TwitterFeedCard({
               <TwitterClusterBadge cluster={cluster} />
             </div>
           )}
+          
+          {/* Outlier indicator - tweet was analyzed but doesn't fit any cluster */}
+          {!cluster && clusterConfidence !== null && (
+            <div className="pt-2 border-t border-border/40 animate-in fade-in-0 duration-200">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-dashed border-border bg-muted/20">
+                <div className="w-2.5 h-2.5 rounded-full shrink-0 bg-muted-foreground/40" />
+                <span className="text-caption font-medium text-muted-foreground">
+                  Unique perspective
+                </span>
+                <span className="text-caption text-muted-foreground/60">
+                  Doesn&apos;t fit main clusters
+                </span>
+              </div>
+            </div>
+          )}
 
         </div>
 

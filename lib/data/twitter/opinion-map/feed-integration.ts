@@ -106,8 +106,32 @@ export async function enrichFeedWithClusters(
       projections: projections.length
     });
     
-    // 4. Enrich tweets
-    const enrichedTweets = enrichTweetsWithClusters(tweets, projectionMap, clusterMap);
+    // 4. Enrich tweets (including outliers with cluster_confidence set)
+    const enrichedTweets = tweets.map(tweet => {
+      const projection = projectionMap.get(tweet.id);
+      
+      // No projection = tweet not in opinion map at all
+      if (!projection) {
+        return { ...tweet, cluster: null, cluster_confidence: null };
+      }
+      
+      // Outlier (cluster_id = -1) = analyzed but doesn't fit any cluster
+      if (projection.cluster_id === null || projection.cluster_id === -1) {
+        return { 
+          ...tweet, 
+          cluster: null, 
+          cluster_confidence: 0 // Set to 0 to indicate it was analyzed
+        };
+      }
+      
+      // Has cluster assignment
+      const cluster = clusterMap.get(projection.cluster_id);
+      return {
+        ...tweet,
+        cluster: cluster || null,
+        cluster_confidence: projection.cluster_confidence || null
+      };
+    });
     
     // Log statistics
     const clusteredCount = enrichedTweets.filter(t => t.cluster !== null).length;
