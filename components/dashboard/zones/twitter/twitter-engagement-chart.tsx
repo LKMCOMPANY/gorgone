@@ -90,7 +90,7 @@ export function TwitterEngagementChart({ tweetId }: TwitterEngagementChartProps)
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [data, setData] = useState<EngagementHistoryData | null>(null);
-  const [activeTab, setActiveTab] = useState<"reach" | "engagement">("engagement");
+  const [activeTab, setActiveTab] = useState<"reach" | "engagement">("reach");
 
   // Fetch engagement history (initial load only)
   const fetchEngagementHistory = useCallback(async () => {
