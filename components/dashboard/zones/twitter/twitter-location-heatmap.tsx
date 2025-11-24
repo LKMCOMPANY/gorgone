@@ -73,50 +73,47 @@ export function TwitterLocationHeatmap({
 
   const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || "";
 
-  // Elegant continuous rotation using Mapbox API (best practice)
-  useEffect(() => {
-    const map = mapRef.current?.getMap();
-    if (!map) return;
-
-    let isRotating = true;
-
-    const rotateCamera = () => {
-      if (!isRotating) return;
-      
-      // Rotate to next position (360° in 60 seconds = 6° per second)
-      const secondsPerRevolution = 60;
-      const degreesPerSecond = 360 / secondsPerRevolution;
-      
-      map.easeTo({
-        bearing: (map.getBearing() + degreesPerSecond) % 360,
-        duration: 1000,
-        easing: (t: number) => t, // Linear easing for smooth continuous rotation
-      });
-    };
-
-    // Start rotation after map is loaded
-    const startRotation = () => {
-      rotateCamera();
-      // Continue rotating every second
-      const interval = setInterval(rotateCamera, 1000);
-      return interval;
-    };
-
-    let intervalId: NodeJS.Timeout;
+  // Continuous rotation using Mapbox official pattern
+  const onMapLoad = useRef((event: any) => {
+    const map = event.target;
     
-    if (map.loaded()) {
-      intervalId = startRotation();
-    } else {
-      map.once('load', () => {
-        intervalId = startRotation();
-      });
-    }
-
-    return () => {
-      isRotating = false;
-      if (intervalId) clearInterval(intervalId);
+    // Spin globe: rotate continuously at 6 degrees per second
+    // Complete rotation in 60 seconds
+    const secondsPerRevolution = 60;
+    const maxSpinZoom = 5;
+    const slowSpinZoom = 3;
+    
+    let userInteracting = false;
+    let spinEnabled = true;
+    
+    const spinGlobe = () => {
+      const zoom = map.getZoom();
+      if (spinEnabled && !userInteracting && zoom < maxSpinZoom) {
+        let distancePerSecond = 360 / secondsPerRevolution;
+        if (zoom > slowSpinZoom) {
+          // Slow spinning at higher zooms
+          const zoomDif = (maxSpinZoom - zoom) / (maxSpinZoom - slowSpinZoom);
+          distancePerSecond *= zoomDif;
+        }
+        const center = map.getCenter();
+        center.lng -= distancePerSecond;
+        // Smoothly animate camera
+        map.easeTo({ center, duration: 1000, easing: (n) => n });
+      }
     };
-  }, []);
+    
+    // Pause spinning on user interaction
+    map.on('mousedown', () => { userInteracting = true; });
+    map.on('dragstart', () => { userInteracting = true; });
+    map.on('mouseup', () => { userInteracting = false; });
+    map.on('dragend', () => { userInteracting = false; });
+    map.on('touchstart', () => { userInteracting = true; });
+    map.on('touchend', () => { userInteracting = false; });
+    
+    // Trigger re-render every second
+    spinGlobe();
+    setInterval(spinGlobe, 1000);
+  });
 
   // Theme-aware map style
   const mapStyle = theme === "dark" 
@@ -223,12 +220,14 @@ export function TwitterLocationHeatmap({
       <div className="relative h-[540px] bg-muted/20 flex items-center justify-center">
         <Map
           ref={mapRef}
+          onLoad={onMapLoad.current}
           initialViewState={{
             longitude: 0,
             latitude: 0,
-            zoom: 1.3,
-            pitch: 25,
+            zoom: 1.4,
+            pitch: 0,
             bearing: 0,
+            padding: { top: 60, bottom: 60, left: 240, right: 240 }
           }}
           mapStyle={mapStyle}
           mapboxAccessToken={mapboxToken}
