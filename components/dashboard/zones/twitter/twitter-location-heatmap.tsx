@@ -98,7 +98,7 @@ export function TwitterLocationHeatmap({
         const center = map.getCenter();
         center.lng -= distancePerSecond;
         // Smoothly animate camera
-        map.easeTo({ center, duration: 1000, easing: (n) => n });
+        map.easeTo({ center, duration: 1000, easing: (n: number) => n });
       }
     };
     
