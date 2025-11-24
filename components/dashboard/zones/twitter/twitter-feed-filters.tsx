@@ -14,6 +14,8 @@ import {
 } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { LanguageFilter } from "@/components/dashboard/zones/shared/language-filter";
+import { LocationFilter } from "@/components/dashboard/zones/shared/location-filter";
 
 // Custom debounce function
 function debounce<T extends (...args: any[]) => any>(
@@ -45,6 +47,8 @@ export interface TwitterFeedFilters {
   min_likes?: number;
   min_replies?: number;
   date_range?: "1h" | "3h" | "6h" | "12h" | "24h" | "7d" | "30d" | "all";
+  languages?: string[];
+  locations?: string[];
 }
 
 interface AutocompleteResult {
@@ -511,6 +515,26 @@ export function TwitterFeedFilters({
               </div>
               <span className="text-body-sm font-medium">Active Tracking Only</span>
             </button>
+          </div>
+
+          {/* Language & Location Filters (NEW) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <LanguageFilter
+              zoneId={zoneId}
+              source="twitter"
+              selected={filters.languages || []}
+              onChange={(languages) =>
+                handleFilterChange("languages", languages.length > 0 ? languages : undefined)
+              }
+            />
+            <LocationFilter
+              zoneId={zoneId}
+              source="twitter"
+              selected={filters.locations || []}
+              onChange={(locations) =>
+                handleFilterChange("locations", locations.length > 0 ? locations : undefined)
+              }
+            />
           </div>
 
           {/* Engagement Filters */}

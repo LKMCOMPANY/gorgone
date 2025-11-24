@@ -55,6 +55,9 @@ export function TikTokFeedContent({
     if (filters.min_likes) params.append("min_likes", filters.min_likes.toString());
     if (filters.min_comments) params.append("min_comments", filters.min_comments.toString());
     if (filters.date_range) params.append("date_range", filters.date_range);
+    // Language & Location filters (NEW)
+    if (filters.languages && filters.languages.length > 0) params.append("languages", filters.languages.join(","));
+    if (filters.locations && filters.locations.length > 0) params.append("locations", filters.locations.join("|"));
 
     const response = await fetch(`/api/tiktok/feed?${params.toString()}`);
     return await response.json();

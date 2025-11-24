@@ -15,6 +15,8 @@ import {
 import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { LanguageFilter } from "@/components/dashboard/zones/shared/language-filter";
+import { LocationFilter } from "@/components/dashboard/zones/shared/location-filter";
 
 // Custom debounce function (SAME AS TWITTER)
 function debounce<T extends (...args: any[]) => any>(
@@ -53,6 +55,8 @@ export interface TikTokFeedFilters {
   min_likes?: number;
   min_comments?: number;
   date_range?: "1h" | "3h" | "6h" | "12h" | "24h" | "7d" | "30d" | "all";
+  languages?: string[];
+  locations?: string[];
 }
 
 interface TikTokFeedFiltersProps {
@@ -353,7 +357,36 @@ export function TikTokFeedFilters({
                 </SelectContent>
               </Select>
             </div>
+          </div>
 
+          {/* Language & Location Filters (NEW) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <LanguageFilter
+              zoneId={zoneId}
+              source="tiktok"
+              selected={filters.languages || []}
+              onChange={(languages) =>
+                onFiltersChange({
+                  ...filters,
+                  languages: languages.length > 0 ? languages : undefined,
+                })
+              }
+            />
+            <LocationFilter
+              zoneId={zoneId}
+              source="tiktok"
+              selected={filters.locations || []}
+              onChange={(locations) =>
+                onFiltersChange({
+                  ...filters,
+                  locations: locations.length > 0 ? locations : undefined,
+                })
+              }
+              label="Location (POI)"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {/* Min Views */}
             <div className="space-y-2">
               <Label htmlFor="min-views" className="text-body-sm">

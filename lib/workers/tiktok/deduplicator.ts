@@ -94,6 +94,10 @@ async function processSingleVideo(
     music_title: apiVideo.music?.title || null,
     music_author: apiVideo.music?.authorName || null,
     is_ad: apiVideo.isAd || false,
+    // Language & Location (extracted from raw_data)
+    language: (apiVideo as any).textLanguage || null,
+    poi_name: (apiVideo as any).poi?.name || null,
+    poi_address: (apiVideo as any).poi?.address || null,
     raw_data: apiVideo as any,
   };
 

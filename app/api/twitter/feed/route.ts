@@ -63,6 +63,9 @@ export async function GET(request: NextRequest) {
     const min_likes = searchParams.get("min_likes") ? parseInt(searchParams.get("min_likes")!) : undefined;
     const min_replies = searchParams.get("min_replies") ? parseInt(searchParams.get("min_replies")!) : undefined;
     const date_range = searchParams.get("date_range") || undefined;
+    // Language & Location filters (NEW)
+    const languages = searchParams.get("languages")?.split(",").filter(Boolean) || undefined;
+    const locations = searchParams.get("locations")?.split("|").filter(Boolean) || undefined;
     const limit = parseInt(searchParams.get("limit") || "50");
     const offset = parseInt(searchParams.get("offset") || "0");
 
@@ -112,6 +115,33 @@ export async function GET(request: NextRequest) {
     // Apply filters
     if (has_links) {
       query = query.eq("has_links", true);
+    }
+
+    // Language filter (NEW)
+    if (languages && languages.length > 0) {
+      query = query.in("lang", languages);
+    }
+
+    // Location filter (NEW) - filter by profile location
+    if (locations && locations.length > 0) {
+      const { data: profilesWithLocation } = await supabase
+        .from("twitter_profiles")
+        .select("id")
+        .in("location", locations);
+
+      if (profilesWithLocation && profilesWithLocation.length > 0) {
+        const profileIds = profilesWithLocation.map((p) => p.id);
+        query = query.in("author_profile_id", profileIds);
+      } else {
+        // No profiles with these locations - return empty
+        return NextResponse.json({
+          success: true,
+          tweets: [],
+          count: 0,
+          offset,
+          limit,
+        });
+      }
     }
 
     if (verified_only) {

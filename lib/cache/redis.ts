@@ -2,14 +2,29 @@
  * Configuration and helpers for Upstash Redis
  */
 
+import { Redis } from "@upstash/redis";
+import { env } from "@/lib/env";
 import { CACHE_DURATION } from "@/lib/constants";
+
+/**
+ * Upstash Redis client instance
+ */
+export const redis = new Redis({
+  url: env.redis.url,
+  token: env.redis.token,
+});
 
 /**
  * Get a value from cache
  */
 export async function getCached<T>(key: string): Promise<T | null> {
-  // TODO: Implement with Upstash Redis
-  return null;
+  try {
+    const value = await redis.get(key);
+    return value as T | null;
+  } catch (error) {
+    console.error("Redis get error:", error);
+    return null;
+  }
 }
 
 /**
@@ -20,12 +35,20 @@ export async function setCached<T>(
   value: T,
   duration: number = CACHE_DURATION.MEDIUM
 ): Promise<void> {
-  // TODO: Implement with Upstash Redis
+  try {
+    await redis.setex(key, duration, JSON.stringify(value));
+  } catch (error) {
+    console.error("Redis set error:", error);
+  }
 }
 
 /**
  * Invalidate a cache key
  */
 export async function invalidateCache(key: string): Promise<void> {
-  // TODO: Implement with Upstash Redis
+  try {
+    await redis.del(key);
+  } catch (error) {
+    console.error("Redis delete error:", error);
+  }
 }

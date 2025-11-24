@@ -26,6 +26,7 @@ export async function getArticlesByZone(
     endDate?: Date;
     lang?: string[];
     sourceUri?: string[];
+    sourceLocationCountry?: string[];
     minSentiment?: number;
     maxSentiment?: number;
     searchText?: string;
@@ -43,6 +44,7 @@ export async function getArticlesByZone(
       endDate,
       lang,
       sourceUri,
+      sourceLocationCountry,
       minSentiment,
       maxSentiment,
       searchText,
@@ -74,6 +76,11 @@ export async function getArticlesByZone(
     // Source filter
     if (sourceUri && sourceUri.length > 0) {
       query = query.in("source_uri", sourceUri);
+    }
+
+    // Location filter (NEW) - filter by source country
+    if (sourceLocationCountry && sourceLocationCountry.length > 0) {
+      query = query.in("source_location_country", sourceLocationCountry);
     }
 
     // Verified media filter
@@ -302,11 +309,12 @@ export async function getArticlesCountByZone(
     endDate?: Date;
     lang?: string[];
     sourceUri?: string[];
+    sourceLocationCountry?: string[];
   } = {}
 ): Promise<number> {
   try {
     const supabase = createAdminClient();
-    const { startDate, endDate, lang, sourceUri } = options;
+    const { startDate, endDate, lang, sourceUri, sourceLocationCountry } = options;
 
     let query = supabase
       .from("media_articles")
@@ -324,6 +332,9 @@ export async function getArticlesCountByZone(
     }
     if (sourceUri && sourceUri.length > 0) {
       query = query.in("source_uri", sourceUri);
+    }
+    if (sourceLocationCountry && sourceLocationCountry.length > 0) {
+      query = query.in("source_location_country", sourceLocationCountry);
     }
 
     const { count, error } = await query;

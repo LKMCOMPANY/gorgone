@@ -55,6 +55,9 @@ export async function GET(request: NextRequest) {
     const min_likes = searchParams.get("min_likes") ? parseInt(searchParams.get("min_likes")!) : undefined;
     const min_comments = searchParams.get("min_comments") ? parseInt(searchParams.get("min_comments")!) : undefined;
     const date_range = searchParams.get("date_range") || undefined;
+    // Language & Location filters (NEW)
+    const languages = searchParams.get("languages")?.split(",").filter(Boolean) || undefined;
+    const locations = searchParams.get("locations")?.split("|").filter(Boolean) || undefined;
     const limit = parseInt(searchParams.get("limit") || "50");
     const offset = parseInt(searchParams.get("offset") || "0");
 
@@ -102,6 +105,16 @@ export async function GET(request: NextRequest) {
     }
 
     // Apply filters
+    // Language filter (NEW)
+    if (languages && languages.length > 0) {
+      query = query.in("language", languages);
+    }
+
+    // Location filter (NEW) - filter by POI address
+    if (locations && locations.length > 0) {
+      query = query.in("poi_address", locations);
+    }
+
     if (verified_only) {
       const { data: verifiedProfiles } = await supabase
         .from("tiktok_profiles")

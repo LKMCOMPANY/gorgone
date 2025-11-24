@@ -76,6 +76,11 @@ export async function GET(request: NextRequest) {
       ? searchParams.get("sourceUri")!.split(",")
       : undefined;
 
+    // Location filter (NEW) - source country (use | separator to avoid conflicts with commas in country names)
+    const sourceLocationCountry = searchParams.get("locations")
+      ? searchParams.get("locations")!.split("|")
+      : undefined;
+
     // Sentiment filters
     const minSentiment = searchParams.get("minSentiment")
       ? parseFloat(searchParams.get("minSentiment")!)
@@ -122,6 +127,7 @@ export async function GET(request: NextRequest) {
       endDate,
       lang,
       sourceUri,
+      sourceLocationCountry,
       minSentiment,
       maxSentiment,
       searchText,
@@ -136,6 +142,7 @@ export async function GET(request: NextRequest) {
       endDate,
       lang,
       sourceUri,
+      sourceLocationCountry,
     });
 
     const totalPages = Math.ceil(totalCount / limit);

@@ -638,13 +638,14 @@ Complete real-time Twitter monitoring integration using twitterapi.io webhooks. 
 **Completed Features**:
 - ✅ Feed UI with tweet cards + engagement evolution charts
 - ✅ Advanced filters (date, engagement, verified, tracking status, post type, profile tags)
+- ✅ **Language & Location filters** (21 languages, 210+ locations) - NEW
 - ✅ Real-time engagement tracking with manual refresh
 - ✅ Tracking status display (Active/Paused badges)
 - ✅ Prediction visualization (3-hour forecasts)
-- ✅ **Profiles tab with complete stats + ratios** (NEW)
-- ✅ **Bidirectional navigation Feed ↔ Profiles** (NEW)
-- ✅ **Profile analytics with RPC SQL aggregation** (NEW)
-- ✅ **Government/Business badges + censorship alerts** (NEW)
+- ✅ Profiles tab with complete stats + ratios
+- ✅ Bidirectional navigation Feed ↔ Profiles
+- ✅ Profile analytics with RPC SQL aggregation
+- ✅ Government/Business badges + censorship alerts
 
 **Future Features** (prepared):
 - Thread Mapping with diagram view
@@ -835,7 +836,7 @@ Users are created manually by Super Admins via the Admin API:
 ## Completed Features
 
 1. ✅ **Authentication**: Supabase Auth with role-based access
-2. ✅ **Database Schema**: Profiles, clients, zones, Twitter + TikTok tables with RLS policies
+2. ✅ **Database Schema**: Profiles, clients, zones, Twitter + TikTok + Media tables with RLS policies
 3. ✅ **Client Management**: Complete CRUD for clients and users
 4. ✅ **Zone Management**: Complete CRUD for zones with data sources and dynamic tabs
 5. ✅ **Twitter Integration**: Complete real-time monitoring with webhooks
@@ -850,7 +851,7 @@ Users are created manually by Super Admins via the Admin API:
    - 9 data layer modules + API client + worker
    - 7 UI components (including engagement chart)
    - 7 API routes (including engagement endpoints)
-6. ✅ **TikTok Integration**: Complete polling-based monitoring (NEW)
+6. ✅ **TikTok Integration**: Complete polling-based monitoring
    - Data Source configuration (4 rule types: keyword, hashtag, user, combined)
    - Profile tracking (7 label types - same as Twitter)
    - Polling-based collection (1h, 3h, 6h intervals)
@@ -858,6 +859,7 @@ Users are created manually by Super Admins via the Admin API:
    - Engagement tracking (5 metrics: views, likes, comments, shares, saves)
    - Engagement evolution charts with predictions
    - Feed with autocomplete and advanced filters
+   - **Language & Location filters** (18 languages, POI-based locations)
    - Infinite scroll with Intersection Observer
    - 8 tables (profiles, rules, videos, entities, tags, history, tracking, snapshots)
    - 7 data layer modules + API client + worker + predictions
@@ -867,7 +869,14 @@ Users are created manually by Super Admins via the Admin API:
 8. ✅ **UI Components**: Toast notifications, elegant shimmer skeletons, responsive layouts
 9. ✅ **Data Layer**: Centralized data access with type safety
 10. ✅ **Documentation**: Complete design system, architecture, and integration docs
-11. ✅ **Chat Intelligence (AL-IA)**: AI-powered chatbot for data analysis and reporting
+11. ✅ **Language & Location Filtering**: Multi-source filtering system (NEW)
+   - Dynamic language filters (ISO 639-1 and ISO 639-3 support)
+   - Dynamic location filters (Twitter: free-text, TikTok: POI, Media: normalized countries)
+   - Redis cache with 5-minute TTL for optimal performance
+   - Reusable UI components across all sources
+   - Real-time updates with auto-save
+   - 16 files modified, production-ready architecture
+12. ✅ **Chat Intelligence (AL-IA)**: AI-powered chatbot for data analysis and reporting
    - 14 AI tools covering 100% of monitoring use cases
    - Multi-platform analysis (Twitter + TikTok + Media simultaneously)
    - Interactive visualizations (Line/Bar/Area charts with Recharts)

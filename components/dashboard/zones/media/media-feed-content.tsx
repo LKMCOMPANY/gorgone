@@ -52,6 +52,7 @@ export function MediaFeedContent({ zoneId }: MediaFeedContentProps) {
     startDate: "",
     endDate: "",
     languages: [],
+    locations: [],
     sources: [],
     minSentiment: null,
     maxSentiment: null,
@@ -94,6 +95,7 @@ export function MediaFeedContent({ zoneId }: MediaFeedContentProps) {
       if (filters.startDate) params.set("startDate", new Date(filters.startDate).toISOString());
       if (filters.endDate) params.set("endDate", new Date(filters.endDate).toISOString());
       if (filters.languages.length > 0) params.set("lang", filters.languages.join(","));
+      if (filters.locations.length > 0) params.set("locations", filters.locations.join("|"));
       if (filters.sources.length > 0) params.set("sourceUri", filters.sources.join(","));
       if (filters.minSentiment !== null) params.set("minSentiment", filters.minSentiment.toString());
       if (filters.maxSentiment !== null) params.set("maxSentiment", filters.maxSentiment.toString());
@@ -179,41 +181,44 @@ export function MediaFeedContent({ zoneId }: MediaFeedContentProps) {
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-      {/* Filters Sidebar */}
-      <aside className="lg:col-span-1" aria-label="Article filters">
-        <div className="sticky top-6">
-          <MediaFeedFiltersComponent
-            filters={filters}
-            onFiltersChange={setFilters}
-          />
-        </div>
-      </aside>
+    <div className="space-y-6">
+      {/* Filters */}
+      <MediaFeedFiltersComponent
+        zoneId={zoneId}
+        filters={filters}
+        onFiltersChange={setFilters}
+      />
 
-      {/* Articles Feed */}
-      <main className="lg:col-span-3 space-y-4" aria-label="Articles feed">
-        {/* Header with count and refresh */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <p className="text-body-sm text-muted-foreground">
-            {totalCount.toLocaleString()} article{totalCount !== 1 ? "s" : ""} found
+      {/* Results Count and Refresh */}
+      {!loading && articles.length > 0 && (
+        <div className="flex items-center justify-between text-body-sm text-muted-foreground">
+          <p>
+            Showing {totalCount.toLocaleString()} article{totalCount !== 1 ? "s" : ""}
+            {filters.search && (
+              <span>
+                {" "}for <span className="font-medium text-foreground">&quot;{filters.search}&quot;</span>
+              </span>
+            )}
           </p>
           <Button
-            variant="outline"
+            variant="ghost"
             size="sm"
             onClick={handleRefresh}
             disabled={refreshing}
-            className="gap-2 w-full sm:w-auto"
+            className="gap-2 transition-colors duration-[150ms]"
           >
             <RefreshCw className={cn("h-4 w-4", refreshing && "animate-spin")} />
             <span>Refresh</span>
           </Button>
         </div>
+      )}
 
-        {/* Articles List */}
-        {articles.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-border/60 bg-muted/20 p-12 sm:p-16 text-center">
+      {/* Articles List */}
+      <div className="space-y-4">
+        {articles.length === 0 && !loading ? (
+          <div className="rounded-lg border border-dashed border-border/60 bg-muted/20 p-16 text-center">
             <div className="mx-auto max-w-sm space-y-4">
-              <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
                 <svg
                   className="w-8 h-8 text-primary"
                   fill="none"
@@ -266,13 +271,13 @@ export function MediaFeedContent({ zoneId }: MediaFeedContentProps) {
 
             {/* End of results message */}
             {!hasMore && articles.length > 0 && (
-              <p className="text-center text-caption text-muted-foreground py-8">
+              <p className="py-8 text-center text-caption text-muted-foreground">
                 You've reached the end of the results
               </p>
             )}
           </>
         )}
-      </main>
+      </div>
     </div>
   );
 }
