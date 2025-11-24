@@ -246,16 +246,23 @@ export async function getUniqueLocations(zoneId: string): Promise<string[]> {
   try {
     const supabase = createAdminClient();
 
+    // First, get profile IDs from tweets in this zone
+    const { data: tweets, error: tweetsError } = await supabase
+      .from("twitter_tweets")
+      .select("author_profile_id")
+      .eq("zone_id", zoneId);
+
+    if (tweetsError) throw tweetsError;
+
+    const profileIds = [...new Set(tweets?.map(t => t.author_profile_id).filter(Boolean))];
+    
+    if (profileIds.length === 0) return [];
+
+    // Then get locations for these profiles
     const { data, error } = await supabase
       .from("twitter_profiles")
       .select("location")
-      .in(
-        "id",
-        supabase
-          .from("twitter_tweets")
-          .select("author_profile_id")
-          .eq("zone_id", zoneId)
-      );
+      .in("id", profileIds);
 
     if (error) throw error;
 
