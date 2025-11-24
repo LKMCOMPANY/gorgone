@@ -5,7 +5,7 @@
 
 import { tool } from "ai";
 import { z } from "zod";
-import { getTopProfilesByPeriod } from "@/lib/data/twitter/analytics";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { getTrendingHashtags as getTwitterHashtags } from "@/lib/data/twitter/entities";
 import { getTrendingHashtags as getTikTokHashtags } from "@/lib/data/tiktok/entities";
 import { getArticlesByZone } from "@/lib/data/media/articles";
@@ -46,8 +46,39 @@ Returns aggregated statistics, top content, and trending topics.`,
       // Twitter stats (if enabled)
       if (dataSources.twitter) {
         try {
-          const topProfiles = await getTopProfilesByPeriod(zoneId, period, 5);
+          const supabase = createAdminClient();
           const startDate = getStartDate(period);
+
+          // Get top profiles via direct aggregation
+          const { data: tweets } = await supabase
+            .from("twitter_tweets")
+            .select("author_profile_id, total_engagement, author:twitter_profiles(*)")
+            .eq("zone_id", zoneId)
+            .gte("twitter_created_at", startDate.toISOString())
+            .not("author_profile_id", "is", null);
+
+          // Aggregate by profile
+          const profileStats = new Map<string, any>();
+          if (tweets && tweets.length > 0) {
+            for (const tweet of tweets as any[]) {
+              if (!tweet.author) continue;
+              const profileId = tweet.author_profile_id;
+              const existing = profileStats.get(profileId) || {
+                profile: tweet.author,
+                tweet_count: 0,
+                total_engagement: 0,
+              };
+              existing.tweet_count++;
+              existing.total_engagement += tweet.total_engagement || 0;
+              profileStats.set(profileId, existing);
+            }
+          }
+
+          const topProfiles = Array.from(profileStats.values())
+            .sort((a, b) => b.total_engagement - a.total_engagement)
+            .slice(0, 5);
+
+          // Get trending hashtags
           const trendingHashtags = await getTwitterHashtags(zoneId, {
             startDate,
             endDate: new Date(),
@@ -55,12 +86,12 @@ Returns aggregated statistics, top content, and trending topics.`,
           });
 
           overview.twitter = {
-            top_profiles: topProfiles.map((p) => ({
-              username: p.username,
-              name: p.name,
-              tweet_count: p.tweet_count,
-              total_engagement: p.total_engagement,
-              avg_engagement: p.avg_engagement,
+            top_profiles: topProfiles.map((stats) => ({
+              username: stats.profile.username,
+              name: stats.profile.name,
+              tweet_count: stats.tweet_count,
+              total_engagement: stats.total_engagement,
+              avg_engagement: Math.round(stats.total_engagement / stats.tweet_count),
             })),
             trending_hashtags: trendingHashtags.map((h) => ({
               hashtag: h.hashtag,
