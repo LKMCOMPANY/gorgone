@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logger } from "@/lib/logger";
 import type { TwitterTweetWithProfile, TwitterProfileZoneTag } from "@/types";
+import { enrichFeedWithClusters } from "@/lib/data/twitter/opinion-map";
 
 export const dynamic = "force-dynamic";
 
@@ -320,10 +321,13 @@ export async function GET(request: NextRequest) {
 
     logger.debug(`Fetched ${allTags.length} total tags for ${tweetsWithTags.length} tweets`);
 
+    // Enrich tweets with opinion cluster data
+    const enrichedTweets = await enrichFeedWithClusters(zoneId, tweetsWithTags);
+
     return NextResponse.json({
       success: true,
-      tweets: tweetsWithTags,
-      count: tweetsWithTags.length,
+      tweets: enrichedTweets,
+      count: enrichedTweets.length,
       offset,
       limit,
     });

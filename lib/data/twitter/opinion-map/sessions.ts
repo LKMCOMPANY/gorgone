@@ -3,7 +3,6 @@
  * Handles clustering job lifecycle and progress tracking
  */
 
-import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { logger } from '@/lib/logger'
 import type { TwitterOpinionSession } from '@/types'
@@ -21,7 +20,7 @@ export async function createSession(
   config: TwitterOpinionSession['config'],
   userId: string
 ): Promise<TwitterOpinionSession> {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   const sessionId = `zone_${zoneId}_${new Date().toISOString()}`
 
@@ -65,7 +64,7 @@ export async function createSession(
 export async function getLatestSession(
   zoneId: string
 ): Promise<TwitterOpinionSession | null> {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   const { data, error } = await supabase
     .from('twitter_opinion_sessions')
@@ -203,7 +202,7 @@ export async function markSessionFailed(
  * @returns Success status
  */
 export async function cancelSession(sessionId: string): Promise<boolean> {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   const { error } = await supabase
     .from('twitter_opinion_sessions')

@@ -75,6 +75,25 @@ export {
   sortByRecency,
 } from './mapping'
 
+// Enrichment utilities - attach cluster data to tweets
+export {
+  buildClusterMap,
+  buildProjectionMap,
+  enrichTweetWithCluster,
+  enrichTweetsWithClusters,
+  filterTweetsWithClusters,
+  groupTweetsByCluster,
+  getClusterStatistics,
+} from './enrichment'
+
+// Feed integration - easy integration into existing feeds
+export {
+  enrichFeedWithClusters,
+  hasCompletedOpinionMap,
+  getActiveOpinionMapSession,
+  getOpinionMapStats,
+} from './feed-integration'
+
 // Types (re-export from main types file)
 export type {
   EnrichedTwitterProjection,
@@ -83,4 +102,5 @@ export type {
   OpinionSessionStatus,
   OpinionSessionConfig,
   OpinionEvolutionData,
+  TwitterTweetWithCluster,
 } from '@/types'

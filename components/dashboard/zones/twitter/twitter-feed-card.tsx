@@ -7,10 +7,11 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import type { TwitterTweetWithProfile, TwitterProfileZoneTag } from "@/types";
+import type { TwitterTweetWithProfile, TwitterProfileZoneTag, TwitterOpinionCluster } from "@/types";
 import { formatDistanceToNow } from "date-fns";
 import { TwitterFormattedText } from "./twitter-formatted-text";
 import { TwitterEngagementChart } from "./twitter-engagement-chart";
+import { TwitterClusterBadge } from "./twitter-cluster-badge";
 
 interface TwitterFeedCardProps {
   tweet: TwitterTweetWithProfile;
@@ -18,6 +19,9 @@ interface TwitterFeedCardProps {
   zoneId: string;
   showEngagementChart?: boolean; // Optional: show engagement evolution chart (default: true)
   chartPosition?: 'side' | 'below'; // Optional: position of engagement chart (default: 'side')
+  // Opinion cluster data (optional)
+  cluster?: TwitterOpinionCluster | null;
+  clusterConfidence?: number | null;
 }
 
 interface MediaItem {
@@ -111,7 +115,15 @@ function formatDuration(ms: number): string {
   return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
 }
 
-export function TwitterFeedCard({ tweet, tags = [], zoneId, showEngagementChart = true, chartPosition = 'side' }: TwitterFeedCardProps) {
+export function TwitterFeedCard({ 
+  tweet, 
+  tags = [], 
+  zoneId, 
+  showEngagementChart = true, 
+  chartPosition = 'side',
+  cluster,
+  clusterConfidence
+}: TwitterFeedCardProps) {
   const [imageError, setImageError] = useState(false);
   const [mediaErrors, setMediaErrors] = useState<Set<string>>(new Set());
   
@@ -427,6 +439,13 @@ export function TwitterFeedCard({ tweet, tags = [], zoneId, showEngagementChart 
                   </div>
                 )}
               </div>
+            </div>
+          )}
+
+          {/* Opinion Cluster Badge - Fixed at bottom of content area */}
+          {cluster && (
+            <div className="pt-2 border-t border-border/40 animate-in fade-in-0 duration-200">
+              <TwitterClusterBadge cluster={cluster} />
             </div>
           )}
 

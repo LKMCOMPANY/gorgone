@@ -242,6 +242,12 @@ export interface TwitterTweetWithProfile extends TwitterTweet {
   author: TwitterProfile;
 }
 
+// Tweet with opinion cluster data (for analysis features)
+export interface TwitterTweetWithCluster extends TwitterTweetWithProfile {
+  cluster: TwitterOpinionCluster | null;
+  cluster_confidence: number | null;
+}
+
 // Twitter Engagement History
 export interface TwitterEngagementHistory {
   id: string;
