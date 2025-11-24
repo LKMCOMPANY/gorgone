@@ -237,10 +237,30 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // Filter by post type BEFORE pagination (important for correct results)
+    if (postType) {
+      switch (postType) {
+        case "reply":
+          query = query.eq("is_reply", true);
+          break;
+        case "post":
+          // Posts are: NOT reply AND NOT starting with "RT @"
+          // We'll filter quotes in JS since they're in raw_data
+          query = query.eq("is_reply", false);
+          query = query.not("text", "like", "RT @%");
+          break;
+        case "repost":
+          // Retweets start with "RT @"
+          query = query.like("text", "RT @%");
+          break;
+        // Quote tweets need JS filtering (can't filter JSONB efficiently)
+      }
+    }
+
     // Apply sorting
     query = query.order(sortConfig.column, { ascending: sortConfig.ascending });
 
-    // Apply pagination
+    // Apply pagination (AFTER post type filtering)
     query = query.range(offset, offset + limit - 1);
 
     // Execute query
@@ -253,26 +273,24 @@ export async function GET(request: NextRequest) {
 
     let typedTweets = (tweets as any) as TwitterTweetWithProfile[] || [];
 
-    // Filter by post type (analyze raw_data to determine type)
-    if (postType) {
+    // Final filtering for quotes and posts (remove quotes from "post" filter)
+    if (postType === "post") {
+      // Remove quotes (have quoted_tweet in raw_data)
       typedTweets = typedTweets.filter((tweet) => {
-        const isRetweet = tweet.raw_data?.retweeted_tweet || tweet.text.startsWith("RT @");
-        const isQuote = !!tweet.raw_data?.quoted_tweet;
-        const isReply = tweet.is_reply;
-        const isPost = !isRetweet && !isQuote && !isReply;
-
-        switch (postType) {
-          case "post":
-            return isPost;
-          case "repost":
-            return isRetweet;
-          case "reply":
-            return isReply;
-          case "quote":
-            return isQuote;
-          default:
-            return true;
-        }
+        const hasQuotedTweet = tweet.raw_data?.quoted_tweet && 
+                              tweet.raw_data?.quoted_tweet !== null &&
+                              typeof tweet.raw_data?.quoted_tweet === 'object' &&
+                              Object.keys(tweet.raw_data?.quoted_tweet).length > 0;
+        return !hasQuotedTweet;
+      });
+    } else if (postType === "quote") {
+      // Only quotes
+      typedTweets = typedTweets.filter((tweet) => {
+        const hasQuotedTweet = tweet.raw_data?.quoted_tweet && 
+                              tweet.raw_data?.quoted_tweet !== null &&
+                              typeof tweet.raw_data?.quoted_tweet === 'object' &&
+                              Object.keys(tweet.raw_data?.quoted_tweet).length > 0;
+        return hasQuotedTweet;
       });
     }
 
