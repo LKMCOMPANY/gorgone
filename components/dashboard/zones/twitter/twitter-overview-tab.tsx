@@ -5,8 +5,13 @@ import {
   TwitterStatsCardsGrid, 
   TwitterStatsCardsGridSkeleton 
 } from "./twitter-stats-cards-grid";
+import { 
+  TwitterLocationHeatmap, 
+  TwitterLocationHeatmapSkeleton 
+} from "./twitter-location-heatmap";
 import { getTwitterOverviewStats } from "@/lib/data/twitter/overview-stats";
 import { getHourlyVolumeTrend } from "@/lib/data/twitter/volume-analytics";
+import { getTwitterLocationHeatmap } from "@/lib/data/twitter/location-analytics";
 
 interface TwitterOverviewTabProps {
   zoneId: string;
@@ -28,6 +33,22 @@ function getDateRangeFromPeriod(period: Period): { startDate: Date; endDate: Dat
   const endDate = new Date();
   const startDate = new Date(endDate.getTime() - hours * 60 * 60 * 1000);
   return { startDate, endDate };
+}
+
+/**
+ * Async wrapper for location heatmap (separate Suspense boundary)
+ * This prevents blocking the stats cards while geocoding happens
+ */
+async function TwitterLocationHeatmapAsync({ 
+  zoneId, 
+  period 
+}: { 
+  zoneId: string; 
+  period: Period;
+}) {
+  const { startDate, endDate } = getDateRangeFromPeriod(period);
+  const locationData = await getTwitterLocationHeatmap(zoneId, startDate, endDate);
+  return <TwitterLocationHeatmap data={locationData} />;
 }
 
 /**
@@ -100,6 +121,27 @@ export async function TwitterOverviewTab({ zoneId, period }: TwitterOverviewTabP
           engagedUsersTrend={engagedUsersTrend}
         />
       </Suspense>
+
+      {/* Location Heatmap - 50% width on desktop, full on mobile */}
+      {/* Separate Suspense to avoid blocking stats cards */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        <div className="lg:col-span-1">
+          <Suspense fallback={<TwitterLocationHeatmapSkeleton />}>
+            <TwitterLocationHeatmapAsync zoneId={zoneId} period={period} />
+          </Suspense>
+        </div>
+        
+        {/* Placeholder for future chart (other 50%) */}
+        <div className="lg:col-span-1">
+          <div className="h-full rounded-lg border border-dashed border-border/60 bg-muted/30 flex items-center justify-center p-12">
+            <div className="text-center space-y-2">
+              <p className="text-body-sm text-muted-foreground">
+                Additional analytics coming soon
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -124,6 +166,16 @@ export function TwitterOverviewTabSkeleton() {
 
       {/* Stats Cards Skeleton */}
       <TwitterStatsCardsGridSkeleton />
+
+      {/* Location Heatmap Skeleton */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        <div className="lg:col-span-1">
+          <TwitterLocationHeatmapSkeleton />
+        </div>
+        <div className="lg:col-span-1">
+          <Skeleton className="h-[571px] rounded-lg" />
+        </div>
+      </div>
     </div>
   );
 }

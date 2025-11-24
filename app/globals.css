@@ -428,3 +428,12 @@
     fill: var(--muted-foreground);
   }
 }
+
+/* Mapbox customization */
+.mapboxgl-ctrl-logo {
+  display: none !important;
+}
+
+.mapboxgl-ctrl-bottom-right {
+  display: none !important;
+}
