@@ -100,23 +100,50 @@ export async function POST(request: NextRequest) {
       throw new Error('No sampled tweet IDs in session config')
     }
 
-    const vectorizationResult = await ensureEmbeddings(tweetIds)
-
-    if (!vectorizationResult.success) {
-      throw new Error(`Vectorization failed: ${vectorizationResult.failed} tweets failed to vectorize`)
-    }
-
-    logger.info('[Opinion Map Worker] Vectorization complete', {
-      cache_hit_rate: `${(vectorizationResult.cache_hit_rate * 100).toFixed(1)}%`,
-      newly_vectorized: vectorizationResult.newly_vectorized,
-      failed: vectorizationResult.failed,
-      total_vectorized: vectorizationResult.already_vectorized + vectorizationResult.newly_vectorized
+    logger.info('[Opinion Map Worker] Starting vectorization', {
+      total_tweet_ids: tweetIds.length,
+      session_id: sessionId
     })
 
-    // Check if we have enough vectorized tweets
+    const vectorizationResult = await ensureEmbeddings(tweetIds)
+
+    // Check if we have enough vectorized tweets (graceful degradation)
     const totalVectorized = vectorizationResult.already_vectorized + vectorizationResult.newly_vectorized
+    const vectorizationRate = (totalVectorized / tweetIds.length) * 100
+
+    logger.info('[Opinion Map Worker] ✅ Vectorization complete', {
+      session_id: sessionId,
+      requested: tweetIds.length,
+      already_cached: vectorizationResult.already_vectorized,
+      newly_vectorized: vectorizationResult.newly_vectorized,
+      failed: vectorizationResult.failed,
+      total_vectorized: totalVectorized,
+      cache_hit_rate: `${(vectorizationResult.cache_hit_rate * 100).toFixed(1)}%`,
+      vectorization_rate: `${vectorizationRate.toFixed(1)}%`
+    })
+
+    // Require at least 50% successful vectorization (best practice: graceful degradation)
     if (totalVectorized < tweetIds.length * 0.5) {
-      throw new Error(`Insufficient vectorized tweets: only ${totalVectorized}/${tweetIds.length} (${((totalVectorized/tweetIds.length)*100).toFixed(1)}%) have embeddings`)
+      throw new Error(
+        `Insufficient vectorized tweets: only ${totalVectorized}/${tweetIds.length} (${vectorizationRate.toFixed(1)}%) have embeddings. ` +
+        `Minimum required: 50%. ${vectorizationResult.failed} tweets failed to vectorize.`
+      )
+    }
+
+    // Log warning if we have partial failures but enough data to continue
+    if (vectorizationResult.failed > 0) {
+      logger.warn('[Opinion Map Worker] ⚠️ Partial vectorization failure - continuing with available data', {
+        session_id: sessionId,
+        failed_count: vectorizationResult.failed,
+        success_rate: `${vectorizationRate.toFixed(1)}%`,
+        continuing_with: totalVectorized,
+        min_required: Math.floor(tweetIds.length * 0.5)
+      })
+    } else {
+      logger.info('[Opinion Map Worker] ✅ 100% vectorization success', {
+        session_id: sessionId,
+        total: totalVectorized
+      })
     }
 
     await updateSessionProgress(
@@ -204,11 +231,25 @@ export async function POST(request: NextRequest) {
       throw new Error('No vectorized tweets found')
     }
 
-    logger.info('[Opinion Map Worker] All embeddings fetched successfully', {
+    logger.info('[Opinion Map Worker] ✅ All embeddings fetched successfully', {
+      session_id: sessionId,
       total_fetched: tweets.length,
       requested: tweetIds.length,
-      fetch_rate: `${((tweets.length / tweetIds.length) * 100).toFixed(1)}%`
+      fetch_rate: `${((tweets.length / tweetIds.length) * 100).toFixed(1)}%`,
+      embedding_dimension: embeddings[0]?.length || 'unknown'
     })
+
+    // Critical check: ensure we have enough data to proceed
+    if (tweets.length === 0) {
+      throw new Error('No tweets with embeddings found - cannot proceed')
+    }
+
+    if (tweets.length < 10) {
+      logger.warn('[Opinion Map Worker] ⚠️ Very low tweet count - results may not be meaningful', {
+        session_id: sessionId,
+        tweet_count: tweets.length
+      })
+    }
 
     // Parse embeddings (Supabase returns vectors as strings)
     const embeddings = tweets.map(t => {
@@ -307,11 +348,21 @@ export async function POST(request: NextRequest) {
       is_outlier: clusteringResult.labels[i] === -1
     }))
 
+    logger.info('[Opinion Map Worker] Saving projections to database', {
+      session_id: sessionId,
+      projection_count: projectionsToSave.length
+    })
+
     const projectionsSaved = await saveProjections(projectionsToSave)
 
     if (!projectionsSaved) {
-      throw new Error('Failed to save projections')
+      throw new Error('Failed to save projections to database')
     }
+
+    logger.info('[Opinion Map Worker] ✅ Projections saved successfully', {
+      session_id: sessionId,
+      saved_count: projectionsToSave.length
+    })
 
     await updateSessionProgress(sessionId, 'labeling', 75, 'Projections saved')
 
