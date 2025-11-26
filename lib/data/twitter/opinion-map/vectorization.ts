@@ -141,41 +141,79 @@ export async function ensureEmbeddings(
   // Get tweets that need vectorization (in batches to avoid IN clause limit)
   const BATCH_SIZE = 500
   const tweetsNeedingEmbedding: any[] = []
-  let totalTweetsFound = 0
+  const tweetsWithEmbeddings: any[] = []
+
+  logger.info('[Vectorization] Fetching tweets from database in batches', {
+    total_ids: tweetIds.length,
+    batch_size: BATCH_SIZE,
+    total_batches: Math.ceil(tweetIds.length / BATCH_SIZE)
+  })
 
   for (let i = 0; i < tweetIds.length; i += BATCH_SIZE) {
     const batchIds = tweetIds.slice(i, i + BATCH_SIZE)
     
-    // First: check how many tweets exist at all (with or without embedding)
-    const { count: existingCount } = await supabase
-      .from('twitter_tweets')
-      .select('*', { count: 'exact', head: true })
-      .in('id', batchIds)
-    
-    totalTweetsFound += existingCount || 0
-    
-    // Then: fetch those that need embedding
-    const { data: batchTweets } = await supabase
+    // Fetch ALL tweets in this batch (with or without embedding)
+    const { data: allBatchTweets, error } = await supabase
       .from('twitter_tweets')
       .select(`
         id,
         tweet_id,
         text,
-        raw_data
+        raw_data,
+        embedding
       `)
       .in('id', batchIds)
-      .is('embedding', null)
 
-    if (batchTweets && batchTweets.length > 0) {
-      tweetsNeedingEmbedding.push(...batchTweets)
+    if (error) {
+      logger.error('[Vectorization] Failed to fetch batch', {
+        batch_index: Math.floor(i / BATCH_SIZE),
+        error: error.message
+      })
+      continue
     }
+
+    if (!allBatchTweets || allBatchTweets.length === 0) {
+      logger.warn('[Vectorization] Batch found no tweets', {
+        batch_index: Math.floor(i / BATCH_SIZE),
+        requested: batchIds.length
+      })
+      continue
+    }
+
+    // Separate tweets with and without embeddings
+    for (const tweet of allBatchTweets) {
+      if (tweet.embedding) {
+        tweetsWithEmbeddings.push(tweet)
+      } else {
+        tweetsNeedingEmbedding.push(tweet)
+      }
+    }
+
+    logger.debug('[Vectorization] Batch processed', {
+      batch_index: Math.floor(i / BATCH_SIZE) + 1,
+      found: allBatchTweets.length,
+      with_embedding: allBatchTweets.filter((t: any) => t.embedding).length,
+      without_embedding: allBatchTweets.filter((t: any) => !t.embedding).length
+    })
   }
+
+  const totalTweetsFound = tweetsWithEmbeddings.length + tweetsNeedingEmbedding.length
+  const alreadyVectorized = tweetsWithEmbeddings.length
+
+  logger.info('[Vectorization] Database fetch complete', {
+    total_requested: tweetIds.length,
+    total_found: totalTweetsFound,
+    find_rate: `${((totalTweetsFound / tweetIds.length) * 100).toFixed(1)}%`,
+    already_vectorized: alreadyVectorized,
+    needs_vectorization: tweetsNeedingEmbedding.length
+  })
 
   // Critical check: ensure we actually found the tweets in the DB
   if (totalTweetsFound < tweetIds.length * 0.5) {
     logger.error('[Vectorization] ❌ Most sampled tweets not found in database', {
       requested: tweetIds.length,
       found: totalTweetsFound,
+      missing: tweetIds.length - totalTweetsFound,
       find_rate: `${((totalTweetsFound / tweetIds.length) * 100).toFixed(1)}%`,
       first_ids: tweetIds.slice(0, 5)
     })
@@ -184,8 +222,6 @@ export async function ensureEmbeddings(
       `This indicates an issue with sampling or database state.`
     )
   }
-
-  const alreadyVectorized = totalTweetsFound - tweetsNeedingEmbedding.length
 
   if (!tweetsNeedingEmbedding || tweetsNeedingEmbedding.length === 0) {
     logger.info('[Vectorization] ✅ All found tweets already vectorized', {
