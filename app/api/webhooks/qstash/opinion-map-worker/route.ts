@@ -100,6 +100,13 @@ export async function POST(request: NextRequest) {
       throw new Error('No sampled tweet IDs in session config')
     }
 
+    logger.info('[Opinion Map Worker] Tweet IDs loaded from session', {
+      session_id: sessionId,
+      total_ids: tweetIds.length,
+      first_id: tweetIds[0],
+      id_type: typeof tweetIds[0]
+    })
+
     logger.info('[Opinion Map Worker] Starting vectorization', {
       total_tweet_ids: tweetIds.length,
       session_id: sessionId
@@ -190,21 +197,34 @@ export async function POST(request: NextRequest) {
         .not('embedding', 'is', null)
 
       if (error) {
-        logger.error('[Opinion Map Worker] Failed to fetch batch', {
+        logger.error('[Opinion Map Worker] ❌ Failed to fetch batch', {
+          session_id: sessionId,
           batch_index: Math.floor(i / FETCH_BATCH_SIZE),
           batch_size: batchIds.length,
+          first_id: batchIds[0],
           error: error.message
         })
         throw new Error(`Failed to fetch embeddings batch: ${error.message}`)
       }
 
       if (!batchTweets || batchTweets.length === 0) {
-        logger.warn('[Opinion Map Worker] Batch returned no tweets', {
+        logger.warn('[Opinion Map Worker] ⚠️ Batch returned no tweets with embeddings', {
+          session_id: sessionId,
           batch_index: Math.floor(i / FETCH_BATCH_SIZE),
-          batch_size: batchIds.length
+          batch_size: batchIds.length,
+          sample_ids: batchIds.slice(0, 3), // Log first 3 IDs for debugging
+          fetched: 0
         })
         continue
       }
+
+      logger.debug('[Opinion Map Worker] Batch fetch successful', {
+        session_id: sessionId,
+        batch_index: Math.floor(i / FETCH_BATCH_SIZE) + 1,
+        requested: batchIds.length,
+        fetched: batchTweets.length,
+        fetch_rate: `${((batchTweets.length / batchIds.length) * 100).toFixed(1)}%`
+      })
 
       // Second: fetch raw_data separately for this batch (only if needed for enrichment)
       // Note: raw_data is only used for enrichTweetContent during vectorization

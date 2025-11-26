@@ -141,10 +141,20 @@ export async function ensureEmbeddings(
   // Get tweets that need vectorization (in batches to avoid IN clause limit)
   const BATCH_SIZE = 500
   const tweetsNeedingEmbedding: any[] = []
+  let totalTweetsFound = 0
 
   for (let i = 0; i < tweetIds.length; i += BATCH_SIZE) {
     const batchIds = tweetIds.slice(i, i + BATCH_SIZE)
     
+    // First: check how many tweets exist at all (with or without embedding)
+    const { count: existingCount } = await supabase
+      .from('twitter_tweets')
+      .select('*', { count: 'exact', head: true })
+      .in('id', batchIds)
+    
+    totalTweetsFound += existingCount || 0
+    
+    // Then: fetch those that need embedding
     const { data: batchTweets } = await supabase
       .from('twitter_tweets')
       .select(`
@@ -161,11 +171,28 @@ export async function ensureEmbeddings(
     }
   }
 
-  const alreadyVectorized = tweetIds.length - tweetsNeedingEmbedding.length
+  // Critical check: ensure we actually found the tweets in the DB
+  if (totalTweetsFound < tweetIds.length * 0.5) {
+    logger.error('[Vectorization] ❌ Most sampled tweets not found in database', {
+      requested: tweetIds.length,
+      found: totalTweetsFound,
+      find_rate: `${((totalTweetsFound / tweetIds.length) * 100).toFixed(1)}%`,
+      first_ids: tweetIds.slice(0, 5)
+    })
+    throw new Error(
+      `Only ${totalTweetsFound}/${tweetIds.length} sampled tweets found in database. ` +
+      `This indicates an issue with sampling or database state.`
+    )
+  }
+
+  const alreadyVectorized = totalTweetsFound - tweetsNeedingEmbedding.length
 
   if (!tweetsNeedingEmbedding || tweetsNeedingEmbedding.length === 0) {
-    logger.info('[Vectorization] All tweets already vectorized (100% cache hit)', {
-      total: tweetIds.length
+    logger.info('[Vectorization] ✅ All found tweets already vectorized', {
+      total_requested: tweetIds.length,
+      found_in_db: totalTweetsFound,
+      already_vectorized: alreadyVectorized,
+      cache_hit_rate: `${((alreadyVectorized / totalTweetsFound) * 100).toFixed(1)}%`
     })
 
       return {
@@ -173,16 +200,17 @@ export async function ensureEmbeddings(
       total_tweets: tweetIds.length,
       already_vectorized: alreadyVectorized,
       newly_vectorized: 0,
-        failed: 0,
-      cache_hit_rate: 1.0
+        failed: totalTweetsFound < tweetIds.length ? tweetIds.length - totalTweetsFound : 0,
+      cache_hit_rate: totalTweetsFound > 0 ? alreadyVectorized / totalTweetsFound : 0
     }
   }
 
   logger.info('[Vectorization] Starting batch vectorization', {
-    total: tweetIds.length,
-    cached: alreadyVectorized,
+    total_requested: tweetIds.length,
+    found_in_db: totalTweetsFound,
+    already_vectorized: alreadyVectorized,
     to_vectorize: tweetsNeedingEmbedding.length,
-    cache_hit_rate: `${((alreadyVectorized / tweetIds.length) * 100).toFixed(1)}%`
+    cache_hit_rate: `${((alreadyVectorized / totalTweetsFound) * 100).toFixed(1)}%`
   })
 
   // Batch vectorize
@@ -264,23 +292,27 @@ export async function ensureEmbeddings(
       }
     }
 
-  const cacheHitRate = alreadyVectorized / tweetIds.length
+  const totalVectorized = alreadyVectorized + newlyVectorized
+  const notFound = tweetIds.length - totalTweetsFound
+  const cacheHitRate = totalVectorized > 0 ? alreadyVectorized / totalVectorized : 0
 
-  logger.info('[Vectorization] Vectorization complete', {
-    total: tweetIds.length,
+  logger.info('[Vectorization] ✅ Vectorization complete', {
+    total_requested: tweetIds.length,
+    found_in_db: totalTweetsFound,
     already_vectorized: alreadyVectorized,
     newly_vectorized: newlyVectorized,
-    failed,
+    total_vectorized: totalVectorized,
+    failed: failed + notFound,
     cache_hit_rate: `${(cacheHitRate * 100).toFixed(1)}%`
   })
 
     return {
-    success: failed === 0,
+    success: totalVectorized >= tweetIds.length * 0.5, // At least 50% must be vectorized
     total_tweets: tweetIds.length,
     already_vectorized: alreadyVectorized,
     newly_vectorized: newlyVectorized,
-    failed,
-    cache_hit_rate: cacheHitRate
+    failed: failed + notFound, // Include tweets not found in DB as failures
+    cache_hit_rate: totalVectorized > 0 ? alreadyVectorized / totalVectorized : 0
   }
 }
 
