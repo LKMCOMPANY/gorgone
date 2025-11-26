@@ -88,8 +88,8 @@ export async function getEmbeddingStats(
 }> {
   const supabase = createAdminClient()
 
-  // Count cached embeddings in batches to avoid PostgreSQL IN clause limit
-  const BATCH_SIZE = 500
+  // Count cached embeddings in batches to avoid PostgREST IN clause limit (~100 max)
+  const BATCH_SIZE = 100
   let cachedCount = 0
 
   for (let i = 0; i < tweetIds.length; i += BATCH_SIZE) {
@@ -139,14 +139,16 @@ export async function ensureEmbeddings(
   })
 
   // Get tweets that need vectorization (in batches to avoid IN clause limit)
-  const BATCH_SIZE = 500
+  // PostgREST (Supabase API) has a limit on IN clause size - keep it under 100 for safety
+  const BATCH_SIZE = 100
   const tweetsNeedingEmbedding: any[] = []
   const tweetsWithEmbeddings: any[] = []
 
   logger.info('[Vectorization] Fetching tweets from database in batches', {
     total_ids: tweetIds.length,
     batch_size: BATCH_SIZE,
-    total_batches: Math.ceil(tweetIds.length / BATCH_SIZE)
+    total_batches: Math.ceil(tweetIds.length / BATCH_SIZE),
+    note: 'PostgREST IN clause limit enforced'
   })
 
   for (let i = 0; i < tweetIds.length; i += BATCH_SIZE) {

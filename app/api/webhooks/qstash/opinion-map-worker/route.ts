@@ -175,15 +175,16 @@ export async function POST(request: NextRequest) {
 
     const operationalContext = zone?.operational_context || null
 
-    // Fetch tweets in batches to avoid PostgreSQL IN clause limit and response size limit
-    // Smaller batch size (200) to prevent PostgREST payload size errors with large embeddings
-    const FETCH_BATCH_SIZE = 200
+    // Fetch tweets in batches to avoid PostgREST IN clause limit (~100 max) and payload size limits
+    // Keep batch size small to prevent both IN clause errors and large embedding payload issues
+    const FETCH_BATCH_SIZE = 100
     const tweets: any[] = []
 
     logger.info('[Opinion Map Worker] Fetching embeddings in batches', {
       total_tweet_ids: tweetIds.length,
       batch_size: FETCH_BATCH_SIZE,
-      total_batches: Math.ceil(tweetIds.length / FETCH_BATCH_SIZE)
+      total_batches: Math.ceil(tweetIds.length / FETCH_BATCH_SIZE),
+      note: 'PostgREST IN clause and payload limits enforced'
     })
 
     for (let i = 0; i < tweetIds.length; i += FETCH_BATCH_SIZE) {
