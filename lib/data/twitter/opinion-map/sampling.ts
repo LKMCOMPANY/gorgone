@@ -3,7 +3,7 @@
  * Ensures temporal balance across time periods
  */
 
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { logger } from '@/lib/logger'
 import { differenceInDays, addDays } from 'date-fns'
 
@@ -41,7 +41,7 @@ export interface SamplingResult {
 export async function sampleTweetsStratified(
   config: SamplingConfig
 ): Promise<SamplingResult> {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { zoneId, startDate, endDate, targetSize } = config
 
   logger.info('[Opinion Map Sampling] 🎯 Starting stratified sampling', {
