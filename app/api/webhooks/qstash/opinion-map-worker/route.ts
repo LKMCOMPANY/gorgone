@@ -231,19 +231,7 @@ export async function POST(request: NextRequest) {
       throw new Error('No vectorized tweets found')
     }
 
-    logger.info('[Opinion Map Worker] ✅ All embeddings fetched successfully', {
-      session_id: sessionId,
-      total_fetched: tweets.length,
-      requested: tweetIds.length,
-      fetch_rate: `${((tweets.length / tweetIds.length) * 100).toFixed(1)}%`,
-      embedding_dimension: embeddings[0]?.length || 'unknown'
-    })
-
     // Critical check: ensure we have enough data to proceed
-    if (tweets.length === 0) {
-      throw new Error('No tweets with embeddings found - cannot proceed')
-    }
-
     if (tweets.length < 10) {
       logger.warn('[Opinion Map Worker] ⚠️ Very low tweet count - results may not be meaningful', {
         session_id: sessionId,
@@ -277,9 +265,13 @@ export async function POST(request: NextRequest) {
       throw new Error(`Unknown embedding format for tweet ${t.tweet_id}`)
     })
 
-    logger.info('[Opinion Map Worker] Embeddings fetched', {
-      count: embeddings.length,
-      dimensions: embeddings[0]?.length
+    logger.info('[Opinion Map Worker] ✅ All embeddings fetched and parsed successfully', {
+      session_id: sessionId,
+      total_fetched: tweets.length,
+      requested: tweetIds.length,
+      fetch_rate: `${((tweets.length / tweetIds.length) * 100).toFixed(1)}%`,
+      embeddings_count: embeddings.length,
+      embedding_dimension: embeddings[0]?.length || 'unknown'
     })
 
     // ==================================================================
