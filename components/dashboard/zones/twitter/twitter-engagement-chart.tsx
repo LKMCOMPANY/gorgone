@@ -186,7 +186,7 @@ export function TwitterEngagementChart({ tweetId }: TwitterEngagementChartProps)
     );
   }
 
-  if (!data || !data.initial_metrics) {
+  if (!data || (!data.initial_metrics && data.snapshots.length === 0)) {
     return (
       <div className="flex items-center justify-center py-12">
         <div className="text-center space-y-3 max-w-sm">
