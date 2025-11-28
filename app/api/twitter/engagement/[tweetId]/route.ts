@@ -94,18 +94,6 @@ export async function GET(
       );
     }
 
-    // Create initial data point (tweet at collection time)
-    const initialMetrics: EngagementDataPoint = {
-      timestamp: tweet.collected_at,
-      retweet_count: tweet.retweet_count,
-      reply_count: tweet.reply_count,
-      like_count: tweet.like_count,
-      quote_count: tweet.quote_count,
-      view_count: tweet.view_count,
-      total_engagement: tweet.total_engagement,
-      type: "initial",
-    };
-
     // Fetch all engagement snapshots
     const { data: snapshots, error: snapshotsError } = await supabase
       .from("twitter_engagement_history")
@@ -128,6 +116,32 @@ export async function GET(
       total_engagement: snapshot.total_engagement,
       type: "snapshot" as const,
     }));
+
+    // Create initial data point logic:
+    // If we have snapshots, we don't want to use the CURRENT tweet metrics as the "initial" point
+    // because tweet.* metrics are updated to current values, while collected_at is in the past.
+    // This causes a graph artifact where it starts high (current value at old date), drops to first snapshot, then rises.
+    
+    let initialMetrics: EngagementDataPoint | null = null;
+
+    if (snapshotDataPoints.length === 0) {
+      // Only use current metrics as initial point if we have NO history yet
+      initialMetrics = {
+        timestamp: tweet.collected_at,
+        retweet_count: tweet.retweet_count,
+        reply_count: tweet.reply_count,
+        like_count: tweet.like_count,
+        quote_count: tweet.quote_count,
+        view_count: tweet.view_count,
+        total_engagement: tweet.total_engagement,
+        type: "initial",
+      };
+    } else {
+        // If we have snapshots, check if the first snapshot is significantly later than collected_at
+        // If so, we might want an initial point at 0 or at the first snapshot value
+        // For now, let's just omit the artificial initial point to avoid the "drop" artifact
+        initialMetrics = null;
+    }
 
     // Fetch tracking status
     const { data: trackingStatus } = await supabase
