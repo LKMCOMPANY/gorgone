@@ -205,7 +205,9 @@ export function TwitterEngagementChart({ tweetId }: TwitterEngagementChartProps)
   }
 
   // Prepare chart data
-  const allDataPoints = [data.initial_metrics, ...data.snapshots];
+  const allDataPoints = [data.initial_metrics, ...data.snapshots].filter(
+    (point): point is EngagementDataPoint => point !== null
+  );
 
   // Add prediction points if available
   const predictionPoints: EngagementDataPoint[] = [];
