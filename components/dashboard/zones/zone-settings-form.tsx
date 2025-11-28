@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Trash2 } from "lucide-react";
+import { Trash2, Bot } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -36,6 +36,9 @@ export function ZoneSettingsForm({ zone, userRole }: ZoneSettingsFormProps) {
   const [isActive, setIsActive] = useState(zone.is_active);
   const [dataSources, setDataSources] = useState<ZoneDataSources>(
     zone.data_sources
+  );
+  const [attilaEnabled, setAttilaEnabled] = useState(
+    (zone.settings as any)?.attila_enabled === true
   );
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -133,6 +136,35 @@ export function ZoneSettingsForm({ zone, userRole }: ZoneSettingsFormProps) {
       console.error("Error updating data sources:", error);
       toast.error("An unexpected error occurred");
       setDataSources(dataSources);
+    }
+  };
+
+  const handleToggleAttila = async (checked: boolean) => {
+    if (!canEdit) return;
+
+    setAttilaEnabled(checked);
+
+    const newSettings = {
+      ...zone.settings,
+      attila_enabled: checked,
+    };
+
+    try {
+      const result = await updateZoneAction(zone.id, {
+        settings: newSettings,
+      });
+
+      if (result.success) {
+        toast.success(checked ? "Attila enabled" : "Attila disabled");
+        router.refresh();
+      } else {
+        toast.error(result.error || "Failed to update settings");
+        setAttilaEnabled(!checked);
+      }
+    } catch (error) {
+      console.error("Error updating Attila settings:", error);
+      toast.error("An unexpected error occurred");
+      setAttilaEnabled(!checked);
     }
   };
 
@@ -362,6 +394,46 @@ export function ZoneSettingsForm({ zone, userRole }: ZoneSettingsFormProps) {
                 onCheckedChange={(checked) =>
                   handleToggleDataSource("media", checked)
                 }
+                disabled={!canEdit}
+              />
+            </div>
+          </div>
+        </Card>
+
+        {/* Attila Automation */}
+        <Card className="card-padding space-y-6 border-border">
+          <div className="space-y-2">
+            <h3 className="text-heading-3 flex items-center gap-2">
+              <Bot className="h-5 w-5 text-primary" />
+              Attila Automation
+            </h3>
+            <p className="text-body text-muted-foreground">
+              Enable AI-powered avatar response systems for this zone. This requires Manager privileges to access.
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            <div className="card-interactive flex items-center justify-between rounded-lg border border-border bg-muted/20 p-4 transition-all duration-[200ms] hover:bg-muted/40">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-primary/10">
+                  <Bot className="h-5 w-5 text-primary" />
+                </div>
+                <div className="space-y-0.5">
+                  <Label
+                    htmlFor="attila-toggle"
+                    className="text-body-sm font-medium cursor-pointer"
+                  >
+                    Enable Attila
+                  </Label>
+                  <p className="text-body-sm text-muted-foreground">
+                    Allow creation of Sniper, Sentinel, and Influence operations
+                  </p>
+                </div>
+              </div>
+              <Switch
+                id="attila-toggle"
+                checked={attilaEnabled}
+                onCheckedChange={handleToggleAttila}
                 disabled={!canEdit}
               />
             </div>
