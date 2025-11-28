@@ -18,7 +18,8 @@ import {
   Crosshair, 
   ShieldAlert, 
   Users, 
-  Plus 
+  Plus,
+  LucideIcon
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createOperationAction } from "@/app/actions/attila";
@@ -33,7 +34,7 @@ const OPERATION_TYPES: {
   id: AttilaOperationType;
   title: string;
   description: string;
-  icon: React.ElementType;
+  icon: LucideIcon;
 }[] = [
   {
     id: "sniper",
