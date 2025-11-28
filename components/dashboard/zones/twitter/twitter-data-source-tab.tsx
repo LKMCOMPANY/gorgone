@@ -27,7 +27,8 @@ export function TwitterDataSourceTab({ zoneId }: TwitterDataSourceTabProps) {
     try {
       setLoading(true);
       
-      const response = await fetch(`/api/twitter/rules?zone_id=${zoneId}`);
+      // Include inactive rules so users can see paused rules
+      const response = await fetch(`/api/twitter/rules?zone_id=${zoneId}&include_inactive=true`);
       const data = await response.json();
       
       if (data.success) {

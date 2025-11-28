@@ -107,7 +107,12 @@ export function TwitterRulesList({
         {/* Header with count and action */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <p className="text-body-sm text-muted-foreground">
-            {rules.length} active rule{rules.length !== 1 ? 's' : ''}
+            {rules.length} rule{rules.length !== 1 ? 's' : ''} 
+            {rules.length > 0 && (
+              <span className="ml-1">
+                ({rules.filter(r => r.is_active).length} active, {rules.filter(r => !r.is_active).length} paused)
+              </span>
+            )}
           </p>
           <Button onClick={onCreateNew} size="sm" className="gap-2 w-full sm:w-auto">
             <Plus className="h-4 w-4" />
