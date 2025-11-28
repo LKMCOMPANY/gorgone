@@ -115,20 +115,45 @@ export async function POST(request: NextRequest) {
     });
 
     // =====================================================
-    // SCHEDULE ENGAGEMENT TRACKING (if new tweets created)
+    // SCHEDULE BACKGROUND JOBS (if new tweets created)
     // =====================================================
 
     if (result.created > 0 && result.createdTweetIds.length > 0) {
-      try {
-        // Get zone ID from rule
-        const rule = ruleId ? await getRuleByApiId(ruleId) : null;
-        const zoneId = rule?.zone_id;
+      // Get zone ID from rule
+      const rule = ruleId ? await getRuleByApiId(ruleId) : null;
+      const zoneId = rule?.zone_id;
 
-        if (zoneId) {
+      if (zoneId) {
+        // -----------------------------------------------
+        // 1. Schedule Tweet Vectorization (immediate)
+        // -----------------------------------------------
+        try {
+          await qstash.publishJSON({
+            url: `${env.appUrl}/api/webhooks/qstash/vectorize-tweets`,
+            body: {
+              tweetIds: result.createdTweetIds,
+              zoneId,
+            },
+            delay: 5, // 5 seconds delay (let DB synchronize)
+          });
+
+          logger.info('Scheduled tweet vectorization', {
+            tweetsCount: result.createdTweetIds.length,
+            zoneId,
+            scheduledAt: new Date(Date.now() + 5000).toISOString(),
+          });
+        } catch (scheduleError) {
+          // Don't fail the webhook if scheduling fails
+          logger.error('Error scheduling vectorization:', scheduleError);
+        }
+
+        // -----------------------------------------------
+        // 2. Schedule Engagement Tracking (1 hour delay)
+        // -----------------------------------------------
+        try {
           // Generate lot ID for tracking
           const lotId = `lot_${Date.now()}_${Math.random().toString(36).substring(7)}`;
 
-          // Schedule first update in 1 hour
           await qstash.publishJSON({
             url: `${env.appUrl}/api/twitter/engagement/track-lot`,
             body: {
@@ -140,17 +165,18 @@ export async function POST(request: NextRequest) {
             delay: 3600, // 1 hour in seconds
           });
 
-          logger.info(`Scheduled engagement tracking for lot ${lotId}`, {
+          logger.info('Scheduled engagement tracking', {
+            lotId,
             tweetsCount: result.createdTweetIds.length,
             zoneId,
             firstUpdateAt: new Date(Date.now() + 3600000).toISOString(),
           });
-        } else {
-          logger.warn("Cannot schedule engagement tracking: zone_id not found");
+        } catch (scheduleError) {
+          // Don't fail the webhook if scheduling fails
+          logger.error('Error scheduling engagement tracking:', scheduleError);
         }
-      } catch (scheduleError) {
-        // Don't fail the webhook if scheduling fails
-        logger.error("Error scheduling engagement tracking:", scheduleError);
+      } else {
+        logger.warn('Cannot schedule background jobs: zone_id not found');
       }
     }
 
