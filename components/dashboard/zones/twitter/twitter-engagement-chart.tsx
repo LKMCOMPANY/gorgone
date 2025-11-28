@@ -242,9 +242,15 @@ export function TwitterEngagementChart({ tweetId }: TwitterEngagementChartProps)
     view_count: point.view_count,
   }));
 
-  const latestMetrics = data.snapshots.length > 0
+  const latestMetrics = (data.snapshots.length > 0
     ? data.snapshots[data.snapshots.length - 1]
-    : data.initial_metrics;
+    : data.initial_metrics) || {
+      like_count: 0,
+      retweet_count: 0,
+      reply_count: 0,
+      quote_count: 0,
+      view_count: 0
+    };
 
   const trackingStatus = data.tracking_status;
   const isCold = trackingStatus?.tier === "cold";
