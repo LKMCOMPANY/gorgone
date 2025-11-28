@@ -634,7 +634,6 @@ export interface TwitterVolumeChartData {
   total_replies: number;
   total_likes: number;
   total_quotes: number;
-  unique_authors: number;
 }
 
 // Time Period Options
