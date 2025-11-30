@@ -186,7 +186,7 @@ export function TwitterEngagementChart({ tweetId }: TwitterEngagementChartProps)
     );
   }
 
-  if (!data || !data.initial_metrics) {
+  if (!data || (!data.initial_metrics && data.snapshots.length === 0)) {
     return (
       <div className="flex items-center justify-center py-12">
         <div className="text-center space-y-3 max-w-sm">
@@ -205,7 +205,9 @@ export function TwitterEngagementChart({ tweetId }: TwitterEngagementChartProps)
   }
 
   // Prepare chart data
-  const allDataPoints = [data.initial_metrics, ...data.snapshots];
+  const allDataPoints = [data.initial_metrics, ...data.snapshots].filter(
+    (point): point is EngagementDataPoint => point !== null
+  );
 
   // Add prediction points if available
   const predictionPoints: EngagementDataPoint[] = [];
@@ -240,9 +242,15 @@ export function TwitterEngagementChart({ tweetId }: TwitterEngagementChartProps)
     view_count: point.view_count,
   }));
 
-  const latestMetrics = data.snapshots.length > 0
+  const latestMetrics = (data.snapshots.length > 0
     ? data.snapshots[data.snapshots.length - 1]
-    : data.initial_metrics;
+    : data.initial_metrics) || {
+      like_count: 0,
+      retweet_count: 0,
+      reply_count: 0,
+      quote_count: 0,
+      view_count: 0
+    };
 
   const trackingStatus = data.tracking_status;
   const isCold = trackingStatus?.tier === "cold";

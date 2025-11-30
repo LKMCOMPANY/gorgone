@@ -11,6 +11,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { logger } from "@/lib/logger";
 import { createAdminClient } from "@/lib/supabase/admin";
 import * as profilesData from "@/lib/data/twitter/profiles";
+import { getUserByUsername } from "@/lib/api/twitter/client";
 import type { TwitterProfileTagType } from "@/types";
 
 /**
@@ -74,51 +75,69 @@ export async function POST(request: NextRequest) {
     });
 
     // =====================================================
-    // STEP 1: FIND PROFILE IN ZONE
+    // STEP 1: FIND PROFILE (GLOBAL)
     // =====================================================
 
-    // First, check if profile exists with tweets in this zone
-    const supabase = createAdminClient();
-    
-    // Get profiles that have tweets in this zone
-    const { data: tweetsData } = await supabase
-      .from("twitter_tweets")
-      .select("author_profile_id")
-      .eq("zone_id", body.zone_id)
-      .limit(1000); // Get a good sample
+    let profile = await profilesData.getProfileByUsername(username);
 
-    if (!tweetsData || tweetsData.length === 0) {
+    if (!profile) {
+      logger.info(`Profile @${username} not found in DB, fetching from Twitter API...`);
+      
+      // Try to fetch from Twitter API
+      const twitterUser = await getUserByUsername(username);
+      
+      if (twitterUser) {
+        // Create new profile from API data
+        const profileId = await profilesData.upsertProfile({
+          twitter_user_id: twitterUser.id,
+          username: twitterUser.userName || username, // API returns userName
+          name: twitterUser.name,
+          profile_picture_url: twitterUser.profilePicture,
+          cover_picture_url: twitterUser.coverPicture,
+          description: twitterUser.description,
+          location: twitterUser.location,
+          is_verified: twitterUser.isBlueVerified || false,
+          followers_count: twitterUser.followers || 0,
+          following_count: twitterUser.following || 0,
+          tweets_count: twitterUser.statusesCount || 0,
+          media_count: twitterUser.mediaCount || 0,
+          favourites_count: twitterUser.favouritesCount || 0,
+          twitter_created_at: twitterUser.createdAt,
+          is_automated: twitterUser.isAutomated || false,
+          can_dm: twitterUser.canDm || false,
+          twitter_url: twitterUser.url,
+          raw_data: twitterUser
+        });
+        
+        // Fetch the newly created profile
+        profile = await profilesData.getProfileById(profileId);
+      } else {
+        // Fallback: Create a stub profile if API fails or returns nothing
+        // This allows tracking even if API lookup fails
+        logger.warn(`Could not fetch @${username} from API, creating stub profile`);
+        
+        const profileId = await profilesData.upsertProfile({
+          twitter_user_id: `stub_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`, // Temporary ID until we get real data
+          username: username,
+          name: username, // Use username as name initially
+          raw_data: { is_stub: true }
+        });
+        
+        profile = await profilesData.getProfileById(profileId);
+      }
+    }
+
+    if (!profile) {
       return NextResponse.json(
         { 
           success: false, 
-          error: "No profiles found in this zone yet. Please wait for tweets to be collected." 
+          error: "Failed to create or retrieve profile" 
         },
-        { status: 404 }
+        { status: 500 }
       );
     }
 
-    const profileIdsInZone = [...new Set(tweetsData.map(t => t.author_profile_id))];
-
-    // Search for profile by username among profiles that have tweets in this zone
-    const { data: profileData } = await supabase
-      .from("twitter_profiles")
-      .select("*")
-      .eq("username", username)
-      .in("id", profileIdsInZone)
-      .single();
-
-    if (!profileData) {
-      return NextResponse.json(
-        { 
-          success: false, 
-          error: `Profile @${username} not found in this zone. Make sure this user has tweets collected in this zone first.` 
-        },
-        { status: 404 }
-      );
-    }
-
-    const profile = profileData;
-    logger.info(`Found profile for @${username}`, { profile_id: profile.id });
+    logger.info(`Using profile`, { profile_id: profile.id, username: profile.username });
 
     // =====================================================
     // STEP 2: ADD TAG

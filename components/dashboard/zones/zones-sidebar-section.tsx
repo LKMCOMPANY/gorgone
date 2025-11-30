@@ -10,6 +10,7 @@ import {
   Settings,
   ChevronDown,
   ChevronRight,
+  Bot,
 } from "lucide-react";
 import {
   SidebarGroup,
@@ -45,6 +46,12 @@ const zonePages = [
     title: "Analysis",
     url: "analysis",
     icon: FileText,
+  },
+  {
+    title: "Attila",
+    url: "attila",
+    icon: Bot,
+    requiresAttila: true,
   },
   {
     title: "Settings",
@@ -107,9 +114,23 @@ export function ZonesSidebarSection({
                 {isExpanded && (
                   <SidebarMenuSub className="animate-in fade-in-0 slide-in-from-top-1 duration-200">
                     {zonePages
-                      .filter(
-                        (page) => !page.requiresPermission || shouldShowSettings
-                      )
+                      .filter((page) => {
+                        if (page.requiresPermission && !shouldShowSettings)
+                          return false;
+                        
+                        // Check Attila permission (manager role + enabled in settings)
+                        if (page.requiresAttila) {
+                          const attilaEnabled = (zone.settings as any)?.attila_enabled === true;
+                          // Only managers and above can see Attila, and only if enabled
+                          const canAccessAttila = 
+                            (userRole === 'manager' || userRole === 'admin' || userRole === 'super_admin') && 
+                            attilaEnabled;
+                          
+                          if (!canAccessAttila) return false;
+                        }
+                        
+                        return true;
+                      })
                       .map((page) => {
                         const pageUrl = `/dashboard/zones/${zone.id}/${page.url}`;
                         const isActive = pathname === pageUrl;

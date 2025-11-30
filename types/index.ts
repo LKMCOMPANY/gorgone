@@ -630,6 +630,10 @@ export interface TwitterVolumeChartData {
   total_tweets: number;
   total_engagement: number;
   unique_authors: number;
+  total_retweets: number;
+  total_replies: number;
+  total_likes: number;
+  total_quotes: number;
 }
 
 // Time Period Options
@@ -1038,4 +1042,45 @@ export interface ChatReport {
 
 // ============================================================================
 // END CHAT INTELLIGENCE TYPES
+// ============================================================================
+
+// ============================================================================
+// ATTILA AUTOMATION TYPES
+// ============================================================================
+
+export type AttilaOperationType = "sniper" | "sentinel" | "influence";
+
+export type AttilaOperationStatus = "draft" | "active" | "paused" | "completed";
+
+export interface AttilaOperationConfig {
+  context: string;
+  guidelines: string;
+  language_elements: string;
+  
+  // Sniper specific
+  engagement_threshold?: number;
+  post_types?: ("original" | "reply" | "quote" | "retweet")[];
+  profile_types?: TwitterProfileTagType[];
+  
+  // Sentinel specific
+  alert_threshold?: number;
+  
+  // Influence specific
+  target_clusters?: number[];
+}
+
+export interface AttilaOperation {
+  id: string;
+  zone_id: string;
+  name: string;
+  status: AttilaOperationStatus;
+  type: AttilaOperationType;
+  config: AttilaOperationConfig;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+// ============================================================================
+// END ATTILA AUTOMATION TYPES
 // ============================================================================

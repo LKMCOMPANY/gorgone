@@ -49,9 +49,22 @@ export async function createEngagementSnapshot(
     const deltaQuotes = lastSnapshot
       ? metrics.quote_count - lastSnapshot.quote_count
       : 0;
+    // Handle view_count explicitly to prevent drops to 0 if API returns undefined
+    // Views are cumulative and cannot decrease
+    let viewCount = metrics.view_count;
+    if (viewCount === undefined || viewCount === null) {
+      // If missing, carry over last known value
+      viewCount = lastSnapshot?.view_count || 0;
+    } else if (lastSnapshot?.view_count && viewCount < lastSnapshot.view_count) {
+      // Safety check: if API returns lower value than before (unlikely), keep the max
+      // Exception: if the drop is massive, maybe the tweet was deleted/re-indexed? 
+      // But generally, views should be monotonic increasing.
+      viewCount = lastSnapshot.view_count;
+    }
+
     const deltaViews =
-      lastSnapshot && metrics.view_count
-        ? metrics.view_count - (lastSnapshot.view_count || 0)
+      lastSnapshot && viewCount !== undefined
+        ? viewCount - (lastSnapshot.view_count || 0)
         : 0;
 
     // Calculate velocity (engagement per hour)
@@ -75,7 +88,7 @@ export async function createEngagementSnapshot(
         reply_count: metrics.reply_count,
         like_count: metrics.like_count,
         quote_count: metrics.quote_count,
-        view_count: metrics.view_count || 0,
+        view_count: viewCount,
         bookmark_count: metrics.bookmark_count || 0,
         delta_retweets: deltaRetweets,
         delta_replies: deltaReplies,
