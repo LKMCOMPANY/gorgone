@@ -149,13 +149,15 @@ export function MediaRuleDialog({
   // Build query config based on mode
   function buildQueryConfig() {
     if (mode === "simple") {
-      // Split keywords by comma and trim
-      const keywordList = keyword.split(',').map(k => k.trim()).filter(k => k.length > 0);
+      // BEST PRACTICE: One rule = one keyword (no splitting)
+      // This avoids Event Registry API bugs with multi-word phrases + OR operator
+      const trimmedKeyword = keyword.trim();
       
       return {
-        keyword: keywordList.length === 1 ? keywordList[0] : keywordList,
-        ...(keywordList.length > 1 && { keywordOper: "and" }),
+        keyword: trimmedKeyword,  // Single keyword or phrase
         ...(languages.length > 0 && { lang: languages }),
+        ...(dateStart && { dateStart }),
+        ...(dateEnd && { dateEnd }),
       };
     } else {
       return {
@@ -233,7 +235,7 @@ export function MediaRuleDialog({
         sort_by: sortBy,
         sort_asc: false,
         data_types: dataTypes,
-        force_max_data_time_window: mode === "simple" ? 7 : forceMaxDataTimeWindow,
+        force_max_data_time_window: mode === "simple" ? 31 : forceMaxDataTimeWindow,  // 31 days for simple mode (better coverage)
         duplicate_filter: "skipDuplicates",
         event_filter: "keepAll",
         include_body: true,
@@ -333,17 +335,22 @@ export function MediaRuleDialog({
             {/* Simple Mode */}
             <TabsContent value="simple" className="space-y-4 mt-4">
               <div className="space-y-2">
-                <Label htmlFor="keyword">Keywords *</Label>
+                <Label htmlFor="keyword">Keyword or Phrase *</Label>
                 <Input
                   id="keyword"
-                  placeholder="e.g., artificial intelligence, technology, AI"
+                  placeholder='e.g., "International Holding Company" or "Climate Change"'
                   value={keyword}
                   onChange={(e) => setKeyword(e.target.value)}
                   className="h-10"
                 />
-                <p className="text-caption text-muted-foreground">
-                  Use commas to separate multiple keywords (they will be combined with AND logic)
-                </p>
+                <div className="space-y-1">
+                  <p className="text-caption text-muted-foreground">
+                    💡 <strong>Best Practice:</strong> Create one rule per keyword for better results
+                  </p>
+                  <p className="text-caption text-muted-foreground">
+                    Avoid multiple keywords in one rule - create separate rules instead
+                  </p>
+                </div>
               </div>
 
               <div className="space-y-2">

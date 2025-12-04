@@ -130,9 +130,17 @@ function buildAPIParams(rule: MediaRule): any {
   // Merge query config
   Object.assign(params, rule.query_config);
   
-  // IMPORTANT: If keyword is an array, use OR logic (at least one keyword matches)
-  if (Array.isArray(params.keyword) && params.keyword.length > 1 && !params.keywordOper) {
-    params.keywordOper = "or";
+  // IMPORTANT: Respect keywordOper from query_config
+  // Only set default if not explicitly defined by user
+  // Default to "or" for multi-keyword queries (more permissive)
+  if (Array.isArray(params.keyword) && params.keyword.length > 1) {
+    if (!params.keywordOper || params.keywordOper === '') {
+      params.keywordOper = "or";
+      logger.debug("Set default keywordOper to 'or' for multi-keyword query", {
+        ruleId: rule.id,
+        keywordCount: params.keyword.length
+      });
+    }
   }
 
   return params;
@@ -171,16 +179,20 @@ async function fetchArticlesForRule(rule: MediaRule): Promise<number> {
         const sourceData = normalizeSource(apiArticle.source);
         await upsertSource(sourceData);
 
-        // Normalize and upsert article
+        // Normalize and upsert article with deduplication
         const articleData = normalizeArticle(apiArticle, rule.zone_id);
-        const inserted = await upsertArticle(articleData);
+        const result = await upsertArticle(articleData, rule.id);
 
-        if (inserted) {
+        // Count as inserted if it's new to THIS ZONE
+        // (even if article existed in another zone - it's still new for this zone)
+        if (result.wasNew) {
           insertedCount++;
         }
       } catch (error) {
         logger.error("Failed to process article", {
           articleUri: apiArticle.uri,
+          ruleId: rule.id,
+          zoneId: rule.zone_id,
           error,
         });
       }
@@ -217,60 +229,116 @@ async function fetchArticlesForRule(rule: MediaRule): Promise<number> {
 
 /**
  * Main worker function
- * Fetches articles for all rules that are due
+ * Fetches articles for rules that are due
+ * 
+ * OPTIMIZATION STRATEGY:
+ * - Batch processing (max 10 rules per execution to avoid timeouts)
+ * - Priority to oldest last_fetched_at (fairness)
+ * - Progressive rate limiting (1s -> 2s -> 3s delays)
+ * - Graceful error handling (one failure doesn't stop others)
+ * 
+ * @param maxRules - Maximum number of rules to process per execution (default: 10)
  */
-export async function fetchArticlesForDueRules(): Promise<{
+export async function fetchArticlesForDueRules(
+  maxRules = 10
+): Promise<{
   success: boolean;
   rulesProcessed: number;
   articlesCollected: number;
   errors: number;
+  hasMore: boolean;
 }> {
   try {
-    logger.info("Starting media article fetch worker");
+    logger.info("Starting media article fetch worker", { maxRules });
 
-    // Get rules that need to be fetched
-    const rules = await getRulesDueForFetch();
+    // Get ALL rules that need to be fetched
+    const allDueRules = await getRulesDueForFetch();
 
-    if (rules.length === 0) {
+    if (allDueRules.length === 0) {
       logger.info("No rules due for fetch");
       return {
         success: true,
         rulesProcessed: 0,
         articlesCollected: 0,
         errors: 0,
+        hasMore: false,
       };
     }
 
-    logger.info(`Found ${rules.length} rules due for fetch`);
+    // Sort by last_fetched_at ASC (oldest first = priority)
+    // Null values go first (never fetched)
+    const sortedRules = allDueRules.sort((a, b) => {
+      if (!a.last_fetched_at) return -1;
+      if (!b.last_fetched_at) return 1;
+      return new Date(a.last_fetched_at).getTime() - new Date(b.last_fetched_at).getTime();
+    });
+
+    // Take only first N rules (batching)
+    const rulesToProcess = sortedRules.slice(0, maxRules);
+    const hasMore = sortedRules.length > maxRules;
+
+    logger.info(`Processing ${rulesToProcess.length} of ${allDueRules.length} due rules`, {
+      totalDue: allDueRules.length,
+      processing: rulesToProcess.length,
+      hasMore,
+    });
 
     let totalArticles = 0;
     let errorCount = 0;
+    let processedCount = 0;
 
-    // Process each rule sequentially to avoid rate limiting
-    for (const rule of rules) {
+    // Process each rule sequentially with progressive rate limiting
+    for (let i = 0; i < rulesToProcess.length; i++) {
+      const rule = rulesToProcess[i];
+      
       try {
         const articlesAdded = await fetchArticlesForRule(rule);
         totalArticles += articlesAdded;
+        processedCount++;
 
-        // Small delay to avoid rate limiting
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Progressive delay: 1s, 2s, 2s, 3s, 3s, 3s...
+        // Reduces rate limiting risk while keeping execution time reasonable
+        const delay = Math.min(1000 + Math.floor(i / 2) * 1000, 3000);
+        
+        if (i < rulesToProcess.length - 1) {
+          logger.debug(`Waiting ${delay}ms before next rule`, {
+            currentRule: i + 1,
+            totalRules: rulesToProcess.length
+          });
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
       } catch (error) {
         errorCount++;
-        logger.error(`Error processing rule ${rule.id}`, { error });
+        logger.error(`Error processing rule ${rule.id}`, { 
+          ruleId: rule.id,
+          ruleName: rule.name,
+          zoneId: rule.zone_id,
+          error 
+        });
+        
+        // Continue processing other rules even if one fails
+        // But add a longer delay after error (5s) to avoid cascading failures
+        if (i < rulesToProcess.length - 1) {
+          logger.debug("Adding extra delay after error (5s)");
+          await new Promise(resolve => setTimeout(resolve, 5000));
+        }
       }
     }
 
     logger.info("Media article fetch worker completed", {
-      rulesProcessed: rules.length,
+      totalDue: allDueRules.length,
+      rulesProcessed: processedCount,
       articlesCollected: totalArticles,
       errors: errorCount,
+      hasMore,
     });
 
     return {
       success: true,
-      rulesProcessed: rules.length,
+      rulesProcessed: processedCount,
       articlesCollected: totalArticles,
       errors: errorCount,
+      hasMore,
     };
   } catch (error) {
     logger.error("Media article fetch worker failed", { error });
@@ -279,6 +347,7 @@ export async function fetchArticlesForDueRules(): Promise<{
       rulesProcessed: 0,
       articlesCollected: 0,
       errors: 1,
+      hasMore: false,
     };
   }
 }

@@ -150,29 +150,33 @@ export async function getArticleById(
 }
 
 /**
- * Get article by Event Registry URI
+ * Get article by Event Registry URI and zone
  * 
  * @param articleUri - Event Registry article URI
+ * @param zoneId - Zone ID (optional, if not provided returns first match)
  * @returns Media article or null
  */
 export async function getArticleByUri(
-  articleUri: string
+  articleUri: string,
+  zoneId?: string
 ): Promise<MediaArticle | null> {
   try {
     const supabase = createAdminClient();
 
-    const { data, error } = await supabase
+    let query = supabase
       .from("media_articles")
       .select("*")
-      .eq("article_uri", articleUri)
-      .single();
+      .eq("article_uri", articleUri);
 
-    if (error) {
-      if (error.code === "PGRST116") return null;
-      throw error;
+    if (zoneId) {
+      query = query.eq("zone_id", zoneId);
     }
 
-    return data as MediaArticle;
+    const { data, error } = await query.maybeSingle();
+
+    if (error) throw error;
+
+    return data as MediaArticle | null;
   } catch (error) {
     logger.error(`Failed to fetch article by URI ${articleUri}`, { error });
     return null;
@@ -180,23 +184,107 @@ export async function getArticleByUri(
 }
 
 /**
- * Create or update media article
- * Uses article_uri as unique identifier for deduplication
+ * Check if article exists in a specific zone via junction table
  * 
- * @param article - Article data to insert/update
- * @returns Created/updated article
+ * @param articleUri - Event Registry article URI
+ * @param zoneId - Zone ID
+ * @returns Article ID if exists in zone, null otherwise
  */
-export async function upsertArticle(
-  article: Omit<MediaArticle, "id" | "created_at" | "updated_at" | "shares_total">
-): Promise<MediaArticle | null> {
+export async function getArticleIdInZone(
+  articleUri: string,
+  zoneId: string
+): Promise<string | null> {
   try {
     const supabase = createAdminClient();
 
-    // Check if article already exists
-    const existing = await getArticleByUri(article.article_uri);
+    const { data, error } = await supabase
+      .from("media_articles")
+      .select("id")
+      .eq("article_uri", articleUri)
+      .eq("zone_id", zoneId)
+      .maybeSingle();
 
-    if (existing) {
-      // Update existing article (e.g., social metrics)
+    if (error) throw error;
+
+    return data?.id || null;
+  } catch (error) {
+    logger.error(`Failed to check article in zone`, { articleUri, zoneId, error });
+    return null;
+  }
+}
+
+/**
+ * Link an article to a zone via junction table
+ * Used for deduplication when article exists globally but not in this zone
+ * 
+ * @param articleId - Internal article ID
+ * @param zoneId - Zone ID to link to
+ * @param ruleId - Optional rule ID that collected this
+ * @returns Success boolean
+ */
+export async function linkArticleToZone(
+  articleId: string,
+  zoneId: string,
+  ruleId?: string
+): Promise<boolean> {
+  try {
+    const supabase = createAdminClient();
+
+    const { error } = await supabase
+      .from("media_article_zones")
+      .insert({
+        article_id: articleId,
+        zone_id: zoneId,
+        rule_id: ruleId || null,
+        collected_at: new Date().toISOString(),
+      });
+
+    if (error) {
+      // Ignore conflict errors (article already linked)
+      if (error.code === "23505") {
+        logger.debug("Article already linked to zone", { articleId, zoneId });
+        return true;
+      }
+      throw error;
+    }
+
+    logger.info("Article linked to zone", { articleId, zoneId, ruleId });
+    return true;
+  } catch (error) {
+    logger.error("Failed to link article to zone", { articleId, zoneId, error });
+    return false;
+  }
+}
+
+/**
+ * Create or update media article with zone deduplication
+ * 
+ * Strategy:
+ * 1. Check if article exists in THIS ZONE (article_uri + zone_id)
+ * 2. If yes, update metrics and return existing
+ * 3. If no, check if article exists GLOBALLY (just article_uri)
+ * 4. If global exists, link it to this zone via junction table
+ * 5. If not exists at all, create new article
+ * 
+ * @param article - Article data to insert/update
+ * @param ruleId - Optional rule ID that collected this article
+ * @returns Created/updated article or null
+ */
+export async function upsertArticle(
+  article: Omit<MediaArticle, "id" | "created_at" | "updated_at" | "shares_total">,
+  ruleId?: string
+): Promise<{ article: MediaArticle | null; wasNew: boolean }> {
+  try {
+    const supabase = createAdminClient();
+    const { zone_id, article_uri } = article;
+
+    // ========================================
+    // STEP 1: Check if article exists in THIS ZONE
+    // ========================================
+    const existingInZone = await getArticleByUri(article_uri, zone_id);
+
+    if (existingInZone) {
+      // Article already in this zone, update metrics only
       const { data, error } = await supabase
         .from("media_articles")
         .update({
@@ -206,41 +294,78 @@ export async function upsertArticle(
           sentiment: article.sentiment,
           updated_at: new Date().toISOString(),
         })
-        .eq("id", existing.id)
+        .eq("id", existingInZone.id)
         .select()
         .single();
 
       if (error) throw error;
       
-      logger.info("Article updated", { 
-        articleUri: article.article_uri,
-        articleId: existing.id 
+      logger.debug("Article updated in zone", { 
+        articleUri: article_uri,
+        articleId: existingInZone.id,
+        zoneId: zone_id
       });
       
-      return data as MediaArticle;
-    } else {
-      // Insert new article
-      const { data, error } = await supabase
-        .from("media_articles")
-        .insert([article])
-        .select()
-        .single();
-
-      if (error) throw error;
-      
-      logger.info("Article created", { 
-        articleUri: article.article_uri,
-        articleId: data.id 
-      });
-      
-      return data as MediaArticle;
+      return { article: data as MediaArticle, wasNew: false };
     }
+
+    // ========================================
+    // STEP 2: Check if article exists GLOBALLY (other zones)
+    // ========================================
+    const existingGlobal = await getArticleByUri(article_uri);
+
+    if (existingGlobal) {
+      // Article exists in another zone, link it to this zone
+      const linked = await linkArticleToZone(existingGlobal.id, zone_id, ruleId);
+      
+      if (linked) {
+        logger.info("Article linked to new zone (deduplication)", { 
+          articleUri: article_uri,
+          articleId: existingGlobal.id,
+          fromZone: existingGlobal.zone_id,
+          toZone: zone_id
+        });
+        
+        return { article: existingGlobal, wasNew: true };
+      } else {
+        logger.error("Failed to link article to zone", { 
+          articleUri: article_uri,
+          articleId: existingGlobal.id,
+          zoneId: zone_id
+        });
+        return { article: null, wasNew: false };
+      }
+    }
+
+    // ========================================
+    // STEP 3: Article doesn't exist anywhere, create it
+    // ========================================
+    const { data: newArticle, error: insertError } = await supabase
+      .from("media_articles")
+      .insert([article])
+      .select()
+      .single();
+
+    if (insertError) throw insertError;
+
+    // Link the new article to the zone
+    await linkArticleToZone(newArticle.id, zone_id, ruleId);
+    
+    logger.info("New article created and linked", { 
+      articleUri: article_uri,
+      articleId: newArticle.id,
+      zoneId: zone_id
+    });
+    
+    return { article: newArticle as MediaArticle, wasNew: true };
+
   } catch (error) {
     logger.error("Failed to upsert article", { 
-      articleUri: article.article_uri, 
+      articleUri: article.article_uri,
+      zoneId: article.zone_id,
       error 
     });
-    return null;
+    return { article: null, wasNew: false };
   }
 }
 
