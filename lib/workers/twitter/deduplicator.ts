@@ -7,6 +7,7 @@ import { logger } from "@/lib/logger";
 import { upsertProfile, getProfileByTwitterId } from "@/lib/data/twitter/profiles";
 import {
   getTweetByTwitterId,
+  getTweetByTwitterIdAndZone,
   createTweet,
   upsertTweet,
 } from "@/lib/data/twitter/tweets";
@@ -75,12 +76,13 @@ async function processSingleTweet(
   zoneId: string,
   result: ProcessingResult
 ): Promise<void> {
-  // Check if tweet already exists
-  const existingTweet = await getTweetByTwitterId(apiTweet.id);
+  // Check if tweet already exists IN THIS ZONE
+  // Since we now allow the same tweet in multiple zones, we check by zone_id + tweet_id
+  const existingTweet = await getTweetByTwitterIdAndZone(apiTweet.id, zoneId);
 
   if (existingTweet) {
-    // Tweet exists, update engagement metrics
-    logger.debug(`Tweet ${apiTweet.id} already exists, skipping`);
+    // Tweet exists in this zone, skip
+    logger.debug(`Tweet ${apiTweet.id} already exists in zone ${zoneId}, skipping`);
     result.duplicates++;
     return;
   }

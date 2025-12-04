@@ -98,6 +98,8 @@ export async function getTweetById(
 
 /**
  * Get tweet by Twitter's external ID
+ * Note: Since a tweet can exist in multiple zones, this returns the first match
+ * For zone-specific checks, use getTweetByTwitterIdAndZone instead
  */
 export async function getTweetByTwitterId(
   twitterTweetId: string
@@ -109,6 +111,7 @@ export async function getTweetByTwitterId(
       .from("twitter_tweets")
       .select("*")
       .eq("tweet_id", twitterTweetId)
+      .limit(1)
       .single();
 
     if (error) {
@@ -119,6 +122,39 @@ export async function getTweetByTwitterId(
     return data as TwitterTweet;
   } catch (error) {
     logger.error(`Error fetching tweet by Twitter ID ${twitterTweetId}:`, error);
+    return null;
+  }
+}
+
+/**
+ * Get tweet by Twitter's external ID AND zone ID
+ * This checks if a specific tweet exists in a specific zone
+ */
+export async function getTweetByTwitterIdAndZone(
+  twitterTweetId: string,
+  zoneId: string
+): Promise<TwitterTweet | null> {
+  try {
+    const supabase = createAdminClient();
+
+    const { data, error } = await supabase
+      .from("twitter_tweets")
+      .select("*")
+      .eq("tweet_id", twitterTweetId)
+      .eq("zone_id", zoneId)
+      .single();
+
+    if (error) {
+      if (error.code === "PGRST116") return null;
+      throw error;
+    }
+
+    return data as TwitterTweet;
+  } catch (error) {
+    logger.error(
+      `Error fetching tweet ${twitterTweetId} for zone ${zoneId}:`,
+      error
+    );
     return null;
   }
 }
@@ -176,8 +212,9 @@ export async function bulkCreateTweets(
 }
 
 /**
- * Upsert tweet (create or update based on tweet_id)
+ * Upsert tweet (create or update based on tweet_id AND zone_id)
  * Used for updating engagement metrics
+ * NOTE: After migration, the unique constraint is on (tweet_id, zone_id)
  */
 export async function upsertTweet(
   tweet: Partial<TwitterTweet>
@@ -185,10 +222,16 @@ export async function upsertTweet(
   try {
     const supabase = createAdminClient();
 
+    // Must include both tweet_id and zone_id for upsert to work with new constraint
+    if (!tweet.tweet_id || !tweet.zone_id) {
+      logger.error("upsertTweet requires both tweet_id and zone_id");
+      return null;
+    }
+
     const { data, error } = await supabase
       .from("twitter_tweets")
       .upsert(tweet, {
-        onConflict: "tweet_id",
+        onConflict: "tweet_id,zone_id",
         ignoreDuplicates: false,
       })
       .select("id")
