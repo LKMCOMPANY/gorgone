@@ -8,9 +8,20 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Plus, MoreVertical, Pencil, Pause, Play, Trash2, Clock, Activity } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Plus, MoreVertical, Pencil, Pause, Play, Trash2, Clock, Activity, History, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import type { TwitterRule } from "@/types";
 
@@ -44,6 +55,10 @@ export function TwitterRulesList({
 }: TwitterRulesListProps) {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [pausingId, setPausingId] = useState<string | null>(null);
+  const [backfillDialogOpen, setBackfillDialogOpen] = useState(false);
+  const [backfillingRule, setBackfillingRule] = useState<TwitterRule | null>(null);
+  const [backfillCount, setBackfillCount] = useState("100");
+  const [backfillLoading, setBackfillLoading] = useState(false);
 
   async function handlePause(rule: TwitterRule) {
     setPausingId(rule.id);
@@ -98,6 +113,50 @@ export function TwitterRulesList({
       toast.error(error instanceof Error ? error.message : "Failed to delete rule");
     } finally {
       setDeletingId(null);
+    }
+  }
+
+  function handleOpenBackfillDialog(rule: TwitterRule) {
+    setBackfillingRule(rule);
+    setBackfillCount("100");
+    setBackfillDialogOpen(true);
+  }
+
+  async function handleBackfill() {
+    if (!backfillingRule) return;
+
+    const count = parseInt(backfillCount);
+    if (isNaN(count) || count < 1 || count > 500) {
+      toast.error("Please enter a number between 1 and 500");
+      return;
+    }
+
+    setBackfillLoading(true);
+    try {
+      // Get the zone_id from the first rule (they all belong to the same zone)
+      const zoneId = backfillingRule.zone_id;
+      
+      const response = await fetch(
+        `/api/twitter/backfill?zoneId=${zoneId}&count=${count}&queryType=Latest`
+      );
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || "Failed to backfill tweets");
+      }
+
+      toast.success(
+        `Successfully fetched ${data.stats.created} new tweets (${data.stats.duplicates} duplicates skipped)`
+      );
+      
+      setBackfillDialogOpen(false);
+      onRefresh();
+    } catch (error) {
+      console.error("Failed to backfill:", error);
+      toast.error(error instanceof Error ? error.message : "Failed to backfill tweets");
+    } finally {
+      setBackfillLoading(false);
     }
   }
 
@@ -173,6 +232,12 @@ export function TwitterRulesList({
                         </>
                       )}
                     </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => handleOpenBackfillDialog(rule)}>
+                      <History className="mr-2 h-4 w-4" />
+                      <span>Backfill</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
                     <DropdownMenuItem
                       onClick={() => handleDelete(rule)}
                       className="text-destructive focus:text-destructive"
@@ -211,6 +276,74 @@ export function TwitterRulesList({
           ))}
         </div>
       </div>
+
+      {/* Backfill Dialog */}
+      <Dialog open={backfillDialogOpen} onOpenChange={setBackfillDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Backfill Historical Tweets</DialogTitle>
+            <DialogDescription>
+              Fetch historical tweets for the rule "{backfillingRule?.tag || 'Untitled'}". 
+              This will search for past tweets matching your query and add them to your zone.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="backfill-count">Number of tweets to fetch</Label>
+              <Input
+                id="backfill-count"
+                type="number"
+                min="1"
+                max="500"
+                value={backfillCount}
+                onChange={(e) => setBackfillCount(e.target.value)}
+                placeholder="100"
+                disabled={backfillLoading}
+              />
+              <p className="text-xs text-muted-foreground">
+                Maximum: 500 tweets per request
+              </p>
+            </div>
+
+            <div className="rounded-lg bg-muted/50 p-3 space-y-1">
+              <p className="text-sm font-medium">What happens:</p>
+              <ul className="text-xs text-muted-foreground space-y-1 list-disc list-inside">
+                <li>Searches for latest tweets matching your rule's query</li>
+                <li>Deduplicates (skips already existing tweets)</li>
+                <li>Processes through the same pipeline (vectorization, etc.)</li>
+                <li>Tweets appear in your feed in ~5 seconds</li>
+              </ul>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setBackfillDialogOpen(false)}
+              disabled={backfillLoading}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleBackfill}
+              disabled={backfillLoading}
+            >
+              {backfillLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Fetching...
+                </>
+              ) : (
+                <>
+                  <History className="mr-2 h-4 w-4" />
+                  Fetch Tweets
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
