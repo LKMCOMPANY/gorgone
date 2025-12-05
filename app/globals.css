@@ -53,14 +53,15 @@
 :root {
   --radius: 0.625rem;
   
-  /* Light Mode - High Contrast / Depth */
-  --background: oklch(0.985 0.002 240);    /* Cool Off-White (Depth base) */
-  --foreground: oklch(0.145 0 0);          /* Near black */
+  /* Light Mode - Inverted Depth (Apple Style) */
+  --background: oklch(1 0 0);              /* Pure White Base */
+  --foreground: oklch(0.145 0 0);
   
-  --card: oklch(1 0 0);                    /* Pure White (Pop against background) */
+  /* Cards are slightly off-white/grey to sit on top of white background */
+  --card: oklch(0.985 0.002 240);          /* Very subtle cool grey */
   --card-foreground: oklch(0.145 0 0);
   
-  --popover: oklch(1 0 0);                 /* Pure White */
+  --popover: oklch(1 0 0);                 /* Pure White (Top layer) */
   --popover-foreground: oklch(0.145 0 0);
   
   --primary: oklch(0.54 0.22 285);
@@ -69,14 +70,14 @@
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
   
-  --muted: oklch(0.96 0.005 240);          /* Distinct Cool Grey */
+  --muted: oklch(0.96 0.005 240);          /* Distinct Grey */
   --muted-foreground: oklch(0.556 0 0);
   
-  --accent: oklch(0.96 0.005 240);         /* Matches muted for consistency */
+  --accent: oklch(0.96 0.005 240);
   --accent-foreground: oklch(0.205 0 0);
   
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.89 0 0);               /* Sharper border for structure (was 0.92) */
+  --border: oklch(0.92 0.005 240);         /* Subtle border */
   --input: oklch(0.92 0.005 240);
   --ring: oklch(0.54 0.22 285);
   

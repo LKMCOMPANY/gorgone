@@ -30,19 +30,18 @@ Gorgone uses a **military-inspired, cyber-tactical design system** tailored for 
 All colors use the OKLCH color space for consistent perceptual brightness:
 
 ```css
-/* Light Mode */
---background: oklch(1 0 0);              /* Pure white */
+/* Light Mode (Inverted Depth / Apple Style) */
+--background: oklch(1 0 0);              /* Pure White Base */
+--card: oklch(0.985 0.002 240);          /* Subtle Grey Surface (Level 1) */
+--popover: oklch(1 0 0);                 /* Pure White Surface (Level 2 / Pop) */
 --foreground: oklch(0.145 0 0);          /* Near black */
 --primary: oklch(0.54 0.22 285);         /* Purple brand */
---muted: oklch(0.97 0 0);                /* Light grey */
---border: oklch(0.922 0 0);              /* Subtle border */
+--muted: oklch(0.96 0.005 240);          /* Distinct Cool Grey */
+--border: oklch(0.92 0.005 240);         /* Subtle border */
 
 /* Dark Mode */
 --background: oklch(0.145 0 0);          /* Near black */
---foreground: oklch(0.985 0 0);          /* Off white */
---primary: oklch(0.62 0.24 285);         /* Brighter purple */
---muted: oklch(0.269 0 0);               /* Dark grey */
---border: oklch(1 0 0 / 10%);            /* Transparent white */
+--card: oklch(0.205 0 0);                /* Dark grey Surface */
 ```
 
 ### Tactical Colors (Military Accents)
@@ -633,6 +632,11 @@ import { Suggestions, Suggestion } from "@/components/ai/suggestion";
 ---
 
 ## 🔄 Changelog
+
+### Version 2.3 (December 5, 2024 - Final Polish)
+- ✅ **Light Mode Hierarchy Inversion** : Adopted Apple-style "White Background / Grey Card / White Nested" for better contrast and pop
+- ✅ **Refined Variables** : `--card` is now off-white in light mode, `--popover` is pure white
+- ✅ **Feed Card Polish** : Nested tweet card uses `bg-popover` to stand out from the grey feed card
 
 ### Version 2.2 (December 5, 2024 - Evening Session)
 - ✅ **Tactical Color Palette Exposed to Tailwind** : `bg-tactical-green`, `text-tactical-amber` now native utilities

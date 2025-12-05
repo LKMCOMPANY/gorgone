@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import Link from "next/link";
 import { ExternalLink, Play, User, Snowflake, Activity, RefreshCw } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -147,13 +147,13 @@ export function TwitterFeedCard({
     setLiveMetrics(metrics);
   };
 
-  const handleTrackingStatusUpdate = (isCold: boolean) => {
+  const handleTrackingStatusUpdate = useCallback((isCold: boolean) => {
     setTrackingIsCold(isCold);
-  };
+  }, []);
 
-  const handleRefreshReady = (fn: () => Promise<void>) => {
+  const handleRefreshReady = useCallback((fn: () => Promise<void>) => {
     setRefreshFn(() => fn);
-  };
+  }, []);
 
   const handleRefreshClick = async () => {
     if (refreshFn) {
@@ -267,7 +267,7 @@ export function TwitterFeedCard({
       <div className={layoutClass}>
         {/* Tweet Content */}
         <div className="p-4 min-w-0 flex-1">
-          <div className="flex gap-3 p-4 rounded-xl bg-background/40 border border-border/40 shadow-sm">
+          <div className="flex gap-3 p-4 rounded-xl bg-popover border border-border/60 shadow-sm">
             {/* Avatar */}
             <div className="shrink-0">
               <div className="size-10 rounded-full overflow-hidden bg-muted border border-border/50 shadow-sm">
