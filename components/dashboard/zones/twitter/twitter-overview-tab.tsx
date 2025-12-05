@@ -94,21 +94,9 @@ export async function TwitterOverviewTab({ zoneId, period }: TwitterOverviewTabP
 
   return (
     <div className="space-y-8 animate-in fade-in-0 slide-in-from-bottom-4 duration-500">
-      {/* Header Section */}
-      <div className="space-y-4">
-        {/* Period Selector */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="space-y-1">
-            <h2 className="text-lg font-semibold font-semibold">Overview Analytics</h2>
-            <p className="text-sm text-muted-foreground">
-              Monitor key metrics and performance trends for your zone
-            </p>
-          </div>
-          <TwitterPeriodSelector currentPeriod={period} />
-        </div>
-        
-        {/* Subtle separator */}
-        <div className="h-px bg-gradient-to-r from-border via-border/50 to-transparent" />
+      {/* Controls Section */}
+      <div className="flex justify-end">
+        <TwitterPeriodSelector currentPeriod={period} />
       </div>
 
       {/* Stats Cards */}

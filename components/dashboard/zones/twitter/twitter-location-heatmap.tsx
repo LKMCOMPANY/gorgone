@@ -235,7 +235,7 @@ export function TwitterLocationHeatmap({
   }
 
   return (
-    <Card className={cn("group overflow-hidden border-border/50 transition-all duration-300 hover:shadow-md", className)}>
+    <Card className={cn("group overflow-hidden card-interactive p-0", className)}>
       {/* Map - Full card with overlay labels */}
       <div className="relative h-[540px] bg-muted/20 flex items-center justify-center">
         <Map
@@ -287,7 +287,7 @@ export function TwitterLocationHeatmap({
         </Map>
 
         {/* Legend - bottom left, minimal */}
-        <div className="absolute bottom-3 left-3 bg-background/90 backdrop-blur-sm border border-border/50 rounded-lg px-2.5 py-1.5 shadow-sm">
+        <div className="absolute bottom-3 left-3 panel-hud px-2.5 py-1.5">
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1">
               <div 
@@ -308,16 +308,16 @@ export function TwitterLocationHeatmap({
         </div>
 
         {/* Minimal title overlay - top left */}
-        <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-background/90 backdrop-blur-sm border border-border/50 rounded-lg px-2.5 py-1.5 shadow-sm">
+        <div className="absolute top-3 left-3 flex items-center gap-1.5 panel-hud px-2.5 py-1.5">
           <Globe className="size-3 text-primary" />
           <span className="text-[11px] font-semibold text-foreground">Geographic Distribution</span>
-          <Badge variant="secondary" className="text-[9px] h-4 px-1 ml-0.5">
+          <Badge variant="outline" className="text-[9px] h-4 px-1 ml-0.5 bg-background/50 border-border/50">
             {data.length}
           </Badge>
         </div>
 
         {/* Top countries list - top right */}
-        <div className="absolute top-3 right-3 w-[200px] sm:w-[220px] bg-background/90 backdrop-blur-sm border border-border/50 rounded-lg p-2.5 shadow-sm transition-all duration-200 hover:shadow-md">
+        <div className="absolute top-3 right-3 w-[200px] sm:w-[220px] panel-hud p-2.5 transition-all duration-[var(--transition-fast)] hover:bg-background/90">
           <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">
             Top Regions
           </p>

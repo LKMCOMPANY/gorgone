@@ -63,23 +63,22 @@ export function ZonePageHeader({
     <div className="space-y-4">
       {/* Title & Description */}
       <div className="space-y-1.5">
-        <h1 className="scroll-m-20 text-3xl font-semibold tracking-tight">
+        <h1 className="text-4xl font-extrabold tracking-tight scroll-m-20">
           {title}
         </h1>
         {description && (
-          <p className="text-sm text-muted-foreground">{description}</p>
+          <p className="text-lg text-muted-foreground">{description}</p>
         )}
       </div>
 
       {/* Data Source Tabs */}
       {showTabs && (
         <Tabs value={currentSource} onValueChange={handleSourceChange}>
-          <TabsList className="w-full sm:w-auto transition-colors duration-[var(--transition-fast)]">
+          <TabsList className="w-full sm:w-auto">
             {enabledSources.map((source) => (
               <TabsTrigger
                 key={source}
                 value={source}
-                className="transition-all duration-[var(--transition-fast)] data-[state=active]:shadow-xs"
                 title={dataSourceLabels[source as keyof typeof dataSourceLabels] || source}
               >
                 {dataSourceIcons[source as keyof typeof dataSourceIcons]}

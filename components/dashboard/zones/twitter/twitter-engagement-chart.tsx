@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { RefreshCw, TrendingUp, Eye, Pause, Activity } from "lucide-react";
+import { Clock, RefreshCw, TrendingUp, Eye, Pause, Activity, Info } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -15,7 +15,7 @@ import {
 import { cn, formatCompactNumber } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid } from "recharts";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts";
 import type { TweetPredictions } from "@/types";
 
 interface EngagementDataPoint {
@@ -49,6 +49,13 @@ interface EngagementHistoryData {
 
 interface TwitterEngagementChartProps {
   tweetId: string;
+  onMetricsUpdate?: (metrics: {
+    like_count: number;
+    retweet_count: number;
+    reply_count: number;
+    quote_count: number;
+    view_count: number;
+  }) => void;
 }
 
 // Chart configurations using Shadcn theming
@@ -86,7 +93,7 @@ function formatTimestamp(timestamp: string): string {
   return `${hours}:${minutes}`;
 }
 
-export function TwitterEngagementChart({ tweetId }: TwitterEngagementChartProps) {
+export function TwitterEngagementChart({ tweetId, onMetricsUpdate }: TwitterEngagementChartProps) {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [data, setData] = useState<EngagementHistoryData | null>(null);
@@ -101,6 +108,21 @@ export function TwitterEngagementChart({ tweetId }: TwitterEngagementChartProps)
 
       if (result.success) {
         setData(result);
+        // Notify parent of latest metrics
+        const dataPoints = result.snapshots || [];
+        const latest = dataPoints.length > 0 
+          ? dataPoints[dataPoints.length - 1] 
+          : result.initial_metrics;
+          
+        if (latest && onMetricsUpdate) {
+          onMetricsUpdate({
+            like_count: latest.like_count,
+            retweet_count: latest.retweet_count,
+            reply_count: latest.reply_count,
+            quote_count: latest.quote_count,
+            view_count: latest.view_count,
+          });
+        }
       } else {
         toast.error("Failed to load engagement data");
       }
@@ -120,6 +142,21 @@ export function TwitterEngagementChart({ tweetId }: TwitterEngagementChartProps)
 
       if (result.success) {
         setData(result);
+        // Notify parent of latest metrics on refresh
+        const dataPoints = result.snapshots || [];
+        const latest = dataPoints.length > 0 
+          ? dataPoints[dataPoints.length - 1] 
+          : result.initial_metrics;
+          
+        if (latest && onMetricsUpdate) {
+          onMetricsUpdate({
+            like_count: latest.like_count,
+            retweet_count: latest.retweet_count,
+            reply_count: latest.reply_count,
+            quote_count: latest.quote_count,
+            view_count: latest.view_count,
+          });
+        }
       }
     } catch (error) {
       console.error("Failed to refresh data:", error);
@@ -255,9 +292,13 @@ export function TwitterEngagementChart({ tweetId }: TwitterEngagementChartProps)
   const trackingStatus = data.tracking_status;
   const isCold = trackingStatus?.tier === "cold";
   const hasLimitedData = data.snapshots.length < 3;
+  
+  // Initial state: 0 snapshots (only initial data) OR only 1 total data point
+  // This forces the Big Numbers view until we have at least 1 historical snapshot
+  const isInitialState = data.snapshots.length === 0 || allDataPoints.length <= 1;
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col h-full space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between gap-3">
         <div className="space-y-0.5 min-w-0 flex-1">
@@ -270,7 +311,7 @@ export function TwitterEngagementChart({ tweetId }: TwitterEngagementChartProps)
                   <span className="hidden sm:inline">Paused</span>
                 </Badge>
               ) : (
-                <Badge variant="secondary" className="gap-1 text-xs px-2 py-0.5 bg-chart-2/10 text-chart-2 border-chart-2/20">
+                <Badge variant="outline-success" className="gap-1 text-xs px-2 py-0.5">
                   <Activity className="size-3" />
                   <span className="hidden sm:inline">Active</span>
                 </Badge>
@@ -293,15 +334,8 @@ export function TwitterEngagementChart({ tweetId }: TwitterEngagementChartProps)
         </Button>
       </div>
 
-      {/* Conditional Info Message for Cold Tweets with Limited Data */}
-      {isCold && hasLimitedData && (
-        <div className="rounded-lg border border-muted bg-muted/20 p-3">
-          <p className="text-xs text-muted-foreground">
-            Tracking paused due to low engagement activity. Use Refresh to get latest data.
-          </p>
-        </div>
-      )}
-
+      {/* Tabs with charts - flex-1 to take available space */}
+      <div className="flex-1">
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "reach" | "engagement")}>
         <TabsList className="grid w-full max-w-xs grid-cols-2">
@@ -317,305 +351,380 @@ export function TwitterEngagementChart({ tweetId }: TwitterEngagementChartProps)
         </TabsList>
 
         <TabsContent value="engagement" className="space-y-3 mt-4 w-full">
-          {/* Chart */}
-          <ChartContainer config={engagementChartConfig} className="h-[220px] w-full">
-            <LineChart 
-              data={chartData} 
-              margin={{ left: 0, right: 12, top: 12, bottom: 12 }}
-              accessibilityLayer
-            >
-              <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis
-                dataKey="time"
-                tickLine={false}
-                axisLine={false}
-                tickMargin={8}
-              />
-              <YAxis
-                tickLine={false}
-                axisLine={false}
-                tickMargin={8}
-                tickFormatter={formatCompactNumber}
-                width={40}
-              />
-              <ChartTooltip content={<ChartTooltipContent />} />
+          {isInitialState ? (
+            // Initial State View - Big Numbers instead of Chart
+            <div className="h-[220px] w-full flex flex-col items-center justify-center gap-6 panel-hud bg-muted/10 border-dashed">
+              <div className="grid grid-cols-4 gap-8 text-center">
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Likes</p>
+                  <p className="text-3xl font-bold tabular-nums text-foreground" style={{ color: "var(--chart-1)" }}>
+                    {formatCompactNumber(latestMetrics.like_count)}
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Retweets</p>
+                  <p className="text-3xl font-bold tabular-nums text-foreground" style={{ color: "var(--chart-2)" }}>
+                    {formatCompactNumber(latestMetrics.retweet_count)}
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Replies</p>
+                  <p className="text-3xl font-bold tabular-nums text-foreground" style={{ color: "var(--chart-3)" }}>
+                    {formatCompactNumber(latestMetrics.reply_count)}
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Quotes</p>
+                  <p className="text-3xl font-bold tabular-nums text-foreground" style={{ color: "var(--chart-4)" }}>
+                    {formatCompactNumber(latestMetrics.quote_count)}
+                  </p>
+                </div>
+              </div>
               
-              {/* Single continuous line per metric */}
-              <Line
-                dataKey="like_count"
-                type="monotone"
-                stroke="var(--color-like_count)"
-                strokeWidth={2}
-                dot={(props: any) => {
-                  const { cx, cy, payload, index } = props;
-                  // Use stable key: index + timestamp + type for uniqueness
-                  const key = `like-${index}-${payload.timestamp || payload.snapshot_at}-${payload.type}`;
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-background/50 border border-border/50">
+                <Clock className="size-3.5 text-muted-foreground" />
+                <p className="text-xs text-muted-foreground">
+                  Recent tweet. Metrics will update hourly to build the trend curve.
+                </p>
+              </div>
+            </div>
+          ) : (
+            <>
+              {/* Chart */}
+              <ChartContainer config={engagementChartConfig} className="h-[220px] w-full">
+                <LineChart 
+                  data={chartData} 
+                  margin={{ left: 0, right: 12, top: 12, bottom: 12 }}
+                  accessibilityLayer
+                >
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
+                  <XAxis
+                    dataKey="time"
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={8}
+                    tick={{ fill: "var(--muted-foreground)", fontSize: 12 }}
+                  />
+                  <YAxis
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={8}
+                    tickFormatter={formatCompactNumber}
+                    width={40}
+                    tick={{ fill: "var(--muted-foreground)", fontSize: 12 }}
+                  />
+                  <ChartTooltip content={<ChartTooltipContent className="w-40 bg-background/95 backdrop-blur-sm border-border shadow-lg" />} />
                   
-                  if (payload.type === "prediction") {
-                    return (
-                      <circle
-                        key={key}
-                        cx={cx}
-                        cy={cy}
-                        r={4}
-                        fill="none"
-                        stroke="var(--color-like_count)"
-                        strokeWidth={2}
-                        strokeDasharray="2 2"
-                      />
-                    );
-                  }
-                  if (payload.type === "initial") {
-                    return (
-                      <circle
-                        key={key}
-                        cx={cx}
-                        cy={cy}
-                        r={5}
-                        fill="var(--color-like_count)"
-                        stroke="hsl(var(--background))"
-                        strokeWidth={2}
-                      />
-                    );
-                  }
-                  return <circle key={key} cx={cx} cy={cy} r={3} fill="var(--color-like_count)" />;
-                }}
-                activeDot={{ r: 6 }}
-                connectNulls
-              />
-              <Line
-                dataKey="retweet_count"
-                type="monotone"
-                stroke="var(--color-retweet_count)"
-                strokeWidth={2}
-                dot={(props: any) => {
-                  const { cx, cy, payload, index } = props;
-                  const key = `retweet-${index}-${payload.timestamp || payload.snapshot_at}-${payload.type}`;
-                  
-                  if (payload.type === "prediction") {
-                    return (
-                      <circle
-                        key={key}
-                        cx={cx}
-                        cy={cy}
-                        r={4}
-                        fill="none"
-                        stroke="var(--color-retweet_count)"
-                        strokeWidth={2}
-                        strokeDasharray="2 2"
-                      />
-                    );
-                  }
-                  if (payload.type === "initial") {
-                    return (
-                      <circle
-                        key={key}
-                        cx={cx}
-                        cy={cy}
-                        r={5}
-                        fill="var(--color-retweet_count)"
-                        stroke="hsl(var(--background))"
-                        strokeWidth={2}
-                      />
-                    );
-                  }
-                  return <circle key={key} cx={cx} cy={cy} r={3} fill="var(--color-retweet_count)" />;
-                }}
-                activeDot={{ r: 6 }}
-                connectNulls
-              />
-              <Line
-                dataKey="reply_count"
-                type="monotone"
-                stroke="var(--color-reply_count)"
-                strokeWidth={2}
-                dot={(props: any) => {
-                  const { cx, cy, payload, index } = props;
-                  const key = `reply-${index}-${payload.timestamp || payload.snapshot_at}-${payload.type}`;
-                  
-                  if (payload.type === "prediction") {
-                    return (
-                      <circle
-                        key={key}
-                        cx={cx}
-                        cy={cy}
-                        r={4}
-                        fill="none"
-                        stroke="var(--color-reply_count)"
-                        strokeWidth={2}
-                        strokeDasharray="2 2"
-                      />
-                    );
-                  }
-                  if (payload.type === "initial") {
-                    return (
-                      <circle
-                        key={key}
-                        cx={cx}
-                        cy={cy}
-                        r={5}
-                        fill="var(--color-reply_count)"
-                        stroke="hsl(var(--background))"
-                        strokeWidth={2}
-                      />
-                    );
-                  }
-                  return <circle key={key} cx={cx} cy={cy} r={3} fill="var(--color-reply_count)" />;
-                }}
-                activeDot={{ r: 6 }}
-                connectNulls
-              />
-              <Line
-                dataKey="quote_count"
-                type="monotone"
-                stroke="var(--color-quote_count)"
-                strokeWidth={2}
-                dot={(props: any) => {
-                  const { cx, cy, payload, index } = props;
-                  const key = `quote-${index}-${payload.timestamp || payload.snapshot_at}-${payload.type}`;
-                  
-                  if (payload.type === "prediction") {
-                    return (
-                      <circle
-                        key={key}
-                        cx={cx}
-                        cy={cy}
-                        r={4}
-                        fill="none"
-                        stroke="var(--color-quote_count)"
-                        strokeWidth={2}
-                        strokeDasharray="2 2"
-                      />
-                    );
-                  }
-                  if (payload.type === "initial") {
-                    return (
-                      <circle
-                        key={key}
-                        cx={cx}
-                        cy={cy}
-                        r={5}
-                        fill="var(--color-quote_count)"
-                        stroke="hsl(var(--background))"
-                        strokeWidth={2}
-                      />
-                    );
-                  }
-                  return <circle key={key} cx={cx} cy={cy} r={3} fill="var(--color-quote_count)" />;
-                }}
-                activeDot={{ r: 6 }}
-                connectNulls
-              />
-            </LineChart>
-          </ChartContainer>
+                  {/* Single continuous line per metric */}
+                  <Line
+                    dataKey="like_count"
+                    type="monotone"
+                    stroke="var(--color-like_count)"
+                    strokeWidth={2}
+                    dot={(props: any) => {
+                      const { cx, cy, payload, index } = props;
+                      const key = `like-${index}-${payload.timestamp || payload.snapshot_at}-${payload.type}`;
+                      
+                      if (payload.type === "prediction") {
+                        return (
+                          <circle
+                            key={key}
+                            cx={cx}
+                            cy={cy}
+                            r={4}
+                            fill="none"
+                            stroke="var(--color-like_count)"
+                            strokeWidth={2}
+                            strokeDasharray="2 2"
+                          />
+                        );
+                      }
+                      if (payload.type === "initial") {
+                        return (
+                          <circle
+                            key={key}
+                            cx={cx}
+                            cy={cy}
+                            r={5}
+                            fill="var(--color-like_count)"
+                            stroke="var(--background)"
+                            strokeWidth={2}
+                          />
+                        );
+                      }
+                      return <circle key={key} cx={cx} cy={cy} r={3} fill="var(--color-like_count)" />;
+                    }}
+                    activeDot={{ r: 6 }}
+                    connectNulls
+                  />
+                  <Line
+                    dataKey="retweet_count"
+                    type="monotone"
+                    stroke="var(--color-retweet_count)"
+                    strokeWidth={2}
+                    dot={(props: any) => {
+                      const { cx, cy, payload, index } = props;
+                      const key = `retweet-${index}-${payload.timestamp || payload.snapshot_at}-${payload.type}`;
+                      
+                      if (payload.type === "prediction") {
+                        return (
+                          <circle
+                            key={key}
+                            cx={cx}
+                            cy={cy}
+                            r={4}
+                            fill="none"
+                            stroke="var(--color-retweet_count)"
+                            strokeWidth={2}
+                            strokeDasharray="2 2"
+                          />
+                        );
+                      }
+                      if (payload.type === "initial") {
+                        return (
+                          <circle
+                            key={key}
+                            cx={cx}
+                            cy={cy}
+                            r={5}
+                            fill="var(--color-retweet_count)"
+                            stroke="var(--background)"
+                            strokeWidth={2}
+                          />
+                        );
+                      }
+                      return <circle key={key} cx={cx} cy={cy} r={3} fill="var(--color-retweet_count)" />;
+                    }}
+                    activeDot={{ r: 6 }}
+                    connectNulls
+                  />
+                  <Line
+                    dataKey="reply_count"
+                    type="monotone"
+                    stroke="var(--color-reply_count)"
+                    strokeWidth={2}
+                    dot={(props: any) => {
+                      const { cx, cy, payload, index } = props;
+                      const key = `reply-${index}-${payload.timestamp || payload.snapshot_at}-${payload.type}`;
+                      
+                      if (payload.type === "prediction") {
+                        return (
+                          <circle
+                            key={key}
+                            cx={cx}
+                            cy={cy}
+                            r={4}
+                            fill="none"
+                            stroke="var(--color-reply_count)"
+                            strokeWidth={2}
+                            strokeDasharray="2 2"
+                          />
+                        );
+                      }
+                      if (payload.type === "initial") {
+                        return (
+                          <circle
+                            key={key}
+                            cx={cx}
+                            cy={cy}
+                            r={5}
+                            fill="var(--color-reply_count)"
+                            stroke="var(--background)"
+                            strokeWidth={2}
+                          />
+                        );
+                      }
+                      return <circle key={key} cx={cx} cy={cy} r={3} fill="var(--color-reply_count)" />;
+                    }}
+                    activeDot={{ r: 6 }}
+                    connectNulls
+                  />
+                  <Line
+                    dataKey="quote_count"
+                    type="monotone"
+                    stroke="var(--color-quote_count)"
+                    strokeWidth={2}
+                    dot={(props: any) => {
+                      const { cx, cy, payload, index } = props;
+                      const key = `quote-${index}-${payload.timestamp || payload.snapshot_at}-${payload.type}`;
+                      
+                      if (payload.type === "prediction") {
+                        return (
+                          <circle
+                            key={key}
+                            cx={cx}
+                            cy={cy}
+                            r={4}
+                            fill="none"
+                            stroke="var(--color-quote_count)"
+                            strokeWidth={2}
+                            strokeDasharray="2 2"
+                          />
+                        );
+                      }
+                      if (payload.type === "initial") {
+                        return (
+                          <circle
+                            key={key}
+                            cx={cx}
+                            cy={cy}
+                            r={5}
+                            fill="var(--color-quote_count)"
+                            stroke="var(--background)"
+                            strokeWidth={2}
+                          />
+                        );
+                      }
+                      return <circle key={key} cx={cx} cy={cy} r={3} fill="var(--color-quote_count)" />;
+                    }}
+                    activeDot={{ r: 6 }}
+                    connectNulls
+                  />
+                </LineChart>
+              </ChartContainer>
 
-          {/* Stats Summary - Compact & Colored */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-3 border-t border-border/60">
-            <div className="space-y-1">
-              <p className="text-xs text-muted-foreground">Likes</p>
-              <p className="text-body font-semibold" style={{ color: "var(--chart-1)" }}>
-                {formatCompactNumber(latestMetrics.like_count)}
-              </p>
-            </div>
-            <div className="space-y-1">
-              <p className="text-xs text-muted-foreground">Retweets</p>
-              <p className="text-body font-semibold" style={{ color: "var(--chart-2)" }}>
-                {formatCompactNumber(latestMetrics.retweet_count)}
-              </p>
-            </div>
-            <div className="space-y-1">
-              <p className="text-xs text-muted-foreground">Replies</p>
-              <p className="text-body font-semibold" style={{ color: "var(--chart-3)" }}>
-                {formatCompactNumber(latestMetrics.reply_count)}
-              </p>
-            </div>
-            <div className="space-y-1">
-              <p className="text-xs text-muted-foreground">Quotes</p>
-              <p className="text-body font-semibold" style={{ color: "var(--chart-4)" }}>
-                {formatCompactNumber(latestMetrics.quote_count)}
-              </p>
-            </div>
-          </div>
+              {/* Stats Summary - Compact & Colored */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-3 border-t border-border/60">
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground">Likes</p>
+                  <p className="text-body font-semibold" style={{ color: "var(--chart-1)" }}>
+                    {formatCompactNumber(latestMetrics.like_count)}
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground">Retweets</p>
+                  <p className="text-body font-semibold" style={{ color: "var(--chart-2)" }}>
+                    {formatCompactNumber(latestMetrics.retweet_count)}
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground">Replies</p>
+                  <p className="text-body font-semibold" style={{ color: "var(--chart-3)" }}>
+                    {formatCompactNumber(latestMetrics.reply_count)}
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground">Quotes</p>
+                  <p className="text-body font-semibold" style={{ color: "var(--chart-4)" }}>
+                    {formatCompactNumber(latestMetrics.quote_count)}
+                  </p>
+                </div>
+              </div>
+            </>
+          )}
         </TabsContent>
 
         <TabsContent value="reach" className="space-y-3 mt-4 w-full">
-          {/* Chart */}
-          <ChartContainer config={reachChartConfig} className="h-[220px] w-full">
-            <LineChart 
-              data={chartData} 
-              margin={{ left: 0, right: 12, top: 12, bottom: 12 }}
-              accessibilityLayer
-            >
-              <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis
-                dataKey="time"
-                tickLine={false}
-                axisLine={false}
-                tickMargin={8}
-              />
-              <YAxis
-                tickLine={false}
-                axisLine={false}
-                tickMargin={8}
-                tickFormatter={formatCompactNumber}
-                width={40}
-              />
-              <ChartTooltip content={<ChartTooltipContent />} />
+          {isInitialState ? (
+            // Initial State View for Reach
+            <div className="h-[220px] w-full flex flex-col items-center justify-center gap-6 panel-hud bg-muted/10 border-dashed">
+              <div className="text-center space-y-1">
+                <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Total Views</p>
+                <p className="text-4xl font-bold tabular-nums text-foreground" style={{ color: "var(--primary)" }}>
+                  {formatCompactNumber(latestMetrics.view_count)}
+                </p>
+              </div>
               
-              {/* Single continuous line */}
-              <Line
-                dataKey="view_count"
-                type="monotone"
-                stroke="var(--color-view_count)"
-                strokeWidth={2}
-                dot={(props: any) => {
-                  const { cx, cy, payload, index } = props;
-                  const key = `view-${index}-${payload.timestamp || payload.snapshot_at}-${payload.type}`;
-                  
-                  if (payload.type === "prediction") {
-                    return (
-                      <circle
-                        key={key}
-                        cx={cx}
-                        cy={cy}
-                        r={4}
-                        fill="none"
-                        stroke="var(--color-view_count)"
-                        strokeWidth={2}
-                        strokeDasharray="2 2"
-                      />
-                    );
-                  }
-                  if (payload.type === "initial") {
-                    return (
-                      <circle
-                        key={key}
-                        cx={cx}
-                        cy={cy}
-                        r={5}
-                        fill="var(--color-view_count)"
-                        stroke="hsl(var(--background))"
-                        strokeWidth={2}
-                      />
-                    );
-                  }
-                  return <circle key={key} cx={cx} cy={cy} r={3} fill="var(--color-view_count)" />;
-                }}
-                activeDot={{ r: 6 }}
-                connectNulls
-              />
-            </LineChart>
-          </ChartContainer>
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-background/50 border border-border/50">
+                <Clock className="size-3.5 text-muted-foreground" />
+                <p className="text-xs text-muted-foreground">
+                  Recent tweet. Metrics will update hourly to build the trend curve.
+                </p>
+              </div>
+            </div>
+          ) : (
+            // Standard Chart View
+            <ChartContainer config={reachChartConfig} className="h-[220px] w-full">
+              <LineChart 
+                data={chartData} 
+                margin={{ left: 0, right: 12, top: 12, bottom: 12 }}
+                accessibilityLayer
+              >
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
+                <XAxis
+                  dataKey="time"
+                  tickLine={false}
+                  axisLine={false}
+                  tickMargin={8}
+                  tick={{ fill: "var(--muted-foreground)", fontSize: 12 }}
+                />
+                <YAxis
+                  tickLine={false}
+                  axisLine={false}
+                  tickMargin={8}
+                  tickFormatter={formatCompactNumber}
+                  width={40}
+                  tick={{ fill: "var(--muted-foreground)", fontSize: 12 }}
+                />
+                <ChartTooltip content={<ChartTooltipContent className="w-40 bg-background/95 backdrop-blur-sm border-border shadow-lg" />} />
+                
+                {/* Single continuous line */}
+                <Line
+                  dataKey="view_count"
+                  type="monotone"
+                  stroke="var(--color-view_count)"
+                  strokeWidth={2}
+                  dot={(props: any) => {
+                    const { cx, cy, payload, index } = props;
+                    const key = `view-${index}-${payload.timestamp || payload.snapshot_at}-${payload.type}`;
+                    
+                    if (payload.type === "prediction") {
+                      return (
+                        <circle
+                          key={key}
+                          cx={cx}
+                          cy={cy}
+                          r={4}
+                          fill="none"
+                          stroke="var(--color-view_count)"
+                          strokeWidth={2}
+                          strokeDasharray="2 2"
+                        />
+                      );
+                    }
+                    if (payload.type === "initial") {
+                      return (
+                        <circle
+                          key={key}
+                          cx={cx}
+                          cy={cy}
+                          r={5}
+                          fill="var(--color-view_count)"
+                          stroke="var(--background)"
+                          strokeWidth={2}
+                        />
+                      );
+                    }
+                    return <circle key={key} cx={cx} cy={cy} r={3} fill="var(--color-view_count)" />;
+                  }}
+                  activeDot={{ r: 6 }}
+                  connectNulls
+                />
+              </LineChart>
+            </ChartContainer>
+          )}
 
-          {/* Stats Summary - Compact & Colored */}
-          <div className="space-y-1 pt-3 border-t border-border/60">
-            <p className="text-xs text-muted-foreground">Total Views</p>
-            <p className="text-body font-semibold" style={{ color: "var(--primary)" }}>
-              {formatCompactNumber(latestMetrics.view_count)}
-            </p>
-          </div>
+          {/* Stats Summary - Hide in initial state */}
+          {!isInitialState && (
+            <div className="space-y-1 pt-3 border-t border-border/60">
+              <p className="text-xs text-muted-foreground">Total Views</p>
+              <p className="text-body font-semibold" style={{ color: "var(--primary)" }}>
+                {formatCompactNumber(latestMetrics.view_count)}
+              </p>
+            </div>
+          )}
         </TabsContent>
       </Tabs>
+      </div>
+
+      {/* Info Message - Pinned to bottom with mt-auto */}
+      {isCold && hasLimitedData && (
+        <div className="rounded-lg border border-muted bg-muted/20 p-3 mt-auto">
+          <p className="text-xs text-muted-foreground">
+            Tracking paused due to low engagement activity. Use Refresh to get latest data.
+          </p>
+        </div>
+      )}
     </div>
   );
 }

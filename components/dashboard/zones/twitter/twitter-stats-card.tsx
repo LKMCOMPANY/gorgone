@@ -45,13 +45,11 @@ export function TwitterStatsCard({
   return (
     <Card 
       className={cn(
-        "group relative overflow-hidden glass-card",
-        "p-4 transition-all duration-[var(--transition-base)]",
-        "hover:shadow-xl hover:-translate-y-0.5",
-        "border-border/60 hover:border-primary/20"
+        "group relative overflow-hidden card-interactive",
+        "p-4"
       )}
     >
-      {/* Subtle background gradient on hover */}
+      {/* Subtle background gradient on hover using CSS variables for consistency */}
       <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.03] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-[var(--transition-base)]" />
       
       <div className="relative space-y-3">

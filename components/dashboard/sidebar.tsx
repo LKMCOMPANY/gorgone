@@ -107,10 +107,10 @@ export function DashboardSidebar({
                   const isActive = pathname.startsWith(`/dashboard/zones/${zone.id}`);
                   
                   return (
-                    <Collapsible key={zone.id} defaultOpen={isActive} className="group/collapsible">
+                    <Collapsible key={zone.id} defaultOpen={isActive} className="group/collapsible" suppressHydrationWarning>
                       <SidebarMenuItem>
                         <CollapsibleTrigger asChild>
-                          <SidebarMenuButton tooltip={zone.name}>
+                          <SidebarMenuButton tooltip={zone.name} suppressHydrationWarning>
                             <Globe />
                             <span>{zone.name}</span>
                             <ChevronRight className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" />

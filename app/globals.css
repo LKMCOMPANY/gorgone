@@ -41,6 +41,13 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  
+  /* Tactical Colors - Exposed to Tailwind */
+  --color-tactical-green: var(--tactical-green);
+  --color-tactical-amber: var(--tactical-amber);
+  --color-tactical-red: var(--tactical-red);
+  --color-tactical-blue: var(--tactical-blue);
+  --color-tactical-slate: var(--tactical-slate);
 }
 
 :root {
@@ -172,13 +179,20 @@
     --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
     
     /* ============ CARD SYSTEM ============ */
-    --card-hover-border: oklch(0.54 0.22 285 / 0.2);
-    --card-hover-shadow: 0 8px 16px -4px rgb(0 0 0 / 0.1);
+    /* Subtle interactions for elegant feel */
+    --card-hover-border: oklch(0.54 0.22 285 / 0.10);
+    --card-hover-shadow: 0 2px 8px -2px rgb(0 0 0 / 0.04);
     
     /* ============ GLASSMORPHISM (Apple-inspired) ============ */
     --glass-bg: oklch(from var(--background) l c h / 0.8);
     --glass-border: oklch(from var(--border) l c h / 0.3);
     --glass-blur: 12px;
+    
+    /* ============ HUD / OVERLAY PANELS ============ */
+    /* For map overlays, chart tooltips, and floating controls */
+    --hud-bg: oklch(from var(--background) l c h / 0.85);
+    --hud-border: oklch(from var(--border) l c h / 0.4);
+    --hud-blur: 8px;
     
     /* ============ MILITARY/TACTICAL ACCENTS ============ */
     --tactical-green: oklch(0.6 0.15 145);      /* Tactical green for success/active */
@@ -196,8 +210,9 @@
     --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.6), 0 4px 6px -4px rgb(0 0 0 / 0.5);
     --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.7), 0 8px 10px -6px rgb(0 0 0 / 0.6);
     
-    --card-hover-border: oklch(0.62 0.24 285 / 0.3);
-    --card-hover-shadow: 0 8px 16px -4px rgb(0 0 0 / 0.7);
+    /* Dark mode card hover: Subtle glow instead of harsh shadow */
+    --card-hover-border: oklch(0.62 0.24 285 / 0.15);
+    --card-hover-shadow: 0 8px 20px -4px rgb(0 0 0 / 0.2);
     
     /* Glassmorphism for dark mode */
     --glass-bg: oklch(from var(--background) l c h / 0.7);
@@ -216,6 +231,16 @@
     border: 1px solid var(--glass-border);
     backdrop-filter: blur(var(--glass-blur));
     -webkit-backdrop-filter: blur(var(--glass-blur));
+  }
+  
+  /* HUD Panel for overlays (Maps, Charts) */
+  .panel-hud {
+    background: var(--hud-bg);
+    border: 1px solid var(--hud-border);
+    backdrop-filter: blur(var(--hud-blur));
+    -webkit-backdrop-filter: blur(var(--hud-blur));
+    border-radius: var(--radius-lg); /* rounded-lg */
+    box-shadow: var(--shadow-xs);
   }
   
   .glass-card {
@@ -457,7 +482,8 @@
   }
   
   /* Paragraph - Default body text */
-  p, .text-p {
+  /* REMOVED global p styling to prevent UI layout issues */
+  .text-p {
     @apply leading-7 [&:not(:first-child)]:mt-6;
   }
   

@@ -158,7 +158,7 @@ export function TwitterFeedFilters({
   const activeFiltersCount = getActiveFiltersCount();
 
   return (
-    <Card className="card-padding space-y-4">
+    <Card className="card-interactive p-4 space-y-4">
       {/* Search Bar */}
       <div className="relative">
         <div className="relative">
@@ -169,7 +169,7 @@ export function TwitterFeedFilters({
             value={searchTerm}
             onChange={(e) => handleSearchChange(e.target.value)}
             onFocus={() => setShowAutocomplete(true)}
-            className="pl-10 pr-10 h-11 transition-shadow duration-[var(--transition-fast)] focus-visible:shadow-[var(--shadow-sm)]"
+            className="pl-10 pr-10 h-10 transition-shadow duration-[var(--transition-fast)] focus-visible:shadow-xs"
           />
           {searchTerm && (
             <button
@@ -183,12 +183,12 @@ export function TwitterFeedFilters({
 
         {/* Autocomplete Dropdown */}
         {showAutocomplete && autocompleteResults.length > 0 && (
-          <div className="absolute z-50 w-full mt-2 bg-card border border-border rounded-lg shadow-lg overflow-hidden animate-in fade-in-0 slide-in-from-top-2 duration-200">
+          <div className="absolute z-50 w-full mt-2 bg-card border border-border rounded-lg shadow-md overflow-hidden animate-in fade-in-0 slide-in-from-top-2 duration-200">
             {autocompleteResults.map((result, index) => (
               <button
                 key={`${result.type}-${result.value}-${index}`}
                 onClick={() => handleSelectAutocomplete(result)}
-                className="w-full px-4 py-3 flex items-center gap-3 hover:bg-muted/50 transition-colors duration-[var(--transition-fast)] text-left"
+                className="w-full px-4 py-3 flex items-center gap-3 hover:bg-muted/50 transition-colors duration-[var(--transition-fast)] text-left focus:bg-muted/50 outline-none"
               >
                 {result.type === "user" && result.metadata?.profile_picture_url ? (
                   <img
@@ -205,7 +205,7 @@ export function TwitterFeedFilters({
                     )}
                   </div>
                 )}
-                <div className="flex-1 min-w-0">
+                <div className="flex-1 min-w-0 text-left">
                   <div className="flex items-center gap-2">
                     <p className="text-sm font-medium truncate">
                       {result.label}
@@ -242,19 +242,19 @@ export function TwitterFeedFilters({
         )}
       </div>
 
-      {/* Quick Controls Bar */}
-      <div className="flex flex-wrap items-center gap-2">
-        {/* Sort By */}
-        <Select
-          value={filters.sort_by || "recent"}
-          onValueChange={(value) =>
-            handleFilterChange("sort_by", value as SortOption)
-          }
-        >
-          <SelectTrigger className="h-9 w-[180px] transition-shadow duration-[var(--transition-fast)]">
-            <TrendingUp className="size-4 mr-2" />
-            <SelectValue placeholder="Sort by" />
-          </SelectTrigger>
+        {/* Quick Controls Bar */}
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Sort By */}
+          <Select
+            value={filters.sort_by || "recent"}
+            onValueChange={(value) =>
+              handleFilterChange("sort_by", value as SortOption)
+            }
+          >
+            <SelectTrigger className="h-9 min-w-[160px] flex-1 sm:flex-none transition-shadow duration-[var(--transition-fast)]">
+              <TrendingUp className="size-4 mr-2 text-muted-foreground" />
+              <SelectValue placeholder="Sort by" />
+            </SelectTrigger>
           <SelectContent>
             <SelectItem value="recent">Most Recent</SelectItem>
             <SelectItem value="most_views">Most Views</SelectItem>
@@ -265,19 +265,19 @@ export function TwitterFeedFilters({
           </SelectContent>
         </Select>
 
-        {/* Post Type Filter */}
-        <Select
-          value={filters.post_type || "all"}
-          onValueChange={(value) =>
-            handleFilterChange("post_type", value === "all" ? undefined : (value as PostType))
-          }
-        >
-          <SelectTrigger className="h-9 w-[140px] transition-shadow duration-[var(--transition-fast)]">
-            <svg className="size-4 mr-2" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-            </svg>
-            <SelectValue placeholder="Post type" />
-          </SelectTrigger>
+          {/* Post Type Filter */}
+          <Select
+            value={filters.post_type || "all"}
+            onValueChange={(value) =>
+              handleFilterChange("post_type", value === "all" ? undefined : (value as PostType))
+            }
+          >
+            <SelectTrigger className="h-9 min-w-[140px] flex-1 sm:flex-none transition-shadow duration-[var(--transition-fast)]">
+              <svg className="size-4 mr-2 text-muted-foreground" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+              </svg>
+              <SelectValue placeholder="Post type" />
+            </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Types</SelectItem>
             <SelectItem value="post">Posts</SelectItem>
@@ -287,17 +287,17 @@ export function TwitterFeedFilters({
           </SelectContent>
         </Select>
 
-        {/* Profile Type Filter */}
-        <Select
-          value={filters.profile_tag_type || "all"}
-          onValueChange={(value) =>
-            handleFilterChange("profile_tag_type", value === "all" ? undefined : (value as ProfileTagType))
-          }
-        >
-          <SelectTrigger className="h-9 w-[160px] transition-shadow duration-[var(--transition-fast)]">
-            <User className="size-4 mr-2" />
-            <SelectValue placeholder="Profile type" />
-          </SelectTrigger>
+          {/* Profile Type Filter */}
+          <Select
+            value={filters.profile_tag_type || "all"}
+            onValueChange={(value) =>
+              handleFilterChange("profile_tag_type", value === "all" ? undefined : (value as ProfileTagType))
+            }
+          >
+            <SelectTrigger className="h-9 min-w-[150px] flex-1 sm:flex-none transition-shadow duration-[var(--transition-fast)]">
+              <User className="size-4 mr-2 text-muted-foreground" />
+              <SelectValue placeholder="Profile type" />
+            </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Profiles</SelectItem>
             <SelectItem value="attila">Attila</SelectItem>
@@ -310,17 +310,17 @@ export function TwitterFeedFilters({
           </SelectContent>
         </Select>
 
-        {/* Date Range */}
-        <Select
-          value={filters.date_range || "all"}
-          onValueChange={(value) =>
-            handleFilterChange("date_range", value === "all" ? undefined : value)
-          }
-        >
-          <SelectTrigger className="h-9 w-[140px] transition-shadow duration-[var(--transition-fast)]">
-            <Calendar className="size-4 mr-2" />
-            <SelectValue placeholder="Time range" />
-          </SelectTrigger>
+          {/* Date Range */}
+          <Select
+            value={filters.date_range || "all"}
+            onValueChange={(value) =>
+              handleFilterChange("date_range", value === "all" ? undefined : value)
+            }
+          >
+            <SelectTrigger className="h-9 min-w-[140px] flex-1 sm:flex-none transition-shadow duration-[var(--transition-fast)]">
+              <Calendar className="size-4 mr-2 text-muted-foreground" />
+              <SelectValue placeholder="Time range" />
+            </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All time</SelectItem>
             <SelectItem value="1h">Last hour</SelectItem>
@@ -354,7 +354,7 @@ export function TwitterFeedFilters({
 
         {/* Active Search Display */}
         {filters.search && (
-          <Badge variant="secondary" className="gap-2">
+          <Badge variant="outline" className="gap-2 bg-muted/30">
             <Search className="size-3" />
             {filters.search}
             <button
@@ -368,7 +368,7 @@ export function TwitterFeedFilters({
 
         {/* Active Post Type Filter */}
         {filters.post_type && (
-          <Badge variant="secondary" className="gap-2 capitalize">
+          <Badge variant="outline" className="gap-2 capitalize bg-muted/30">
             <svg className="size-3" fill="currentColor" viewBox="0 0 24 24">
               <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
             </svg>
@@ -384,7 +384,7 @@ export function TwitterFeedFilters({
 
         {/* Active Profile Tag Filter */}
         {filters.profile_tag_type && (
-          <Badge variant="secondary" className="gap-2 capitalize">
+          <Badge variant="outline" className="gap-2 capitalize bg-muted/30">
             <User className="size-3" />
             {filters.profile_tag_type.replace("_", " ")}
             <button
@@ -409,16 +409,16 @@ export function TwitterFeedFilters({
               className={cn(
                 "flex items-center gap-3 p-3 rounded-lg border transition-all duration-[var(--transition-fast)]",
                 filters.has_links
-                  ? "border-primary bg-primary/5 text-primary"
-                  : "border-border hover:border-primary/50 hover:bg-muted/30"
+                  ? "border-primary bg-primary/10 text-primary shadow-xs"
+                  : "border-border hover:border-primary/30 hover:bg-muted/50"
               )}
             >
               <div
                 className={cn(
-                  "h-4 w-4 rounded border-2 flex items-center justify-center transition-all duration-[var(--transition-fast)]",
+                  "h-4 w-4 rounded border flex items-center justify-center transition-all duration-[var(--transition-fast)]",
                   filters.has_links
-                    ? "border-primary bg-primary"
-                    : "border-muted-foreground"
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-muted-foreground/50"
                 )}
               >
                 {filters.has_links && (
@@ -448,16 +448,16 @@ export function TwitterFeedFilters({
               className={cn(
                 "flex items-center gap-3 p-3 rounded-lg border transition-all duration-[var(--transition-fast)]",
                 filters.verified_only
-                  ? "border-primary bg-primary/5 text-primary"
-                  : "border-border hover:border-primary/50 hover:bg-muted/30"
+                  ? "border-primary bg-primary/10 text-primary shadow-xs"
+                  : "border-border hover:border-primary/30 hover:bg-muted/50"
               )}
             >
               <div
                 className={cn(
-                  "h-4 w-4 rounded border-2 flex items-center justify-center transition-all duration-[var(--transition-fast)]",
+                  "h-4 w-4 rounded border flex items-center justify-center transition-all duration-[var(--transition-fast)]",
                   filters.verified_only
-                    ? "border-primary bg-primary"
-                    : "border-muted-foreground"
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-muted-foreground/50"
                 )}
               >
                 {filters.verified_only && (
@@ -487,16 +487,16 @@ export function TwitterFeedFilters({
               className={cn(
                 "flex items-center gap-3 p-3 rounded-lg border transition-all duration-[var(--transition-fast)]",
                 filters.active_tracking_only
-                  ? "border-primary bg-primary/5 text-primary"
-                  : "border-border hover:border-primary/50 hover:bg-muted/30"
+                  ? "border-primary bg-primary/10 text-primary shadow-xs"
+                  : "border-border hover:border-primary/30 hover:bg-muted/50"
               )}
             >
               <div
                 className={cn(
-                  "h-4 w-4 rounded border-2 flex items-center justify-center transition-all duration-[var(--transition-fast)]",
+                  "h-4 w-4 rounded border flex items-center justify-center transition-all duration-[var(--transition-fast)]",
                   filters.active_tracking_only
-                    ? "border-primary bg-primary"
-                    : "border-muted-foreground"
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-muted-foreground/50"
                 )}
               >
                 {filters.active_tracking_only && (

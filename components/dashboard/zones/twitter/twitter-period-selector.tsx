@@ -4,6 +4,7 @@ import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useTransition } from "react";
 import { Clock, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export type Period = "3h" | "6h" | "24h" | "7d" | "30d";
 
@@ -12,17 +13,16 @@ interface TwitterPeriodSelectorProps {
 }
 
 const PERIODS: { value: Period; label: string }[] = [
-  { value: "3h", label: "3 Hours" },
-  { value: "6h", label: "6 Hours" },
-  { value: "24h", label: "24 Hours" },
-  { value: "7d", label: "7 Days" },
-  { value: "30d", label: "30 Days" },
+  { value: "3h", label: "3H" },
+  { value: "6h", label: "6H" },
+  { value: "24h", label: "24H" },
+  { value: "7d", label: "7D" },
+  { value: "30d", label: "30D" },
 ];
 
 /**
  * Period selector for Twitter overview
- * Professional pill-style selector with loading indicator
- * Syncs selection with URL parameter for persistence
+ * Uses Shadcn Tabs component for standardized pill styling
  */
 export function TwitterPeriodSelector({ currentPeriod }: TwitterPeriodSelectorProps) {
   const router = useRouter();
@@ -30,11 +30,11 @@ export function TwitterPeriodSelector({ currentPeriod }: TwitterPeriodSelectorPr
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
 
-  const handlePeriodChange = (period: Period) => {
-    if (period === currentPeriod) return;
+  const handlePeriodChange = (value: string) => {
+    if (value === currentPeriod) return;
     
     const params = new URLSearchParams(searchParams.toString());
-    params.set("period", period);
+    params.set("period", value);
     
     startTransition(() => {
       router.push(`${pathname}?${params.toString()}`, { scroll: false });
@@ -42,38 +42,33 @@ export function TwitterPeriodSelector({ currentPeriod }: TwitterPeriodSelectorPr
   };
 
   return (
-    <div className="flex items-center gap-3 flex-wrap">
+    <div className="flex items-center gap-3">
       <div className="flex items-center gap-2 text-muted-foreground">
         {isPending ? (
           <Loader2 className="size-4 animate-spin text-primary" />
         ) : (
           <Clock className="size-4" />
         )}
-        <span className="text-sm font-medium">Period</span>
+        <span className="text-sm font-medium hidden sm:inline">Period</span>
       </div>
-      <div className={cn(
-        "inline-flex rounded-lg border border-border bg-muted/30 p-1 gap-1 shadow-sm transition-opacity duration-200",
-        isPending && "opacity-50"
-      )}>
-        {PERIODS.map((period) => (
-          <button
-            key={period.value}
-            onClick={() => handlePeriodChange(period.value)}
-            disabled={currentPeriod === period.value || isPending}
-            className={cn(
-              "relative px-3 py-1.5 text-sm font-medium rounded-md",
-              "transition-all duration-200 ease-out",
-              "disabled:cursor-not-allowed",
-              !isPending && "hover:scale-105 active:scale-95",
-              currentPeriod === period.value
-                ? "bg-primary text-primary-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground hover:bg-background/80"
-            )}
-          >
-            {period.label}
-          </button>
-        ))}
-      </div>
+      
+      <Tabs 
+        value={currentPeriod} 
+        onValueChange={handlePeriodChange}
+        className={cn("w-auto", isPending && "opacity-50 pointer-events-none")}
+      >
+        <TabsList className="h-9 w-full justify-start bg-muted/50 p-1">
+          {PERIODS.map((period) => (
+            <TabsTrigger 
+              key={period.value} 
+              value={period.value}
+              className="h-7 px-3 text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all duration-[var(--transition-fast)]"
+            >
+              {period.label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </Tabs>
     </div>
   );
 }

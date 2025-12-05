@@ -17,12 +17,26 @@ const badgeVariants = cva(
           "border-transparent bg-destructive text-white shadow-xs [a&]:hover:bg-destructive/90 dark:bg-destructive/60",
         outline:
           "border-border bg-background text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
+        
+        /* Tactical Solids */
         success:
-          "border-transparent bg-[var(--tactical-green)] text-white shadow-xs",
+          "border-transparent bg-tactical-green text-white shadow-xs",
         warning:
-          "border-transparent bg-[var(--tactical-amber)] text-black shadow-xs",
+          "border-transparent bg-tactical-amber text-black shadow-xs",
+        danger:
+          "border-transparent bg-tactical-red text-white shadow-xs",
         info:
-          "border-transparent bg-[var(--tactical-blue)] text-white shadow-xs",
+          "border-transparent bg-tactical-blue text-white shadow-xs",
+
+        /* Tactical Outlines (HUD Style) */
+        "outline-success":
+          "border-tactical-green text-tactical-green bg-tactical-green/10 hover:bg-tactical-green/20",
+        "outline-warning":
+          "border-tactical-amber text-tactical-amber bg-tactical-amber/10 hover:bg-tactical-amber/20",
+        "outline-danger":
+          "border-tactical-red text-tactical-red bg-tactical-red/10 hover:bg-tactical-red/20",
+        "outline-info":
+          "border-tactical-blue text-tactical-blue bg-tactical-blue/10 hover:bg-tactical-blue/20",
       },
     },
     defaultVariants: {
