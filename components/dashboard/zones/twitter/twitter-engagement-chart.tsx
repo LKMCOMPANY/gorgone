@@ -57,6 +57,7 @@ interface TwitterEngagementChartProps {
     view_count: number;
   }) => void;
   onTrackingStatusUpdate?: (isCold: boolean) => void;
+  onRefreshReady?: (refreshFn: () => Promise<void>) => void;
 }
 
 // Chart configurations using Shadcn theming
@@ -94,7 +95,7 @@ function formatTimestamp(timestamp: string): string {
   return `${hours}:${minutes}`;
 }
 
-export function TwitterEngagementChart({ tweetId, onMetricsUpdate, onTrackingStatusUpdate }: TwitterEngagementChartProps) {
+export function TwitterEngagementChart({ tweetId, onMetricsUpdate, onTrackingStatusUpdate, onRefreshReady }: TwitterEngagementChartProps) {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [data, setData] = useState<EngagementHistoryData | null>(null);
@@ -205,6 +206,14 @@ export function TwitterEngagementChart({ tweetId, onMetricsUpdate, onTrackingSta
     fetchEngagementHistory();
   }, [fetchEngagementHistory]);
 
+  // Expose refresh function to parent (once only, on mount)
+  useEffect(() => {
+    if (onRefreshReady) {
+      onRefreshReady(handleRefresh);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [onRefreshReady]); // Intentionally omit handleRefresh to avoid infinite loop
+
   if (loading) {
     return (
       <div className="space-y-4">
@@ -305,23 +314,6 @@ export function TwitterEngagementChart({ tweetId, onMetricsUpdate, onTrackingSta
 
   return (
     <div className="flex flex-col h-full space-y-4">
-      {/* Header */}
-      <div className="flex items-center justify-between gap-3">
-        <div className="space-y-0.5 min-w-0 flex-1">
-          <h3 className="text-sm font-semibold">Engagement Evolution</h3>
-        </div>
-        <Button
-          size="icon-sm"
-          variant="ghost"
-          onClick={handleRefresh}
-          disabled={refreshing}
-          className="text-muted-foreground hover:text-foreground shrink-0"
-          title="Refresh metrics"
-        >
-          <RefreshCw className={cn("size-4", refreshing && "animate-spin")} />
-        </Button>
-      </div>
-
       {/* Tabs with charts - flex-1 to take available space */}
       <div className="flex-1">
       {/* Tabs */}
@@ -377,7 +369,7 @@ export function TwitterEngagementChart({ tweetId, onMetricsUpdate, onTrackingSta
             </div>
           ) : (
             <>
-              {/* Chart */}
+              {/* Chart with smooth data transitions */}
               <ChartContainer config={engagementChartConfig} className="h-[220px] w-full">
                 <LineChart 
                   data={chartData} 
@@ -403,12 +395,15 @@ export function TwitterEngagementChart({ tweetId, onMetricsUpdate, onTrackingSta
                   <ChartTooltip content={<ChartTooltipContent className="w-40 bg-background/95 backdrop-blur-sm border-border shadow-lg" />} />
                   
                   {/* Single continuous line per metric */}
-                  <Line
-                    dataKey="like_count"
-                    type="monotone"
-                    stroke="var(--color-like_count)"
-                    strokeWidth={2}
-                    dot={(props: any) => {
+              <Line
+                dataKey="like_count"
+                type="monotone"
+                stroke="var(--color-like_count)"
+                strokeWidth={2}
+                isAnimationActive={true}
+                animationDuration={1000}
+                animationEasing="ease-out"
+                dot={(props: any) => {
                       const { cx, cy, payload, index } = props;
                       const key = `like-${index}-${payload.timestamp || payload.snapshot_at}-${payload.type}`;
                       
@@ -444,12 +439,15 @@ export function TwitterEngagementChart({ tweetId, onMetricsUpdate, onTrackingSta
                     activeDot={{ r: 6 }}
                     connectNulls
                   />
-                  <Line
-                    dataKey="retweet_count"
-                    type="monotone"
-                    stroke="var(--color-retweet_count)"
-                    strokeWidth={2}
-                    dot={(props: any) => {
+              <Line
+                dataKey="retweet_count"
+                type="monotone"
+                stroke="var(--color-retweet_count)"
+                strokeWidth={2}
+                isAnimationActive={true}
+                animationDuration={1000}
+                animationEasing="ease-out"
+                dot={(props: any) => {
                       const { cx, cy, payload, index } = props;
                       const key = `retweet-${index}-${payload.timestamp || payload.snapshot_at}-${payload.type}`;
                       
@@ -485,12 +483,15 @@ export function TwitterEngagementChart({ tweetId, onMetricsUpdate, onTrackingSta
                     activeDot={{ r: 6 }}
                     connectNulls
                   />
-                  <Line
-                    dataKey="reply_count"
-                    type="monotone"
-                    stroke="var(--color-reply_count)"
-                    strokeWidth={2}
-                    dot={(props: any) => {
+              <Line
+                dataKey="reply_count"
+                type="monotone"
+                stroke="var(--color-reply_count)"
+                strokeWidth={2}
+                isAnimationActive={true}
+                animationDuration={1000}
+                animationEasing="ease-out"
+                dot={(props: any) => {
                       const { cx, cy, payload, index } = props;
                       const key = `reply-${index}-${payload.timestamp || payload.snapshot_at}-${payload.type}`;
                       
@@ -526,12 +527,15 @@ export function TwitterEngagementChart({ tweetId, onMetricsUpdate, onTrackingSta
                     activeDot={{ r: 6 }}
                     connectNulls
                   />
-                  <Line
-                    dataKey="quote_count"
-                    type="monotone"
-                    stroke="var(--color-quote_count)"
-                    strokeWidth={2}
-                    dot={(props: any) => {
+              <Line
+                dataKey="quote_count"
+                type="monotone"
+                stroke="var(--color-quote_count)"
+                strokeWidth={2}
+                isAnimationActive={true}
+                animationDuration={1000}
+                animationEasing="ease-out"
+                dot={(props: any) => {
                       const { cx, cy, payload, index } = props;
                       const key = `quote-${index}-${payload.timestamp || payload.snapshot_at}-${payload.type}`;
                       
@@ -620,7 +624,7 @@ export function TwitterEngagementChart({ tweetId, onMetricsUpdate, onTrackingSta
               </div>
             </div>
           ) : (
-            // Standard Chart View
+            // Standard Chart View with smooth transitions
             <ChartContainer config={reachChartConfig} className="h-[220px] w-full">
               <LineChart 
                 data={chartData} 
@@ -646,12 +650,15 @@ export function TwitterEngagementChart({ tweetId, onMetricsUpdate, onTrackingSta
                 <ChartTooltip content={<ChartTooltipContent className="w-40 bg-background/95 backdrop-blur-sm border-border shadow-lg" />} />
                 
                 {/* Single continuous line */}
-                <Line
-                  dataKey="view_count"
-                  type="monotone"
-                  stroke="var(--color-view_count)"
-                  strokeWidth={2}
-                  dot={(props: any) => {
+              <Line
+                dataKey="view_count"
+                type="monotone"
+                stroke="var(--color-view_count)"
+                strokeWidth={2}
+                isAnimationActive={true}
+                animationDuration={1000}
+                animationEasing="ease-out"
+                dot={(props: any) => {
                     const { cx, cy, payload, index } = props;
                     const key = `view-${index}-${payload.timestamp || payload.snapshot_at}-${payload.type}`;
                     

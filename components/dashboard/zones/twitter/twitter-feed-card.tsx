@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ExternalLink, Play, User, Snowflake, Activity } from "lucide-react";
+import { ExternalLink, Play, User, Snowflake, Activity, RefreshCw } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -119,6 +119,8 @@ export function TwitterFeedCard({
   const [imageError, setImageError] = useState(false);
   const [mediaErrors, setMediaErrors] = useState<Set<string>>(new Set());
   const [showFullText, setShowFullText] = useState(false);
+  const [refreshFn, setRefreshFn] = useState<(() => Promise<void>) | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   
   const [liveMetrics, setLiveMetrics] = useState({
     like_count: tweet.like_count,
@@ -147,6 +149,18 @@ export function TwitterFeedCard({
 
   const handleTrackingStatusUpdate = (isCold: boolean) => {
     setTrackingIsCold(isCold);
+  };
+
+  const handleRefreshReady = (fn: () => Promise<void>) => {
+    setRefreshFn(() => fn);
+  };
+
+  const handleRefreshClick = async () => {
+    if (refreshFn) {
+      setIsRefreshing(true);
+      await refreshFn();
+      setIsRefreshing(false);
+    }
   };
 
   const layoutClass = !showEngagementChart 
@@ -198,6 +212,20 @@ export function TwitterFeedCard({
 
         {/* Right: App Context */}
         <div className="flex items-center gap-2">
+          {/* Refresh Button */}
+          {showEngagementChart && (
+            <Button
+              size="icon-sm"
+              variant="ghost"
+              onClick={handleRefreshClick}
+              disabled={isRefreshing}
+              className="text-muted-foreground hover:text-foreground"
+              title="Refresh metrics"
+            >
+              <RefreshCw className={cn("size-4", isRefreshing && "animate-spin")} />
+            </Button>
+          )}
+
           {/* View Profile Button */}
           <Button
             asChild
@@ -403,6 +431,7 @@ export function TwitterFeedCard({
               tweetId={tweet.id} 
               onMetricsUpdate={handleMetricsUpdate}
               onTrackingStatusUpdate={handleTrackingStatusUpdate}
+              onRefreshReady={handleRefreshReady}
             />
           </div>
         )}
