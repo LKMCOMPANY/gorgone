@@ -56,6 +56,7 @@ interface TwitterEngagementChartProps {
     quote_count: number;
     view_count: number;
   }) => void;
+  onTrackingStatusUpdate?: (isCold: boolean) => void;
 }
 
 // Chart configurations using Shadcn theming
@@ -93,7 +94,7 @@ function formatTimestamp(timestamp: string): string {
   return `${hours}:${minutes}`;
 }
 
-export function TwitterEngagementChart({ tweetId, onMetricsUpdate }: TwitterEngagementChartProps) {
+export function TwitterEngagementChart({ tweetId, onMetricsUpdate, onTrackingStatusUpdate }: TwitterEngagementChartProps) {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [data, setData] = useState<EngagementHistoryData | null>(null);
@@ -122,6 +123,11 @@ export function TwitterEngagementChart({ tweetId, onMetricsUpdate }: TwitterEnga
             quote_count: latest.quote_count,
             view_count: latest.view_count,
           });
+        }
+
+        // Notify parent of tracking status
+        if (onTrackingStatusUpdate && result.tracking_status) {
+          onTrackingStatusUpdate(result.tracking_status.tier === "cold");
         }
       } else {
         toast.error("Failed to load engagement data");
@@ -302,35 +308,17 @@ export function TwitterEngagementChart({ tweetId, onMetricsUpdate }: TwitterEnga
       {/* Header */}
       <div className="flex items-center justify-between gap-3">
         <div className="space-y-0.5 min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <h3 className="text-sm font-semibold">Engagement Evolution</h3>
-            {trackingStatus && (
-              isCold ? (
-                <Badge variant="secondary" className="gap-1 text-xs px-2 py-0.5">
-                  <Pause className="size-3" />
-                  <span className="hidden sm:inline">Paused</span>
-                </Badge>
-              ) : (
-                <Badge variant="outline-success" className="gap-1 text-xs px-2 py-0.5">
-                  <Activity className="size-3" />
-                  <span className="hidden sm:inline">Active</span>
-                </Badge>
-              )
-            )}
-          </div>
-          <p className="text-xs text-muted-foreground">
-            {data.snapshots.length} snapshot{data.snapshots.length !== 1 ? "s" : ""}
-          </p>
+          <h3 className="text-sm font-semibold">Engagement Evolution</h3>
         </div>
         <Button
-          size="sm"
-          variant="outline"
+          size="icon-sm"
+          variant="ghost"
           onClick={handleRefresh}
           disabled={refreshing}
-          className="gap-2 h-8 px-3"
+          className="text-muted-foreground hover:text-foreground shrink-0"
+          title="Refresh metrics"
         >
-          <RefreshCw className={cn("size-3.5", refreshing && "animate-spin")} />
-          <span className="sr-only sm:not-sr-only text-xs">Refresh</span>
+          <RefreshCw className={cn("size-4", refreshing && "animate-spin")} />
         </Button>
       </div>
 
@@ -338,15 +326,14 @@ export function TwitterEngagementChart({ tweetId, onMetricsUpdate }: TwitterEnga
       <div className="flex-1">
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "reach" | "engagement")}>
-        <TabsList className="grid w-full max-w-xs grid-cols-2">
+        <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="engagement" className="gap-1.5 data-[state=active]:shadow-none">
             <TrendingUp className="size-4" />
             <span className="hidden sm:inline">Engagement</span>
-            <span className="sm:hidden">Eng.</span>
           </TabsTrigger>
           <TabsTrigger value="reach" className="gap-1.5 data-[state=active]:shadow-none">
             <Eye className="size-4" />
-            Reach
+            <span className="hidden sm:inline">Reach</span>
           </TabsTrigger>
         </TabsList>
 
@@ -381,10 +368,10 @@ export function TwitterEngagementChart({ tweetId, onMetricsUpdate }: TwitterEnga
                 </div>
               </div>
               
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-background/50 border border-border/50">
-                <Clock className="size-3.5 text-muted-foreground" />
-                <p className="text-xs text-muted-foreground">
-                  Recent tweet. Metrics will update hourly to build the trend curve.
+              <div className="flex items-center gap-2 text-muted-foreground/80 mt-2">
+                <Clock className="size-3.5 shrink-0" />
+                <p className="text-xs leading-tight">
+                  Metrics will update hourly to build the trend curve.
                 </p>
               </div>
             </div>
@@ -625,10 +612,10 @@ export function TwitterEngagementChart({ tweetId, onMetricsUpdate }: TwitterEnga
                 </p>
               </div>
               
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-background/50 border border-border/50">
-                <Clock className="size-3.5 text-muted-foreground" />
-                <p className="text-xs text-muted-foreground">
-                  Recent tweet. Metrics will update hourly to build the trend curve.
+              <div className="flex items-center gap-2 text-muted-foreground/80">
+                <Clock className="size-3.5 shrink-0" />
+                <p className="text-xs">
+                  Recent tweet. Metrics update hourly.
                 </p>
               </div>
             </div>
@@ -719,9 +706,10 @@ export function TwitterEngagementChart({ tweetId, onMetricsUpdate }: TwitterEnga
 
       {/* Info Message - Pinned to bottom with mt-auto */}
       {isCold && hasLimitedData && (
-        <div className="rounded-lg border border-muted bg-muted/20 p-3 mt-auto">
-          <p className="text-xs text-muted-foreground">
-            Tracking paused due to low engagement activity. Use Refresh to get latest data.
+        <div className="flex items-center gap-3 px-4 py-2 rounded-lg bg-tactical-amber/5 border border-tactical-amber/20 mt-auto">
+          <Info className="size-4 text-tactical-amber shrink-0" />
+          <p className="text-xs text-muted-foreground leading-tight">
+            Tracking paused due to low activity. <button onClick={handleRefresh} className="text-foreground underline hover:text-primary">Refresh</button> to resume.
           </p>
         </div>
       )}

@@ -146,17 +146,27 @@ export async function GET(request: NextRequest) {
     }
 
     if (verified_only) {
-      // Get verified profile IDs first
-      const { data: verifiedProfiles } = await supabase
-        .from("twitter_profiles")
-        .select("id")
-        .or("is_verified.eq.true,is_blue_verified.eq.true");
+      // Use RPC function for efficient server-side filtering
+      // Avoids "414 Request-URI Too Large" with thousands of profile IDs
+      const { data: verifiedTweets, error: rpcError } = await supabase
+        .rpc("get_feed_tweets_verified", {
+          p_zone_id: zoneId,
+          p_limit: limit,
+          p_offset: offset,
+        });
 
-      if (verifiedProfiles && verifiedProfiles.length > 0) {
-        const verifiedIds = verifiedProfiles.map((p) => p.id);
-        query = query.in("author_profile_id", verifiedIds);
+      if (rpcError) {
+        logger.error("RPC verified filter error:", rpcError);
+        throw rpcError;
+      }
+
+      // RPC already returns tweets, so we short-circuit the rest of the query
+      // But we need to enrich with profiles
+      if (verifiedTweets && verifiedTweets.length > 0) {
+        const tweetIds = verifiedTweets.map((t: any) => t.id);
+        query = query.in("id", tweetIds);
       } else {
-        // No verified profiles - return empty
+        // No verified tweets in this zone
         return NextResponse.json({
           success: true,
           tweets: [],

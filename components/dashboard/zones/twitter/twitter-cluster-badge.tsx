@@ -32,7 +32,7 @@ export function TwitterClusterBadge({
   return (
     <div 
       className={cn(
-        "flex flex-col gap-2 px-3 py-2 rounded-lg border border-border bg-muted/30 transition-all duration-150",
+        "flex flex-col gap-2 transition-all duration-[var(--transition-fast)]",
         className
       )}
     >
@@ -40,7 +40,7 @@ export function TwitterClusterBadge({
       <div className="flex items-center gap-2">
         {/* Color dot - matches Analysis page design */}
         <div 
-          className="w-2.5 h-2.5 rounded-full shrink-0 ring-2 ring-background/80 shadow-sm"
+          className="w-2.5 h-2.5 rounded-full shrink-0 ring-2 ring-background shadow-sm"
           style={{ backgroundColor: clusterColor }}
           aria-hidden="true"
         />
@@ -58,30 +58,35 @@ export function TwitterClusterBadge({
 
       {/* Sentiment bar - matches Analysis page */}
       {cluster.avg_sentiment !== null && (
-        <div className="space-y-1">
+        <div className="space-y-1.5">
           <div className="flex items-center justify-between">
             <span className="text-xs text-muted-foreground">
               Sentiment
             </span>
-            <span className="text-xs font-medium text-foreground">
+            <span className={cn(
+              "text-xs font-medium",
+              cluster.avg_sentiment > 0.2 ? "text-tactical-green" :
+              cluster.avg_sentiment < -0.2 ? "text-tactical-red" :
+              "text-muted-foreground"
+            )}>
               {sentimentLabel}
             </span>
           </div>
           
           {/* Gradient bar with position indicator */}
           <div className="relative h-1.5 bg-muted rounded-full overflow-hidden">
-            {/* Gradient background */}
+            {/* Gradient background using tactical colors */}
             <div 
               className="absolute h-full w-full rounded-full"
               style={{
-                background: 'linear-gradient(to right, #ef4444, #fbbf24, #10b981)',
+                background: 'linear-gradient(to right, var(--tactical-red), var(--tactical-amber), var(--tactical-green))',
                 opacity: 0.3
               }}
             />
             
             {/* Position indicator */}
             <div
-              className="absolute h-full w-1 bg-foreground rounded-full transition-all duration-[var(--transition-base)]"
+              className="absolute h-full w-1 bg-foreground rounded-full transition-all duration-[var(--transition-base)] shadow-sm"
               style={{
                 left: `${((cluster.avg_sentiment + 1) / 2) * 100}%`,
                 transform: 'translateX(-50%)'

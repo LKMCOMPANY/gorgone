@@ -3,8 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { TwitterFeedFilters, type TwitterFeedFilters as Filters } from "./twitter-feed-filters";
 import { TwitterFeedCard } from "./twitter-feed-card";
-import { Loader2 } from "lucide-react";
-import type { TwitterTweetWithCluster, TwitterProfileZoneTag } from "@/types";
+import { TwitterFeedCardSkeleton } from "./twitter-feed-card-skeleton";
 
 interface FeedTweetWithTags extends TwitterTweetWithCluster {
   profile_tags?: TwitterProfileZoneTag[];
@@ -182,30 +181,7 @@ export function TwitterFeedContent({ zoneId, initialSearch, initialSearchType }:
       {loading && (
         <div className="space-y-4">
           {[1, 2, 3].map((item) => (
-            <div
-              key={item}
-              className="rounded-lg border border-border bg-card overflow-hidden"
-            >
-              <div className="px-4 sm:px-6 py-4 border-b border-border/60 bg-muted/20 animate-pulse">
-                <div className="flex items-center gap-3">
-                  <div className="h-5 w-16 rounded bg-muted" />
-                  <div className="size-34 rounded bg-muted" />
-                </div>
-              </div>
-              <div className="p-4 sm:p-6 space-y-4">
-                <div className="flex gap-3">
-                  <div className="size-12 rounded-full bg-muted animate-pulse" />
-                  <div className="flex-1 space-y-2">
-                    <div className="h-4 w-32 rounded bg-muted animate-pulse" />
-                    <div className="h-3 w-48 rounded bg-muted animate-pulse" />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <div className="h-4 w-full rounded bg-muted animate-pulse" />
-                  <div className="size-4/5 rounded bg-muted animate-pulse" />
-                </div>
-              </div>
-            </div>
+            <TwitterFeedCardSkeleton key={item} />
           ))}
         </div>
       )}
