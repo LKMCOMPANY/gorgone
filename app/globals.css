@@ -52,24 +52,34 @@
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
+  
+  /* Light Mode - High Contrast / Depth */
+  --background: oklch(0.985 0.002 240);    /* Cool Off-White (Depth base) */
+  --foreground: oklch(0.145 0 0);          /* Near black */
+  
+  --card: oklch(1 0 0);                    /* Pure White (Pop against background) */
   --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
+  
+  --popover: oklch(1 0 0);                 /* Pure White */
   --popover-foreground: oklch(0.145 0 0);
+  
   --primary: oklch(0.54 0.22 285);
   --primary-foreground: oklch(1 0 0);
+  
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
+  
+  --muted: oklch(0.96 0.005 240);          /* Distinct Cool Grey */
   --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.54 0.22 285);
-  --accent-foreground: oklch(1 0 0);
+  
+  --accent: oklch(0.96 0.005 240);         /* Matches muted for consistency */
+  --accent-foreground: oklch(0.205 0 0);
+  
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
+  --border: oklch(0.89 0 0);               /* Sharper border for structure (was 0.92) */
+  --input: oklch(0.92 0.005 240);
   --ring: oklch(0.54 0.22 285);
+  
   /* ============ CHART COLORS (Tactical / Cyber) ============ */
   /* Chart 1 (Primary/Likes): Electric Purple */
   --chart-1: oklch(0.62 0.24 285);
@@ -82,14 +92,64 @@
   /* Chart 5 (Quintary/Views): Matrix Green */
   --chart-5: oklch(0.70 0.18 150);
   
-  --sidebar: oklch(0.985 0 0);
+  --sidebar: oklch(0.985 0.002 240); /* Matches background slightly */
   --sidebar-foreground: oklch(0.145 0 0);
   --sidebar-primary: oklch(0.54 0.22 285);
   --sidebar-primary-foreground: oklch(1 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent: oklch(0.96 0.005 240);
   --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-border: oklch(0.92 0.005 240);
   --sidebar-ring: oklch(0.708 0 0);
+
+  /* ============ ANIMATION ============ */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* ============ SPACING SCALE (4px based) ============ */
+  --spacing-section: 3rem;     /* 48px - Between major page sections */
+  --spacing-container: 2rem;   /* 32px - Main container padding */
+  --spacing-card: 1.5rem;      /* 24px - Card internal padding */
+  --spacing-element: 1rem;     /* 16px - Between related elements */
+  --spacing-compact: 0.75rem;  /* 12px - Compact layouts (feeds) */
+  --spacing-tight: 0.5rem;     /* 8px - Minimal spacing */
+  --spacing-xs: 0.25rem;       /* 4px - Micro spacing */
+  
+  /* ============ COMPONENT HEIGHTS ============ */
+  --height-input: 2.25rem;     /* 36px (h-9) - Standard input/button height */
+  --height-input-sm: 2rem;     /* 32px (h-8) - Compact input */
+  --height-input-lg: 2.5rem;   /* 40px (h-10) - Large input */
+  
+  /* ============ SHADOWS (Elevation) ============ */
+  /* Light mode: Subtle, professional */
+  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  
+  /* ============ CARD SYSTEM ============ */
+  /* Subtle interactions for elegant feel */
+  --card-hover-border: oklch(0.54 0.22 285 / 0.15); /* Stronger border on hover (light) */
+  --card-hover-shadow: 0 4px 12px -2px rgb(0 0 0 / 0.08); /* More visible shadow (light) */
+  
+  /* ============ GLASSMORPHISM (Apple-inspired Liquid) ============ */
+  /* Light mode: Stronger frost effect + specular border */
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.6);
+  --glass-blur: 16px;
+  
+  /* ============ HUD PANELS (Tactical Overlays) ============ */
+  --hud-bg: oklch(from var(--background) l c h / 0.85);
+  --hud-border: oklch(from var(--border) l c h / 0.4);
+  --hud-blur: 8px;
+  
+  /* ============ MILITARY/TACTICAL ACCENTS ============ */
+  --tactical-green: oklch(0.6 0.15 145);      /* Tactical green for success/active */
+  --tactical-amber: oklch(0.7 0.15 85);       /* Warning/alert states */
+  --tactical-red: oklch(0.6 0.22 27);         /* Critical/danger */
+  --tactical-blue: oklch(0.55 0.18 240);      /* Information/link */
+  --tactical-slate: oklch(0.45 0.02 240);     /* Muted tactical grey */
 }
 
 .dark {
@@ -127,6 +187,14 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+  
+  /* Dark mode card hover: Subtle glow instead of harsh shadow */
+  --card-hover-border: oklch(0.62 0.24 285 / 0.15);
+  --card-hover-shadow: 0 8px 20px -4px rgb(0 0 0 / 0.2);
+  
+  /* Glassmorphism for dark mode */
+  --glass-bg: oklch(from var(--background) l c h / 0.7);
+  --glass-border: oklch(from var(--border) l c h / 0.2);
 }
 
 @layer base {
@@ -141,98 +209,10 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
-
-  /* ========================================
-   * GORGONE DESIGN SYSTEM
-   * Government-grade monitoring platform
-   * ======================================== */
-
-  :root {
-    /* ============ ANIMATION ============ */
-    --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
-    
-    /* ============ SPACING SCALE (4px based) ============ */
-    --spacing-section: 3rem;     /* 48px - Between major page sections */
-    --spacing-container: 2rem;   /* 32px - Main container padding */
-    --spacing-card: 1.5rem;      /* 24px - Card internal padding */
-    --spacing-element: 1rem;     /* 16px - Between related elements */
-    --spacing-compact: 0.75rem;  /* 12px - Compact layouts (feeds) */
-    --spacing-tight: 0.5rem;     /* 8px - Minimal spacing */
-    --spacing-xs: 0.25rem;       /* 4px - Micro spacing */
-    
-    /* ============ COMPONENT HEIGHTS ============ */
-    --height-input: 2.25rem;     /* 36px (h-9) - Standard input/button height */
-    --height-input-sm: 2rem;     /* 32px (h-8) - Compact input */
-    --height-input-lg: 2.5rem;   /* 40px (h-10) - Large input */
-    
-    /* ============ BORDER RADIUS ============ */
-    /* Base: var(--radius) = 0.625rem (10px) */
-    /* sm: calc(var(--radius) - 4px) = 6px */
-    /* md: calc(var(--radius) - 2px) = 8px */
-    /* lg: var(--radius) = 10px */
-    /* xl: calc(var(--radius) + 4px) = 14px */
-    /* Usage:
-     * - rounded-md (6px): Buttons, Inputs, Badges, Small Cards
-     * - rounded-lg (8px): Tabs, Dropdowns, Dialogs
-     * - rounded-xl (14px): Main Cards, Sections
-     * - rounded-2xl (16px): Hero elements
-     */
-    
-    /* ============ SHADOWS (Elevation) ============ */
-    /* Light mode: Subtle, professional */
-    --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-    
-    /* ============ CARD SYSTEM ============ */
-    /* Subtle interactions for elegant feel */
-    --card-hover-border: oklch(0.54 0.22 285 / 0.10);
-    --card-hover-shadow: 0 2px 8px -2px rgb(0 0 0 / 0.04);
-    
-    /* ============ GLASSMORPHISM (Apple-inspired) ============ */
-    --glass-bg: oklch(from var(--background) l c h / 0.8);
-    --glass-border: oklch(from var(--border) l c h / 0.3);
-    --glass-blur: 12px;
-    
-    /* ============ HUD / OVERLAY PANELS ============ */
-    /* For map overlays, chart tooltips, and floating controls */
-    --hud-bg: oklch(from var(--background) l c h / 0.85);
-    --hud-border: oklch(from var(--border) l c h / 0.4);
-    --hud-blur: 8px;
-    
-    /* ============ MILITARY/TACTICAL ACCENTS ============ */
-    --tactical-green: oklch(0.6 0.15 145);      /* Tactical green for success/active */
-    --tactical-amber: oklch(0.7 0.15 85);       /* Warning/alert states */
-    --tactical-red: oklch(0.6 0.22 27);         /* Critical/danger */
-    --tactical-blue: oklch(0.55 0.18 240);      /* Information/link */
-    --tactical-slate: oklch(0.45 0.02 240);     /* Muted tactical grey */
-  }
-
-  .dark {
-    /* Dark mode shadows: Deeper, more pronounced */
-    --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.4);
-    --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.5), 0 1px 2px -1px rgb(0 0 0 / 0.4);
-    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.5), 0 2px 4px -2px rgb(0 0 0 / 0.4);
-    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.6), 0 4px 6px -4px rgb(0 0 0 / 0.5);
-    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.7), 0 8px 10px -6px rgb(0 0 0 / 0.6);
-    
-    /* Dark mode card hover: Subtle glow instead of harsh shadow */
-    --card-hover-border: oklch(0.62 0.24 285 / 0.15);
-    --card-hover-shadow: 0 8px 20px -4px rgb(0 0 0 / 0.2);
-    
-    /* Glassmorphism for dark mode */
-    --glass-bg: oklch(from var(--background) l c h / 0.7);
-    --glass-border: oklch(from var(--border) l c h / 0.2);
-  }
 }
 
 @layer components {
-  /* ============================================
-   * GLASSMORPHISM COMPONENTS (Apple-inspired)
+  /* ============ GLASSMORPHISM COMPONENTS (Apple-inspired)
    * Must be defined FIRST as other components use it
    * ============================================ */
   
@@ -241,6 +221,7 @@
     border: 1px solid var(--glass-border);
     backdrop-filter: blur(var(--glass-blur));
     -webkit-backdrop-filter: blur(var(--glass-blur));
+    box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.05); /* Liquid depth */
   }
   
   /* HUD Panel for overlays (Maps, Charts) */
@@ -262,8 +243,7 @@
     box-shadow: var(--shadow-lg);
   }
 
-  /* ============================================
-   * CARD COMPONENTS
+  /* ============ CARD COMPONENTS
    * ============================================ */
   
   /* Interactive cards with hover effects */
@@ -283,8 +263,7 @@
     @apply rounded-lg border border-destructive/30 bg-destructive/5 p-4;
   }
 
-  /* ============================================
-   * LINK COMPONENTS
+  /* ============ LINK COMPONENTS
    * ============================================ */
   
   .link-primary {
@@ -297,8 +276,7 @@
     @apply hover:text-foreground;
   }
 
-  /* ============================================
-   * ANIMATIONS
+  /* ============ ANIMATIONS
    * ============================================ */
   
   /* Fade in animation for page loads */
@@ -317,8 +295,7 @@
     }
   }
 
-  /* ============================================
-   * SKELETON LOADING STATES
+  /* ============ SKELETON LOADING STATES
    * ============================================ */
   
   .skeleton-shimmer {
@@ -366,8 +343,7 @@
     );
   }
 
-  /* ============================================
-   * BADGES & STATUS INDICATORS
+  /* ============ BADGES & STATUS INDICATORS
    * ============================================ */
   
   /* Status badge with dot indicator */
@@ -402,8 +378,7 @@
     @apply bg-muted-foreground;
   }
 
-  /* ============================================
-   * FOCUS STATES (Accessibility)
+  /* ============ FOCUS STATES (Accessibility)
    * ============================================ */
   
   .focus-ring {
@@ -414,8 +389,7 @@
     @apply outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring;
   }
 
-  /* ============================================
-   * DATA DISPLAY COMPONENTS
+  /* ============ DATA DISPLAY COMPONENTS
    * ============================================ */
   
   /* Stats card for metrics */
@@ -443,8 +417,7 @@
     @apply text-[var(--tactical-red)];
   }
 
-  /* ============================================
-   * ALERT BANNERS
+  /* ============ ALERT BANNERS
    * ============================================ */
   
   .alert-banner {
@@ -469,8 +442,7 @@
 }
 
 @layer utilities {
-  /* ============================================
-   * TYPOGRAPHY UTILITIES (shadcn-compliant)
+  /* ============ TYPOGRAPHY UTILITIES (shadcn-compliant)
    * Direct HTML tags + utility classes
    * ============================================ */
   
@@ -540,8 +512,7 @@
     @apply list-decimal;
   }
 
-  /* ============================================
-   * SPACING UTILITIES
+  /* ============ SPACING UTILITIES
    * ============================================ */
   
   .section-spacing {
@@ -571,8 +542,7 @@
     @apply space-y-8;
   }
 
-  /* ============================================
-   * SCROLLBAR UTILITIES
+  /* ============ SCROLLBAR UTILITIES
    * ============================================ */
   
   /* Hide scrollbar (mobile tabs, carousels) */
@@ -608,8 +578,7 @@
     background: oklch(from var(--muted-foreground) l c h / 0.5);
   }
 
-  /* ============================================
-   * TACTICAL/MILITARY ACCENT UTILITIES
+  /* ============ TACTICAL/MILITARY ACCENT UTILITIES
    * ============================================ */
   
   .tactical-success {
