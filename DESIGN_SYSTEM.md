@@ -1,7 +1,7 @@
 # GORGONE Design System
 ## Government-Grade Monitoring Platform
 
-**Version**: 2.1  
+**Version**: 2.2  
 **Last Updated**: December 5, 2024  
 **Status**: ✅ Production Ready  
 
@@ -12,13 +12,14 @@
 
 ## 🎯 Design Philosophy
 
-Gorgone uses a **military-inspired, professional design system** tailored for government monitoring platforms. The system emphasizes:
+Gorgone uses a **military-inspired, cyber-tactical design system** tailored for government monitoring platforms. The system emphasizes:
 
 - **Clarity**: High contrast, readable text, clear data hierarchy
 - **Efficiency**: Compact layouts for dense data displays
 - **Professionalism**: Subtle animations, government-grade aesthetics
 - **Accessibility**: WCAG 2.1 AA compliant, keyboard navigation
 - **Dark Mode First**: Optimized for 24/7 monitoring operations
+- **Tactical Feel**: Cyber-warfare inspired colors, precise interactions
 
 ---
 
@@ -46,6 +47,8 @@ All colors use the OKLCH color space for consistent perceptual brightness:
 
 ### Tactical Colors (Military Accents)
 
+**Available as Tailwind utilities** (`bg-tactical-green`, `text-tactical-red`, etc.):
+
 ```css
 --tactical-green: oklch(0.6 0.15 145);   /* Success/Active */
 --tactical-amber: oklch(0.7 0.15 85);    /* Warning/Alert */
@@ -55,9 +58,34 @@ All colors use the OKLCH color space for consistent perceptual brightness:
 ```
 
 **Usage**:
-- ✅ Use semantic color names: `bg-background`, `text-primary`
-- ✅ Use tactical utilities: `.tactical-success`, `.border-tactical-warning`
-- ❌ NEVER hardcode: `#fff`, `rgb(255,255,255)`, or color names
+- ✅ Use native utilities: `bg-tactical-green`, `text-tactical-amber/50`, `border-tactical-red`
+- ✅ Use tactical badges: `variant="outline-success"`, `variant="outline-warning"`
+- ❌ NEVER hardcode: `#00ff00`, `rgb(255,0,0)`, or CSS color names
+
+### Chart Colors (Cyber-Tactical Palette)
+
+**Modern, aggressive, high-contrast** palette for data visualization:
+
+```css
+/* Light Mode */
+--chart-1: oklch(0.62 0.24 285);  /* Electric Purple (Likes/Primary) */
+--chart-2: oklch(0.72 0.15 220);  /* Cyber Cyan (Retweets/Propagation) */
+--chart-3: oklch(0.75 0.05 240);  /* Ghost Silver (Replies/Discussion) */
+--chart-4: oklch(0.75 0.18 55);   /* Warning Amber (Quotes/Citations) */
+--chart-5: oklch(0.70 0.18 150);  /* Matrix Green (Views/Reach) */
+
+/* Dark Mode (Neon intensified) */
+--chart-1: oklch(0.65 0.28 285);  /* Neon Purple */
+--chart-2: oklch(0.75 0.18 220);  /* Bright Cyan */
+--chart-3: oklch(0.85 0.05 240);  /* Near White/Blueish */
+--chart-4: oklch(0.78 0.20 55);   /* Bright Amber */
+--chart-5: oklch(0.75 0.20 150);  /* Bright Green */
+```
+
+**Design Rationale**:
+- **Cold, technical, precise** (not playful).
+- **High contrast** for quick data reading in dark environments.
+- **Military/Cyber aesthetic** (neon accents on dark).
 
 ---
 
@@ -108,6 +136,7 @@ Use **semantic HTML + utility classes** (NO wrapper components):
 - ✅ Classes like `.text-h1`, `.text-lead`, `.text-muted` are available
 - ❌ NO `<TypographyH1>` components (removed)
 - ❌ NO random font sizes like `text-[17px]`
+- ⚠️  **IMPORTANT**: Global `<p>` tag has NO default margin/leading. Use `.text-p` class for prose paragraphs.
 
 ---
 
@@ -605,7 +634,18 @@ import { Suggestions, Suggestion } from "@/components/ai/suggestion";
 
 ## 🔄 Changelog
 
-### Version 2.1 (December 5, 2024)
+### Version 2.2 (December 5, 2024 - Evening Session)
+- ✅ **Tactical Color Palette Exposed to Tailwind** : `bg-tactical-green`, `text-tactical-amber` now native utilities
+- ✅ **Chart Colors Upgraded** : Cyber-tactical palette (Neon Purple, Cyan, Silver, Amber, Matrix Green)
+- ✅ **New `.panel-hud` Utility** : For map overlays, chart tooltips, floating HUD elements
+- ✅ **Card Hover Refinement** : Ultra-subtle shadows (0.04 opacity light, 0.2 dark)
+- ✅ **Typography Fix** : Removed global `<p>` margin to avoid UI layout issues (use `.text-p` for prose)
+- ✅ **Badge Variants Extended** : Added `outline-success`, `outline-warning`, `outline-danger`, `outline-info`
+- ✅ **Twitter Feed Card** : Redesigned with Twitter-native layout, glassmorphism, header/footer structure
+- ✅ **Feed Skeleton** : Updated to match new card structure (no layout shift)
+- ✅ **Performance** : RPC `get_feed_tweets_verified` for filtering 14K+ profiles without URL errors
+
+### Version 2.1 (December 5, 2024 - Morning Session)
 - ✅ Added AI Elements components (Message, Response, Conversation, etc.)
 - ✅ Migrated AL-IA chatbot to AI Elements architecture
 - ✅ Applied glassmorphism to all feed cards
