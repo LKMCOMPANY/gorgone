@@ -169,10 +169,10 @@ export function MediaFeedContent({ zoneId }: MediaFeedContentProps) {
           </div>
           <div className="space-y-2">
             <p className="text-body font-semibold text-destructive">Failed to load articles</p>
-            <p className="text-body-sm text-muted-foreground">{error}</p>
+            <p className="text-sm text-muted-foreground">{error}</p>
           </div>
           <Button onClick={handleRefresh} variant="outline" className="gap-2">
-            <RefreshCw className="h-4 w-4" />
+            <RefreshCw className="size-4" />
             Try Again
           </Button>
         </div>
@@ -191,7 +191,7 @@ export function MediaFeedContent({ zoneId }: MediaFeedContentProps) {
 
       {/* Results Count and Refresh */}
       {!loading && articles.length > 0 && (
-        <div className="flex items-center justify-between text-body-sm text-muted-foreground">
+        <div className="flex items-center justify-between text-sm text-muted-foreground">
           <p>
             Showing {totalCount.toLocaleString()} article{totalCount !== 1 ? "s" : ""}
             {filters.search && (
@@ -205,7 +205,7 @@ export function MediaFeedContent({ zoneId }: MediaFeedContentProps) {
             size="sm"
             onClick={handleRefresh}
             disabled={refreshing}
-            className="gap-2 transition-colors duration-[150ms]"
+            className="gap-2 transition-colors duration-[var(--transition-fast)]"
           >
             <RefreshCw className={cn("h-4 w-4", refreshing && "animate-spin")} />
             <span>Refresh</span>
@@ -218,7 +218,7 @@ export function MediaFeedContent({ zoneId }: MediaFeedContentProps) {
         {articles.length === 0 && !loading ? (
           <div className="rounded-lg border border-dashed border-border/60 bg-muted/20 p-16 text-center">
             <div className="mx-auto max-w-sm space-y-4">
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+              <div className="mx-auto flex size-16 items-center justify-center rounded-full bg-primary/10">
                 <svg
                   className="w-8 h-8 text-primary"
                   fill="none"
@@ -233,7 +233,7 @@ export function MediaFeedContent({ zoneId }: MediaFeedContentProps) {
               </div>
               <div className="space-y-2">
                 <p className="text-body font-semibold">No articles found</p>
-                <p className="text-body-sm text-muted-foreground">
+                <p className="text-sm text-muted-foreground">
                   Articles will appear here once your monitoring rules start collecting data. Try adjusting your filters or create a new rule.
                 </p>
               </div>
@@ -255,11 +255,11 @@ export function MediaFeedContent({ zoneId }: MediaFeedContentProps) {
                   variant="outline"
                   onClick={handleLoadMore}
                   disabled={loadingMore}
-                  className="gap-2 transition-all duration-[150ms]"
+                  className="gap-2 transition-all duration-[var(--transition-fast)]"
                 >
                   {loadingMore ? (
                     <>
-                      <RefreshCw className="h-4 w-4 animate-spin" />
+                      <RefreshCw className="size-4 animate-spin" />
                       <span>Loading...</span>
                     </>
                   ) : (
@@ -271,7 +271,7 @@ export function MediaFeedContent({ zoneId }: MediaFeedContentProps) {
 
             {/* End of results message */}
             {!hasMore && articles.length > 0 && (
-              <p className="py-8 text-center text-caption text-muted-foreground">
+              <p className="py-8 text-center text-xs text-muted-foreground">
                 You've reached the end of the results
               </p>
             )}

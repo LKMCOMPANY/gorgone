@@ -8,11 +8,6 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import {
-  TypographyH2,
-  TypographyP,
-  TypographyMuted,
-} from "@/components/ui/typography";
-import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -132,8 +127,8 @@ export function ClientDetails({
       <Card className="card-padding">
         <div className="space-y-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-heading-2">Client Information</h2>
-            {loading && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
+            <h2 className="text-xl font-semibold">Client Information</h2>
+            {loading && <Loader2 className="size-4 animate-spin text-muted-foreground" />}
           </div>
 
           <div className="space-y-4">
@@ -145,7 +140,7 @@ export function ClientDetails({
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Client name"
-                className="h-10 transition-shadow duration-[150ms] focus-visible:shadow-[var(--shadow-sm)]"
+                className="h-10 transition-shadow duration-[var(--transition-fast)] focus-visible:shadow-[var(--shadow-sm)]"
               />
             </div>
 
@@ -157,14 +152,14 @@ export function ClientDetails({
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Description (optional)"
-                className="h-10 transition-shadow duration-[150ms] focus-visible:shadow-[var(--shadow-sm)]"
+                className="h-10 transition-shadow duration-[var(--transition-fast)] focus-visible:shadow-[var(--shadow-sm)]"
               />
             </div>
 
-            <div className="flex items-center justify-between rounded-lg border p-4 transition-colors duration-[150ms] hover:bg-muted/30">
+            <div className="flex items-center justify-between rounded-lg border p-4 transition-colors duration-[var(--transition-fast)] hover:bg-muted/30">
               <div className="space-y-0.5">
-                <Label className="text-body-sm font-medium">Active Status</Label>
-                <p className="text-caption">
+                <Label className="text-sm font-medium">Active Status</Label>
+                <p className="text-xs">
                   Inactive clients cannot be accessed by their users
                 </p>
               </div>
@@ -176,12 +171,12 @@ export function ClientDetails({
 
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-1">
-                <p className="text-caption">Created</p>
-                <p className="text-body-sm font-medium">{formatDate(client.created_at)}</p>
+                <p className="text-xs">Created</p>
+                <p className="text-sm font-medium">{formatDate(client.created_at)}</p>
               </div>
               <div className="space-y-1">
-                <p className="text-caption">Last Updated</p>
-                <p className="text-body-sm font-medium">{formatDate(client.updated_at)}</p>
+                <p className="text-xs">Last Updated</p>
+                <p className="text-sm font-medium">{formatDate(client.updated_at)}</p>
               </div>
             </div>
           </div>
@@ -193,8 +188,8 @@ export function ClientDetails({
         <div className="space-y-6">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div className="space-y-1">
-              <h2 className="text-heading-2">Users</h2>
-              <p className="text-body-sm text-muted-foreground">
+              <h2 className="text-xl font-semibold">Users</h2>
+              <p className="text-sm text-muted-foreground">
                 {users.length} user{users.length !== 1 && "s"}
               </p>
             </div>
@@ -204,7 +199,7 @@ export function ClientDetails({
             >
               <DialogTrigger asChild>
                 <Button>
-                  <Plus className="mr-2 h-4 w-4" />
+                  <Plus className="mr-2 size-4" />
                   Add User
                 </Button>
               </DialogTrigger>

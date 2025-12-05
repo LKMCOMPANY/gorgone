@@ -1,22 +1,24 @@
-# Gorgone Design System
+# GORGONE Design System
+## Government-Grade Monitoring Platform
 
 **Version**: 2.1  
-**Last Updated**: November 13, 2025  
-**Status**: ✅ Production Ready
+**Last Updated**: December 5, 2024  
+**Status**: ✅ Production Ready  
 
-**Latest**: Elegant shimmer skeleton animation (v2.1)
+> **THE definitive guide** for all design decisions in Gorgone.  
+> Use this as your single source of truth for styling, components, and patterns.
 
 ---
 
-## 🎯 Overview
+## 🎯 Design Philosophy
 
-Gorgone uses a **professional, government-grade design system** built on:
-- **Tailwind CSS 4** with custom CSS variables
-- **Shadcn UI** components
-- **OKLCH color space** for perceptual uniformity
-- **Mobile-first** responsive design
+Gorgone uses a **military-inspired, professional design system** tailored for government monitoring platforms. The system emphasizes:
 
-**Core Principle**: NO hardcoded values. Everything uses CSS variables and utility classes.
+- **Clarity**: High contrast, readable text, clear data hierarchy
+- **Efficiency**: Compact layouts for dense data displays
+- **Professionalism**: Subtle animations, government-grade aesthetics
+- **Accessibility**: WCAG 2.1 AA compliant, keyboard navigation
+- **Dark Mode First**: Optimized for 24/7 monitoring operations
 
 ---
 
@@ -24,35 +26,38 @@ Gorgone uses a **professional, government-grade design system** built on:
 
 ### Base Colors (OKLCH)
 
+All colors use the OKLCH color space for consistent perceptual brightness:
+
 ```css
 /* Light Mode */
---primary: oklch(0.54 0.22 285)        /* Brand purple */
---background: oklch(1 0 0)              /* Pure white */
---foreground: oklch(0.145 0 0)          /* Near black */
---muted: oklch(0.97 0 0)                /* Subtle gray */
---border: oklch(0.922 0 0)              /* Light border */
+--background: oklch(1 0 0);              /* Pure white */
+--foreground: oklch(0.145 0 0);          /* Near black */
+--primary: oklch(0.54 0.22 285);         /* Purple brand */
+--muted: oklch(0.97 0 0);                /* Light grey */
+--border: oklch(0.922 0 0);              /* Subtle border */
 
 /* Dark Mode */
---primary: oklch(0.62 0.24 285)        /* Lighter purple */
---background: oklch(0.145 0 0)          /* Near black */
---foreground: oklch(0.985 0 0)          /* Off white */
---muted: oklch(0.269 0 0)               /* Dark gray */
---border: oklch(1 0 0 / 10%)            /* Transparent border */
+--background: oklch(0.145 0 0);          /* Near black */
+--foreground: oklch(0.985 0 0);          /* Off white */
+--primary: oklch(0.62 0.24 285);         /* Brighter purple */
+--muted: oklch(0.269 0 0);               /* Dark grey */
+--border: oklch(1 0 0 / 10%);            /* Transparent white */
 ```
 
-### Usage
+### Tactical Colors (Military Accents)
 
-✅ **DO**:
-```tsx
-<div className="bg-background text-foreground border-border">
-<div style={{ color: 'var(--foreground)' }}>
+```css
+--tactical-green: oklch(0.6 0.15 145);   /* Success/Active */
+--tactical-amber: oklch(0.7 0.15 85);    /* Warning/Alert */
+--tactical-red: oklch(0.6 0.22 27);      /* Critical/Danger */
+--tactical-blue: oklch(0.55 0.18 240);   /* Information */
+--tactical-slate: oklch(0.45 0.02 240);  /* Muted grey */
 ```
 
-❌ **DON'T**:
-```tsx
-<div className="bg-white text-black border-gray-200">
-<div style={{ color: '#000000' }}>
-```
+**Usage**:
+- ✅ Use semantic color names: `bg-background`, `text-primary`
+- ✅ Use tactical utilities: `.tactical-success`, `.border-tactical-warning`
+- ❌ NEVER hardcode: `#fff`, `rgb(255,255,255)`, or color names
 
 ---
 
@@ -60,538 +65,563 @@ Gorgone uses a **professional, government-grade design system** built on:
 
 ### Font Stack
 
-- **Primary**: Geist Sans (system-ui fallback)
-- **Mono**: Geist Mono (monospace fallback)
-- **Features**: Ligatures (`rlig`, `calt`), Optimized rendering
+- **Sans**: Geist Sans (primary)
+- **Mono**: Geist Mono (code, data)
+- **Features**: Ligatures enabled, optimized rendering
 
-### Type Scale
+### Type Scale (shadcn-compliant)
 
-| Class | Size | Weight | Letter Spacing | Usage |
-|-------|------|--------|----------------|-------|
-| `.text-display` | 36px | 700 | -0.02em | Hero sections |
-| `.text-heading-1` | 30px | 700 | -0.01em | Page titles |
-| `.text-heading-2` | 24px | 600 | -0.01em | Section titles |
-| `.text-heading-3` | 20px | 600 | 0 | Subsections |
-| `.text-body` | 16px | 400 | 0 | Body text |
-| `.text-body-sm` | 14px | 400 | 0 | Compact text |
-| `.text-caption` | 12px | 400 | 0 | Meta info |
-
-### Examples
+Use **semantic HTML + utility classes** (NO wrapper components):
 
 ```tsx
-// Page title
-<h1 className="text-heading-1">Clients</h1>
+/* Headings */
+<h1 className="scroll-m-20 text-4xl font-extrabold tracking-tight">
+  Main Page Title
+</h1>
 
-// Section title
-<h2 className="text-heading-2">User Management</h2>
+<h2 className="scroll-m-20 text-3xl font-semibold tracking-tight">
+  Section Title
+</h2>
 
-// Body text
-<p className="text-body-sm text-muted-foreground">
-  Manage your team members
+<h3 className="scroll-m-20 text-2xl font-semibold tracking-tight">
+  Subsection Title
+</h3>
+
+<h4 className="scroll-m-20 text-xl font-semibold tracking-tight">
+  Card Title
+</h4>
+
+/* Body Text */
+<p className="leading-7 [&:not(:first-child)]:mt-6">
+  Standard paragraph text
 </p>
 
-// Meta info
-<span className="text-caption">Created 2 days ago</span>
+/* Specialized Text */
+<p className="text-xl text-muted-foreground">Lead text</p>
+<p className="text-sm text-muted-foreground">Muted text</p>
+<small className="text-sm font-medium leading-none">Label</small>
+<code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm">Code</code>
 ```
+
+**Rules**:
+- ✅ Use utility classes directly on semantic HTML
+- ✅ Classes like `.text-h1`, `.text-lead`, `.text-muted` are available
+- ❌ NO `<TypographyH1>` components (removed)
+- ❌ NO random font sizes like `text-[17px]`
 
 ---
 
 ## 📐 Spacing System
 
-### Scale
+### Scale (4px based)
 
 ```css
---spacing-section:    48px   /* Between major sections */
---spacing-container:  32px   /* Main container padding */
---spacing-card:       24px   /* Card internal padding */
---spacing-element:    16px   /* Between elements */
---spacing-compact:    12px   /* Compact layouts */
---spacing-tight:      8px    /* Minimal spacing */
+--spacing-xs: 0.25rem;        /* 4px - Micro spacing */
+--spacing-tight: 0.5rem;      /* 8px - Minimal spacing */
+--spacing-compact: 0.75rem;   /* 12px - Compact layouts */
+--spacing-element: 1rem;      /* 16px - Between elements */
+--spacing-card: 1.5rem;       /* 24px - Card padding */
+--spacing-container: 2rem;    /* 32px - Container padding */
+--spacing-section: 3rem;      /* 48px - Section spacing */
 ```
 
 ### Utility Classes
 
-```css
-.card-padding        → padding: var(--spacing-card)
-.container-padding   → padding: var(--spacing-container)
-.section-spacing     → margin-bottom: var(--spacing-section)
+```tsx
+/* Layout spacing */
+<div className="layout-compact">    {/* space-y-3 (12px) */}
+<div className="layout-standard">   {/* space-y-6 (24px) */}
+<div className="layout-relaxed">    {/* space-y-8 (32px) */}
+
+/* Semantic spacing */
+<div className="section-spacing">   {/* mb-12 (48px) */}
+<div className="container-padding"> {/* p-8 (32px) */}
+<div className="card-padding">      {/* p-6 (24px) */}
 ```
 
-### Usage Guidelines
-
-✅ **Prefer**: `space-y-6`, `gap-4`, `mb-8`, `p-4`  
-✅ **Use**: 4px increments (1, 1.5, 2, 3, 4, 6, 8, 12, 16, 24, 32, 48)  
-❌ **Avoid**: `mt-[13px]`, `gap-[19px]`, random values
+**Rules**:
+- ✅ Use Tailwind spacing: `space-y-6`, `gap-4`, `mb-8`
+- ✅ Prefer 4px increments: 4, 8, 12, 16, 24, 32, 48
+- ❌ NO random values: `mt-[13px]`, `gap-[19px]`
 
 ---
 
-## 🎭 Animations & Transitions
+## 🎭 Component Heights
+
+### Standard Heights
+
+```css
+--height-input: 2.25rem;      /* 36px (h-9) - Default */
+--height-input-sm: 2rem;      /* 32px (h-8) - Compact */
+--height-input-lg: 2.5rem;    /* 40px (h-10) - Large */
+```
+
+**Usage**:
+- Buttons: `h-9` (default), `h-8` (sm), `h-10` (lg)
+- Inputs: `h-9` (matches buttons)
+- Tabs: `h-9` (container), `h-7` (triggers)
+- Badges: `py-0.5` (auto height)
+
+---
+
+## 🎯 Border Radius
+
+### Scale
+
+```css
+/* Base: --radius = 0.625rem (10px) */
+rounded-sm    /* 6px  - calc(var(--radius) - 4px) */
+rounded-md    /* 8px  - calc(var(--radius) - 2px) */
+rounded-lg    /* 10px - var(--radius) */
+rounded-xl    /* 14px - calc(var(--radius) + 4px) */
+rounded-2xl   /* 16px - Fixed value */
+rounded-full  /* Pills, badges, dots */
+```
+
+**When to Use**:
+- `rounded-md`: Buttons, Inputs, Small UI elements
+- `rounded-lg`: Tabs, Dropdowns, Dialogs
+- `rounded-xl`: Main Cards, Sections
+- `rounded-2xl`: Hero elements, Featured cards
+- `rounded-full`: Badges, Avatar, Status dots
+
+---
+
+## 🌑 Shadows (Elevation)
+
+### Scale
+
+```css
+shadow-xs   /* 1px shadow - Subtle lift */
+shadow-sm   /* 2px shadow - Cards, buttons */
+shadow-md   /* 4px shadow - Dropdowns */
+shadow-lg   /* 8px shadow - Dialogs, modals */
+shadow-xl   /* 16px shadow - Popovers */
+```
+
+**Rules**:
+- Light mode: Very subtle (0.05-0.1 opacity)
+- Dark mode: More pronounced (0.4-0.7 opacity)
+- Interactive elements: Add shadow on hover
+- Elevated surfaces: Use shadow-md or shadow-lg
+
+---
+
+## ⚡ Transitions & Animations
 
 ### Speeds
 
 ```css
---transition-fast:  150ms   /* Hover, simple changes */
---transition-base:  250ms   /* Default interactions */
---transition-slow:  350ms   /* Complex transitions */
+--transition-fast: 150ms;     /* Hover, simple changes */
+--transition-base: 250ms;     /* Default, most interactions */
+--transition-slow: 350ms;     /* Complex transitions */
 ```
 
-### Easing
-
-All animations use: `cubic-bezier(0.4, 0, 0.2, 1)` (smooth deceleration)
+**Easing**: `cubic-bezier(0.4, 0, 0.2, 1)` (smooth deceleration)
 
 ### Common Patterns
 
 ```tsx
-// Hover state
-<button className="transition-colors duration-[150ms] hover:text-primary">
+/* Hover transitions */
+transition-colors duration-[var(--transition-fast)]
 
-// Focus state
-<input className="transition-shadow duration-[150ms] focus-visible:shadow-[var(--shadow-sm)]">
+/* Focus states */
+transition-[color,box-shadow] duration-[var(--transition-fast)]
 
-// Card hover
-<div className="card-interactive">  {/* 250ms transition built-in */}
+/* Page load */
+.animate-in  /* Fade in + translate up (250ms) */
 
-// Page load
-<div className="animate-in" style={{ animationDelay: "50ms" }}>
+/* Live indicators */
+.animate-pulse-slow  /* Slow pulse (3s) */
 ```
 
-### Page Load Animation
-
-All pages should fade in:
-
-```tsx
-export default function Page() {
-  return (
-    <div className="animate-in" style={{ animationDelay: "50ms" }}>
-      {/* Content */}
-    </div>
-  );
-}
-```
-
-**Effect**: Fade in + 4px translate up, 250ms duration
-
-### Skeleton Loading Animation
-
-**Elegant Shimmer Effect**:
-
-Gorgone uses a sophisticated shimmer wave animation for loading states, not the harsh `animate-pulse`:
-
-```tsx
-<Skeleton className="h-10 w-full" />
-```
-
-**Design Characteristics**:
-- **Wave animation**: Smooth gradient sweep left-to-right (2s loop)
-- **Ultra-subtle**: Low opacity for minimal distraction
-- **Theme-aware**: Automatically adapts to light/dark mode
-- **GPU-accelerated**: Uses `transform` for performance
-
-**Technical Details**:
-
-```css
-/* Light Mode */
-.skeleton-shimmer {
-  background: oklch(from var(--muted) l c h / 0.4);  /* 40% base */
-  /* Shimmer gradient: 0% → 15% → 0% opacity */
-  animation: shimmer 2s ease-in-out infinite;
-}
-
-/* Dark Mode (softer) */
-.dark .skeleton-shimmer {
-  background: oklch(from var(--muted) l c h / 0.2);  /* 20% base */
-  /* Shimmer gradient: 0% → 8% → 0% opacity */
-}
-```
-
-**Visual Effect**:
-```
-Light: ████░░░░░░░  →  ░░░░████░░░  →  ░░░░░░░░████
-Dark:  ███░░░░░░░░  →  ░░░░███░░░  →  ░░░░░░░░███
-       (40% base)     (15% wave)     (smooth sweep)
-```
-
-**Benefits**:
-- ✅ Professional, minimal visual noise
-- ✅ Better than pulse (not distracting)
-- ✅ Modern "premium app" feel
-- ✅ Works perfectly in light and dark mode
-
-**Usage**:
-```tsx
-// Always show skeleton during loading
-if (loading) {
-  return <MySkeleton />;  // ✅ NOT null
-}
-
-// Skeleton component structure
-export function MySkeleton() {
-  return (
-    <Card className="card-padding">
-      <Skeleton className="h-10 w-full max-w-sm" />  {/* Search */}
-      <div className="space-y-2.5">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <Skeleton key={i} className="h-20 w-full" />
-        ))}
-      </div>
-    </Card>
-  );
-}
-```
+**Rules**:
+- ✅ Use CSS variables: `duration-[var(--transition-fast)]`
+- ✅ Subtle: Micro-interactions only
+- ✅ GPU-accelerated: Prefer `transform` and `opacity`
+- ❌ NO long durations: > 350ms feels sluggish
 
 ---
 
 ## 🃏 Card System
 
-### Interactive Cards
+### Card Variants
 
 ```tsx
-// Hoverable card (list items, clickable cards)
-<div className="card-interactive flex p-4">
-  {/* Content */}
-</div>
-```
-
-**Includes**:
-- Border color change on hover
-- Subtle shadow on hover
-- 250ms transition
-- Dark mode support
-
-### Content Cards
-
-```tsx
-// Standard content card
-<Card className="card-padding">
-  {/* 24px padding, no hover effects */}
+/* Standard card */
+<Card className="rounded-xl shadow-xs">
+  <CardHeader>
+    <CardTitle>Title</CardTitle>
+    <CardDescription>Description</CardDescription>
+  </CardHeader>
+  <CardContent>Content</CardContent>
 </Card>
 
-// Form container
-<Card className="card-padding space-y-6">
-  {/* Form fields with 24px spacing */}
-</Card>
-```
-
-### Elegant Card Patterns
-
-**Subtle Dashed Borders with Muted Backgrounds**:
-
-For grouped content or sections that need visual separation without being too prominent:
-
-```tsx
-// Subtle container with dashed border
-<div className="rounded-lg border border-dashed border-border/60 bg-muted/30 p-6">
-  {/* Content */}
+/* Interactive card (hover effects) */
+<div className="card-interactive p-6">
+  {/* Adds hover border + shadow */}
 </div>
 
-// Settings section (toggle group)
-<div className="rounded-lg border border-border bg-muted/30 p-4 transition-colors duration-[150ms] hover:bg-muted/40">
-  <div className="flex items-center justify-between">
-    <div className="space-y-0.5">
-      <Label className="text-body-sm font-medium">Feature Name</Label>
-      <p className="text-caption text-muted-foreground">Feature description</p>
-    </div>
-    <Switch />
-  </div>
+/* Glass card (Apple-inspired) */
+<div className="card-glass p-6">
+  {/* Backdrop blur + transparency */}
 </div>
 
-// Data source card (with icon and hover)
-<div className="group rounded-lg border border-border bg-card p-6 transition-all duration-[150ms] hover:border-primary/50 hover:shadow-sm">
-  <div className="flex items-start gap-4">
-    <div className="flex-shrink-0 rounded-lg bg-primary/10 p-3 transition-colors duration-[150ms] group-hover:bg-primary/20">
-      {/* Icon */}
-    </div>
-    <div className="flex-1 space-y-2">
-      <h3 className="text-body font-semibold">Source Name</h3>
-      <p className="text-body-sm text-muted-foreground">Description</p>
-    </div>
-  </div>
+/* Compact card (dense data) */
+<div className="card-compact">
+  {/* Tight spacing for feeds */}
+</div>
+
+/* Danger zone */
+<div className="card-danger">
+  {/* Destructive actions */}
 </div>
 ```
 
-**Visual Characteristics**:
-- **Borders**: `border-border/60` (60% opacity) for subtle, non-intrusive lines
-- **Backgrounds**: `bg-muted/30` or `bg-muted/40` (30-40% opacity) for subtle gray tones
-- **Dashed borders**: `border-dashed` for visual differentiation from solid borders
-- **Hover states**: Increase opacity (`hover:bg-muted/40`) or add border color (`hover:border-primary/50`)
-- **Smooth transitions**: Always `duration-[150ms]` for instant responsiveness
+**Spacing**:
+- Card component: `gap-6` between sections
+- CardHeader/CardContent: `px-6` horizontal padding
+- Use `.card-padding` utility for custom cards
 
-**Benefits**:
-- ✅ **Excellent readability** in both light and dark themes
-- ✅ **Subtle contrast** that doesn't overwhelm
-- ✅ **Professional look** suitable for government/enterprise apps
-- ✅ **Clear hierarchy** through varied opacity levels
-- ✅ **Responsive feel** with smooth hover states
+**Rules**:
+- ✅ Use `rounded-xl` for main cards
+- ✅ Add `shadow-xs` for subtle elevation
+- ✅ Use `.card-interactive` for hoverable cards
+- ❌ NO hardcoded padding values
 
-**Usage Examples**:
+---
+
+## 🎨 Glassmorphism (Apple-Inspired)
+
+### Glass Utilities
+
+```css
+.glass            /* Base glass effect */
+.glass-card       /* Glass + card styling */
+```
+
 ```tsx
-// Information panel (low emphasis)
-<div className="rounded-lg border border-dashed border-border/60 bg-muted/30 p-6">
-  <p className="text-body-sm text-muted-foreground">
-    No data sources enabled yet.
-  </p>
+/* Glass card example */
+<div className="glass-card p-6">
+  <h3 className="text-h3">Glassmorphism</h3>
+  <p className="text-muted">Apple-inspired backdrop blur</p>
 </div>
+```
 
-// Section group (medium emphasis)
-<div className="space-y-3 rounded-lg border border-border bg-muted/30 p-4">
-  {items.map((item) => (
-    <div key={item.id} className="rounded-lg border border-border bg-card p-4">
-      {/* Item content */}
-    </div>
-  ))}
-</div>
-
-// Danger zone (high emphasis)
-<div className="rounded-lg border border-destructive/30 bg-destructive/5 p-6">
-  <h3 className="text-heading-3 text-destructive">Danger Zone</h3>
-  <p className="text-body-sm text-muted-foreground">
-    Irreversible actions
-  </p>
-</div>
+**Variables**:
+```css
+--glass-bg: oklch(from var(--background) l c h / 0.8);
+--glass-border: oklch(from var(--border) l c h / 0.3);
+--glass-blur: 12px;
 ```
 
 ---
 
-## 🔗 Links
+## 🚦 Status & Badges
 
-### Standard Link
+### Badge Variants
 
 ```tsx
-<Link href="/dashboard" className="link-primary font-medium">
-  Dashboard
-</Link>
+/* Standard variants */
+<Badge variant="default">Default</Badge>
+<Badge variant="secondary">Secondary</Badge>
+<Badge variant="outline">Outline</Badge>
+<Badge variant="destructive">Destructive</Badge>
+
+/* Tactical variants (NEW) */
+<Badge variant="success">Active</Badge>
+<Badge variant="warning">Alert</Badge>
+<Badge variant="info">Info</Badge>
 ```
 
-**Includes**:
-- Default: foreground color
-- Hover: primary color
-- 150ms transition
-- No underline (add `.underline` if needed)
+### Status Indicators
+
+```tsx
+/* Status badge with animated dot */
+<span className="status-badge status-active">
+  Active
+</span>
+
+<span className="status-badge status-warning">
+  Warning
+</span>
+
+<span className="status-badge status-inactive">
+  Inactive
+</span>
+```
 
 ---
 
-## 📦 Component Patterns
+## 📊 Data Display Components
 
-### Input Fields
+### Stats Cards
 
 ```tsx
-<Label htmlFor="name">Name</Label>
-<Input
-  id="name"
-  placeholder="Enter name"
-  className="h-10 transition-shadow duration-[150ms] focus-visible:shadow-[var(--shadow-sm)]"
-/>
-<p className="text-caption">Helper text</p>
+<div className="stats-card">
+  <div className="stats-label">Total Users</div>
+  <div className="stats-value">12,459</div>
+  <div className="stats-change positive">+12.5%</div>
+</div>
 ```
 
-### Page Header
+### Alert Banners
 
 ```tsx
-<div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-  <div className="space-y-1.5">
-    <h1 className="text-heading-1">Page Title</h1>
-    <p className="text-body-sm text-muted-foreground">
-      Page description
-    </p>
+<div className="alert-banner alert-info">
+  <AlertCircle className="size-5" />
+  <div>
+    <h4 className="font-semibold">Information</h4>
+    <p className="text-sm">This is an informational message.</p>
   </div>
-  <Button>Action</Button>
 </div>
-```
 
-### Empty State
-
-```tsx
-<div className="py-16 text-center">
-  <p className="text-body-sm text-muted-foreground">
-    No items found
-  </p>
-</div>
-```
-
-### Loading State (Skeletons)
-
-**Always visible, never null**:
-
-```tsx
-import { Skeleton } from "@/components/ui/skeleton";
-
-// ✅ Show skeleton during loading
-if (loading) {
-  return <MySkeleton />;
-}
-
-// ❌ DON'T return null
-// if (loading) return null;
-
-// Skeleton structure (matches loaded content)
-export function MySkeleton() {
-  return (
-    <Card className="card-padding">
-      <div className="space-y-5">
-        {/* Search bar */}
-        <Skeleton className="h-10 w-full max-w-sm" />
-        
-        {/* List items */}
-        <div className="space-y-2.5">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="flex gap-3 rounded-lg border p-4">
-              <Skeleton className="h-10 w-10 rounded-full" />  {/* Avatar */}
-              <div className="flex-1 space-y-2">
-                <Skeleton className="h-5 w-[160px]" />  {/* Title */}
-                <Skeleton className="h-3 w-[120px]" />  {/* Subtitle */}
-              </div>
-              <Skeleton className="h-6 w-[60px] rounded-full" />  {/* Badge */}
-            </div>
-          ))}
-        </div>
-      </div>
-    </Card>
-  );
-}
-```
-
-**Key Points**:
-- Uses elegant shimmer animation (not pulse)
-- Matches exact layout of loaded content
-- Responsive (hide/show elements like real content)
-- Always visible during loading states
-
-### Status Toggle
-
-```tsx
-<div className="flex items-center justify-between rounded-lg border p-4 transition-colors duration-[150ms] hover:bg-muted/30">
-  <div className="space-y-0.5">
-    <Label className="text-body-sm font-medium">Feature Name</Label>
-    <p className="text-caption">Feature description</p>
-  </div>
-  <Switch checked={enabled} onCheckedChange={setEnabled} />
-</div>
+/* Variants: alert-info, alert-success, alert-warning, alert-danger */
 ```
 
 ---
 
-## 🌓 Dark Mode
+## 🎬 Page Load Pattern
 
-### Automatic Support
+### Fade-in Animation
 
-All components automatically support dark mode through CSS variables:
+All page content should fade in on load:
 
 ```tsx
-// This works in both light and dark mode
-<div className="bg-background text-foreground border-border">
+<div className="animate-in">
+  {/* Page content */}
+</div>
 ```
 
-### Testing
+**Effect**: Subtle fade + 4px translate up, 250ms duration
 
-Always test new components in both modes:
-1. Light mode (default)
-2. Dark mode (theme toggle in header)
+---
 
-❌ **NEVER** manually check theme:
+## ♿ Accessibility
+
+### Focus States
+
 ```tsx
-// DON'T DO THIS
-{theme === 'dark' ? <DarkComponent /> : <LightComponent />}
+/* Default focus ring */
+<button className="focus-ring">Button</button>
+
+/* Inset focus ring */
+<input className="focus-ring-inset" />
+```
+
+**Rules**:
+- ✅ All interactive elements have visible focus states
+- ✅ Focus rings use `ring-[3px]` for visibility
+- ✅ Color contrast ≥ 4.5:1 (WCAG AA)
+- ✅ Keyboard navigation fully supported
+
+---
+
+## 📱 Responsive Design
+
+### Breakpoints (Tailwind defaults)
+
+```
+sm: 640px   /* Small devices */
+md: 768px   /* Tablets */
+lg: 1024px  /* Laptops */
+xl: 1280px  /* Desktops */
+2xl: 1536px /* Large screens */
+```
+
+### Mobile Patterns
+
+```tsx
+/* Responsive spacing */
+<div className="p-4 md:p-6 lg:p-8">
+
+/* Responsive text */
+<h1 className="text-3xl md:text-4xl lg:text-5xl">
+
+/* Responsive layout */
+<div className="flex flex-col md:flex-row gap-4">
 ```
 
 ---
 
-## 📋 Component Checklist
+## 🎯 Component Checklist
 
 When creating new components:
 
-- [ ] Uses CSS variable colors (no hardcoded)
-- [ ] Typography utility classes (`.text-heading-*`, `.text-body-*`)
-- [ ] Spacing system (`.card-padding`, consistent `space-y-*`)
-- [ ] Subtle transitions (`duration-[150ms]` or `duration-[250ms]`)
-- [ ] `.card-interactive` for hoverable cards
-- [ ] `.link-primary` for navigation links
-- [ ] `.animate-in` for page containers
-- [ ] Input fields: `h-10` + focus shadow
-- [ ] Tested in light and dark mode
-- [ ] Mobile responsive (test on small screens)
+- [ ] Use CSS variable-based colors (no hardcoded colors)
+- [ ] Use semantic HTML + utility classes for typography
+- [ ] Use spacing system (`.card-padding`, consistent `space-y-*`)
+- [ ] Add transitions (`duration-[var(--transition-fast)]`)
+- [ ] Use `.card-interactive` for hoverable cards
+- [ ] Add `.animate-in` to page containers
+- [ ] Input fields: `h-9` + focus ring
+- [ ] Buttons: Consistent heights with inputs
+- [ ] Test in both light and dark mode
+- [ ] Verify responsive behavior (mobile-first)
+- [ ] Check keyboard navigation
+- [ ] Verify color contrast (WCAG AA)
 
 ---
 
-## 🚫 Anti-Patterns
+## 🚫 Anti-Patterns (DO NOT DO)
 
-### Colors
-❌ `bg-white`, `text-black`, `border-gray-200`  
-✅ `bg-background`, `text-foreground`, `border-border`
+❌ Hardcoded colors: `bg-white`, `text-black`, `#7550ff`  
+❌ Typography components: `<TypographyH1>`, `<TypographyP>`  
+❌ Random font sizes: `text-[17px]`, `text-lg` for headings  
+❌ Inconsistent spacing: `mt-[13px]`, `gap-[19px]`  
+❌ Long animations: `duration-500`, `duration-1000`  
+❌ Manual theme checks: `{theme === 'dark' ? ... : ...}`  
+❌ No hover states on interactive elements  
+❌ Missing focus states  
+❌ Poor color contrast  
 
-### Typography
-❌ `text-[18px]`, `text-lg`, `<TypographyH1>`  
-✅ `text-heading-2`, `<h2 className="text-heading-2">`
+---
 
-### Spacing
-❌ `mt-[13px]`, `gap-[19px]`  
-✅ `mt-4`, `gap-6` (4px increments)
+## 📚 Shadcn Components Reference
 
-### Animations
-❌ `duration-500`, `duration-1000`, no transitions  
-✅ `duration-[150ms]`, `duration-[250ms]`
+### UI Components (23)
 
-### Skeletons
-❌ `animate-pulse`, returning `null` during loading  
-✅ `.skeleton-shimmer`, always show skeleton component
+✅ Avatar, Badge, Button, Card, Chart, Checkbox, Dialog, Dropdown Menu, Input, Label, Progress, Scroll Area, Select, Separator, Sheet, Sidebar, Skeleton, Sonner (Toast), Switch, Tabs, Textarea, Tooltip
 
-❌ Generic skeleton that doesn't match content:
+### AI Components (7) ✨ NEW
+
+✅ **Message** - Chat message containers with role-based styling  
+✅ **Response** - Streaming-optimized markdown renderer with copy  
+✅ **Conversation** - Auto-scrolling chat container  
+✅ **PromptInput** - Auto-resizing textarea with submit  
+✅ **Tool** - Collapsible tool execution display with status  
+✅ **Loader** - Loading states for AI operations  
+✅ **Suggestion** - Quick action pills
+
+**Location**: `components/ai/`  
+**Usage**: For AL-IA chatbot and all conversational interfaces  
+**Docs**: https://www.shadcn.io/ai
+
+### Future Additions
+
+Consider adding these for enhanced functionality:
+
+- **Alert** / **AlertDialog** - Error messages, confirmations
+- **Form** - React Hook Form integration
+- **Pagination** - For feeds (Twitter, TikTok, Media)
+- **Table** - Structured data display
+- **Calendar** - Date range pickers
+- **Command** - Command palette (⌘K)
+
+---
+
+## 🎯 Summary
+
+**This design system ensures**:
+- **Consistency**: Same patterns everywhere
+- **Accessibility**: Proper contrast, focus states, keyboard nav
+- **Performance**: GPU-accelerated animations, optimized shadows
+- **Maintainability**: Change once, applies everywhere
+- **Professionalism**: Government/enterprise-grade quality
+- **Modern**: Shadcn best practices, OKLCH colors, glassmorphism
+
+**Key Changes from V1**:
+- ❌ Removed `typography.tsx` components
+- ✅ Added semantic HTML + utility classes
+- ✅ Added tactical military colors
+- ✅ Added glassmorphism utilities
+- ✅ Standardized all component heights
+- ✅ Added status indicators and alert banners
+- ✅ Enhanced badge variants
+- ✅ Improved shadow system
+- ✅ Better spacing utilities
+
+---
+
+---
+
+## 🤖 AI Components Architecture
+
+### Chat Interface Pattern
+
 ```tsx
-<Skeleton className="h-64 w-full" />
+import { Conversation, ConversationContent, ConversationEmpty } from "@/components/ai/conversation";
+import { Message, MessageContent } from "@/components/ai/message";
+import { Response } from "@/components/ai/response";
+import { Tool } from "@/components/ai/tool";
+import { PromptInput } from "@/components/ai/prompt-input";
+import { Suggestions, Suggestion } from "@/components/ai/suggestion";
+
+// Usage in AL-IA chatbot
+<Conversation>
+  <ConversationContent>
+    {messages.map((message) => (
+      <Message key={message.id} from={message.role}>
+        <MessageContent>
+          {/* Tool Calls */}
+          {message.toolInvocations?.map((tool) => (
+            <Tool name={tool.toolName} status={tool.state} />
+          ))}
+          
+          {/* Message Response */}
+          <Response>{message.content}</Response>
+        </MessageContent>
+      </Message>
+    ))}
+  </ConversationContent>
+  
+  <PromptInput
+    value={input}
+    onChange={setInput}
+    onSubmit={handleSubmit}
+    isLoading={isLoading}
+  />
+</Conversation>
 ```
 
-✅ Detailed skeleton matching exact layout:
-```tsx
-<MySkeleton />  {/* Structured with proper spacing */}
-```
+### AI Component Features
 
-### Cards
-❌ `p-6`, `hover:bg-gray-50`  
-✅ `.card-padding`, `.card-interactive`
-
-### Links
-❌ `hover:text-blue-500`, manual hover styles  
-✅ `.link-primary`
-
-### Theme
-❌ `{theme === 'dark' ? ... : ...}`  
-✅ CSS variables handle this automatically
+- ✅ **Auto-scroll** to bottom on new messages
+- ✅ **Streaming support** with proper markdown rendering
+- ✅ **Copy button** on assistant responses
+- ✅ **Tool execution** display with status (pending/complete/error)
+- ✅ **Auto-resize** textarea (40-200px)
+- ✅ **Keyboard shortcuts** (Enter to send, Shift+Enter for newline)
+- ✅ **Loading states** with elegant spinners
+- ✅ **Quick actions** as suggestion pills
 
 ---
 
-## 🎯 Quality Standards
+## 📖 Resources
 
-This design system ensures:
+**Official Documentation**:
+- [shadcn UI](https://ui.shadcn.com) - Core components
+- [shadcn AI Elements](https://www.shadcn.io/ai) - AI chat components
+- [Tailwind CSS](https://tailwindcss.com) - Utility classes
+- [OKLCH Color Tool](https://oklch.com) - Color picker
 
-✅ **Consistency**: Same patterns everywhere  
-✅ **Accessibility**: Proper contrast, focus states  
-✅ **Performance**: GPU-accelerated animations  
-✅ **Maintainability**: Change once, applies everywhere  
-✅ **Professionalism**: Government/enterprise-grade quality  
-✅ **Scalability**: Easy to extend and maintain  
-✅ **Dark mode**: Automatic support everywhere  
-
----
-
-## 📚 Resources
-
-- **Full docs**: See `context.md` → Design System section
-- **Global styles**: `app/globals.css`
-- **Components**: `components/ui/` (Shadcn)
-- **Examples**: All pages in `app/dashboard/clients/`
+**Internal Docs**:
+- `context.md` - Project architecture overview
+- `DATABASE_SCHEMA.md` - Database structure
+- `TWITTER_INTEGRATION.md` - Twitter module
+- `TIKTOK_INTEGRATION.md` - TikTok module
 
 ---
 
-## 🔄 Updates
+## 🔄 Changelog
 
-To update this design system:
+### Version 2.1 (December 5, 2024)
+- ✅ Added AI Elements components (Message, Response, Conversation, etc.)
+- ✅ Migrated AL-IA chatbot to AI Elements architecture
+- ✅ Applied glassmorphism to all feed cards
+- ✅ Standardized all transitions to CSS variables
+- ✅ Removed typography.tsx components (obsolete)
+- ✅ Enhanced sidebar footer with proper shadcn patterns
+- ✅ Created EmptyState reusable component
+- ✅ Added tactical military color palette
+- ✅ Improved shadow system (5 levels)
+- ✅ Enhanced card contrast (+33% opacity)
+- ✅ Optimized spacing (space-y-6 uniform)
 
-1. **Add CSS variables** in `app/globals.css`
-2. **Create utility classes** in `@layer utilities`
-3. **Document patterns** in this file + `context.md`
-4. **Update existing components** to use new patterns
-5. **Test** in light + dark mode
-
----
-
-**Remember**: The design system is the foundation of quality. Follow it religiously, and the app will maintain its professional, polished look at scale.
+### Version 2.0 (November 2024)
+- Initial professional design system
+- OKLCH color palette
+- Typography scale
+- Spacing system
+- Animation framework
 

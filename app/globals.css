@@ -125,69 +125,148 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
-  /* Professional Typography Scale */
+  /* ========================================
+   * GORGONE DESIGN SYSTEM
+   * Government-grade monitoring platform
+   * ======================================== */
+
   :root {
-    /* Animation Variables */
+    /* ============ ANIMATION ============ */
     --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
     --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
     --transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
     
-    /* Spacing Scale - Harmonious */
-    --spacing-section: 3rem; /* 48px - Between major sections */
-    --spacing-container: 2rem; /* 32px - Container padding */
-    --spacing-card: 1.5rem; /* 24px - Card internal padding */
-    --spacing-element: 1rem; /* 16px - Between elements */
-    --spacing-compact: 0.75rem; /* 12px - Compact spacing */
-    --spacing-tight: 0.5rem; /* 8px - Tight spacing */
+    /* ============ SPACING SCALE (4px based) ============ */
+    --spacing-section: 3rem;     /* 48px - Between major page sections */
+    --spacing-container: 2rem;   /* 32px - Main container padding */
+    --spacing-card: 1.5rem;      /* 24px - Card internal padding */
+    --spacing-element: 1rem;     /* 16px - Between related elements */
+    --spacing-compact: 0.75rem;  /* 12px - Compact layouts (feeds) */
+    --spacing-tight: 0.5rem;     /* 8px - Minimal spacing */
+    --spacing-xs: 0.25rem;       /* 4px - Micro spacing */
     
-    /* Typography Scale */
-    --font-size-xs: 0.75rem; /* 12px */
-    --font-size-sm: 0.875rem; /* 14px */
-    --font-size-base: 1rem; /* 16px */
-    --font-size-lg: 1.125rem; /* 18px */
-    --font-size-xl: 1.25rem; /* 20px */
-    --font-size-2xl: 1.5rem; /* 24px */
-    --font-size-3xl: 1.875rem; /* 30px */
-    --font-size-4xl: 2.25rem; /* 36px */
+    /* ============ COMPONENT HEIGHTS ============ */
+    --height-input: 2.25rem;     /* 36px (h-9) - Standard input/button height */
+    --height-input-sm: 2rem;     /* 32px (h-8) - Compact input */
+    --height-input-lg: 2.5rem;   /* 40px (h-10) - Large input */
     
-    /* Line Heights */
-    --line-height-tight: 1.25;
-    --line-height-normal: 1.5;
-    --line-height-relaxed: 1.75;
+    /* ============ BORDER RADIUS ============ */
+    /* Base: var(--radius) = 0.625rem (10px) */
+    /* sm: calc(var(--radius) - 4px) = 6px */
+    /* md: calc(var(--radius) - 2px) = 8px */
+    /* lg: var(--radius) = 10px */
+    /* xl: calc(var(--radius) + 4px) = 14px */
+    /* Usage:
+     * - rounded-md (6px): Buttons, Inputs, Badges, Small Cards
+     * - rounded-lg (8px): Tabs, Dropdowns, Dialogs
+     * - rounded-xl (14px): Main Cards, Sections
+     * - rounded-2xl (16px): Hero elements
+     */
     
-    /* Shadows - Subtle and Professional */
-    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.05);
-    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.07), 0 4px 6px -4px rgb(0 0 0 / 0.05);
+    /* ============ SHADOWS (Elevation) ============ */
+    /* Light mode: Subtle, professional */
+    --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
     
-    /* Card Styles */
-    --card-hover-border: oklch(0.54 0.22 285 / 0.15);
-    --card-hover-shadow: 0 8px 16px -4px rgb(0 0 0 / 0.08);
+    /* ============ CARD SYSTEM ============ */
+    --card-hover-border: oklch(0.54 0.22 285 / 0.2);
+    --card-hover-shadow: 0 8px 16px -4px rgb(0 0 0 / 0.1);
+    
+    /* ============ GLASSMORPHISM (Apple-inspired) ============ */
+    --glass-bg: oklch(from var(--background) l c h / 0.8);
+    --glass-border: oklch(from var(--border) l c h / 0.3);
+    --glass-blur: 12px;
+    
+    /* ============ MILITARY/TACTICAL ACCENTS ============ */
+    --tactical-green: oklch(0.6 0.15 145);      /* Tactical green for success/active */
+    --tactical-amber: oklch(0.7 0.15 85);       /* Warning/alert states */
+    --tactical-red: oklch(0.6 0.22 27);         /* Critical/danger */
+    --tactical-blue: oklch(0.55 0.18 240);      /* Information/link */
+    --tactical-slate: oklch(0.45 0.02 240);     /* Muted tactical grey */
   }
 
   .dark {
-    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
-    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.3);
-    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5), 0 4px 6px -4px rgb(0 0 0 / 0.4);
-    --card-hover-border: oklch(0.62 0.24 285 / 0.25);
-    --card-hover-shadow: 0 8px 16px -4px rgb(0 0 0 / 0.6);
+    /* Dark mode shadows: Deeper, more pronounced */
+    --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.4);
+    --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.5), 0 1px 2px -1px rgb(0 0 0 / 0.4);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.5), 0 2px 4px -2px rgb(0 0 0 / 0.4);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.6), 0 4px 6px -4px rgb(0 0 0 / 0.5);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.7), 0 8px 10px -6px rgb(0 0 0 / 0.6);
+    
+    --card-hover-border: oklch(0.62 0.24 285 / 0.3);
+    --card-hover-shadow: 0 8px 16px -4px rgb(0 0 0 / 0.7);
+    
+    /* Glassmorphism for dark mode */
+    --glass-bg: oklch(from var(--background) l c h / 0.7);
+    --glass-border: oklch(from var(--border) l c h / 0.2);
   }
 }
 
 @layer components {
-  /* Professional Card Component */
+  /* ============================================
+   * GLASSMORPHISM COMPONENTS (Apple-inspired)
+   * Must be defined FIRST as other components use it
+   * ============================================ */
+  
+  .glass {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+  }
+  
+  .glass-card {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border-radius: calc(var(--radius) + 4px); /* rounded-xl */
+    box-shadow: var(--shadow-lg);
+  }
+
+  /* ============================================
+   * CARD COMPONENTS
+   * ============================================ */
+  
+  /* Interactive cards with hover effects */
   .card-interactive {
-    @apply rounded-lg border bg-card transition-all duration-[250ms];
+    @apply rounded-xl border bg-card transition-all duration-[var(--transition-base)];
     @apply hover:border-[var(--card-hover-border)] hover:shadow-[var(--card-hover-shadow)];
   }
-
-  /* Link Component */
-  .link-primary {
-    @apply text-foreground transition-colors duration-[150ms];
-    @apply hover:text-primary;
+  
+  /* Compact card for dense data displays (feeds, tables) */
+  .card-compact {
+    @apply rounded-lg border bg-card p-3 transition-colors duration-[var(--transition-fast)];
+    @apply hover:bg-accent/50;
+  }
+  
+  /* Danger zone card (destructive actions) */
+  .card-danger {
+    @apply rounded-lg border border-destructive/30 bg-destructive/5 p-4;
   }
 
-  /* Subtle Animations */
+  /* ============================================
+   * LINK COMPONENTS
+   * ============================================ */
+  
+  .link-primary {
+    @apply text-foreground transition-colors duration-[var(--transition-fast)];
+    @apply hover:text-primary underline-offset-4 hover:underline;
+  }
+  
+  .link-muted {
+    @apply text-muted-foreground transition-colors duration-[var(--transition-fast)];
+    @apply hover:text-foreground;
+  }
+
+  /* ============================================
+   * ANIMATIONS
+   * ============================================ */
+  
+  /* Fade in animation for page loads */
   .animate-in {
     animation: fadeIn var(--transition-base) ease-out;
   }
@@ -203,7 +282,10 @@
     }
   }
 
-  /* Elegant Skeleton Shimmer */
+  /* ============================================
+   * SKELETON LOADING STATES
+   * ============================================ */
+  
   .skeleton-shimmer {
     position: relative;
     overflow: hidden;
@@ -248,54 +330,184 @@
       transparent 100%
     );
   }
+
+  /* ============================================
+   * BADGES & STATUS INDICATORS
+   * ============================================ */
+  
+  /* Status badge with dot indicator */
+  .status-badge {
+    @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium;
+  }
+  
+  .status-badge::before {
+    content: "";
+    @apply size-1.5 rounded-full;
+  }
+  
+  .status-active::before {
+    background: var(--tactical-green);
+    animation: pulseSlow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+  
+  @keyframes pulseSlow {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.6;
+    }
+  }
+  
+  .status-warning::before {
+    @apply bg-[var(--tactical-amber)];
+  }
+  
+  .status-inactive::before {
+    @apply bg-muted-foreground;
+  }
+
+  /* ============================================
+   * FOCUS STATES (Accessibility)
+   * ============================================ */
+  
+  .focus-ring {
+    @apply outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2;
+  }
+  
+  .focus-ring-inset {
+    @apply outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring;
+  }
+
+  /* ============================================
+   * DATA DISPLAY COMPONENTS
+   * ============================================ */
+  
+  /* Stats card for metrics */
+  .stats-card {
+    @apply flex flex-col gap-1 rounded-lg bg-muted/30 p-4;
+  }
+  
+  .stats-value {
+    @apply text-2xl font-bold tracking-tight;
+  }
+  
+  .stats-label {
+    @apply text-xs text-muted-foreground uppercase tracking-wider;
+  }
+  
+  .stats-change {
+    @apply text-xs font-medium;
+  }
+  
+  .stats-change.positive {
+    @apply text-[var(--tactical-green)];
+  }
+  
+  .stats-change.negative {
+    @apply text-[var(--tactical-red)];
+  }
+
+  /* ============================================
+   * ALERT BANNERS
+   * ============================================ */
+  
+  .alert-banner {
+    @apply flex items-start gap-3 rounded-lg border p-4;
+  }
+  
+  .alert-info {
+    @apply border-[var(--tactical-blue)]/30 bg-[var(--tactical-blue)]/10 text-[var(--tactical-blue)];
+  }
+  
+  .alert-success {
+    @apply border-[var(--tactical-green)]/30 bg-[var(--tactical-green)]/10 text-[var(--tactical-green)];
+  }
+  
+  .alert-warning {
+    @apply border-[var(--tactical-amber)]/30 bg-[var(--tactical-amber)]/10 text-[var(--tactical-amber)];
+  }
+  
+  .alert-danger {
+    @apply border-[var(--tactical-red)]/30 bg-[var(--tactical-red)]/10 text-[var(--tactical-red)];
+  }
 }
 
 @layer utilities {
-  /* Typography Utilities */
-  .text-display {
-    font-size: var(--font-size-4xl);
-    line-height: var(--line-height-tight);
-    font-weight: 700;
-    letter-spacing: -0.02em;
+  /* ============================================
+   * TYPOGRAPHY UTILITIES (shadcn-compliant)
+   * Direct HTML tags + utility classes
+   * ============================================ */
+  
+  /* Headings - Use with semantic HTML */
+  h1, .text-h1 {
+    @apply scroll-m-20 text-4xl font-extrabold tracking-tight;
+  }
+  
+  h2, .text-h2 {
+    @apply scroll-m-20 text-3xl font-semibold tracking-tight;
+  }
+  
+  h3, .text-h3 {
+    @apply scroll-m-20 text-2xl font-semibold tracking-tight;
+  }
+  
+  h4, .text-h4 {
+    @apply scroll-m-20 text-xl font-semibold tracking-tight;
+  }
+  
+  /* Paragraph - Default body text */
+  p, .text-p {
+    @apply leading-7 [&:not(:first-child)]:mt-6;
+  }
+  
+  /* Lead - Introductory text */
+  .text-lead {
+    @apply text-xl text-muted-foreground;
+  }
+  
+  /* Large - Emphasized text */
+  .text-large {
+    @apply text-lg font-semibold;
+  }
+  
+  /* Small - Labels, captions */
+  small, .text-small {
+    @apply text-sm font-medium leading-none;
+  }
+  
+  /* Muted - Secondary text */
+  .text-muted {
+    @apply text-sm text-muted-foreground;
+  }
+  
+  /* Inline code */
+  code:not(pre code), .text-code {
+    @apply relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold;
+  }
+  
+  /* Blockquote */
+  blockquote, .text-blockquote {
+    @apply mt-6 border-l-2 pl-6 italic;
+  }
+  
+  /* Lists */
+  ul, ol {
+    @apply my-6 ml-6 [&>li]:mt-2;
+  }
+  
+  ul {
+    @apply list-disc;
+  }
+  
+  ol {
+    @apply list-decimal;
   }
 
-  .text-heading-1 {
-    font-size: var(--font-size-3xl);
-    line-height: var(--line-height-tight);
-    font-weight: 700;
-    letter-spacing: -0.01em;
-  }
-
-  .text-heading-2 {
-    font-size: var(--font-size-2xl);
-    line-height: var(--line-height-tight);
-    font-weight: 600;
-    letter-spacing: -0.01em;
-  }
-
-  .text-heading-3 {
-    font-size: var(--font-size-xl);
-    line-height: var(--line-height-normal);
-    font-weight: 600;
-  }
-
-  .text-body {
-    font-size: var(--font-size-base);
-    line-height: var(--line-height-normal);
-  }
-
-  .text-body-sm {
-    font-size: var(--font-size-sm);
-    line-height: var(--line-height-normal);
-  }
-
-  .text-caption {
-    font-size: var(--font-size-xs);
-    line-height: var(--line-height-normal);
-    color: oklch(from var(--muted-foreground) l c h / 0.8);
-  }
-
-  /* Spacing Utilities */
+  /* ============================================
+   * SPACING UTILITIES
+   * ============================================ */
+  
   .section-spacing {
     margin-bottom: var(--spacing-section);
   }
@@ -307,8 +519,27 @@
   .card-padding {
     padding: var(--spacing-card);
   }
+  
+  /* Compact layout for dense data displays */
+  .layout-compact {
+    @apply space-y-3;
+  }
+  
+  /* Standard layout spacing */
+  .layout-standard {
+    @apply space-y-6;
+  }
+  
+  /* Relaxed layout for forms */
+  .layout-relaxed {
+    @apply space-y-8;
+  }
 
-  /* Hide scrollbar for horizontal scroll (mobile tabs, carousels) */
+  /* ============================================
+   * SCROLLBAR UTILITIES
+   * ============================================ */
+  
+  /* Hide scrollbar (mobile tabs, carousels) */
   .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;
@@ -316,6 +547,66 @@
 
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
+  }
+  
+  /* Custom thin scrollbar for data tables */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: oklch(from var(--muted-foreground) l c h / 0.3);
+    border-radius: 3px;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: oklch(from var(--muted-foreground) l c h / 0.5);
+  }
+
+  /* ============================================
+   * TACTICAL/MILITARY ACCENT UTILITIES
+   * ============================================ */
+  
+  .tactical-success {
+    @apply bg-[var(--tactical-green)] text-white;
+  }
+  
+  .tactical-warning {
+    @apply bg-[var(--tactical-amber)] text-black;
+  }
+  
+  .tactical-danger {
+    @apply bg-[var(--tactical-red)] text-white;
+  }
+  
+  .tactical-info {
+    @apply bg-[var(--tactical-blue)] text-white;
+  }
+  
+  /* Borders with tactical colors */
+  .border-tactical-success {
+    border-color: var(--tactical-green);
+  }
+  
+  .border-tactical-warning {
+    border-color: var(--tactical-amber);
+  }
+  
+  .border-tactical-danger {
+    border-color: var(--tactical-red);
+  }
+  
+  .border-tactical-info {
+    border-color: var(--tactical-blue);
   }
 
   /* Prose styles for markdown rendering in chat */

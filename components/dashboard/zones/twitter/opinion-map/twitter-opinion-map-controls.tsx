@@ -92,15 +92,15 @@ export function TwitterOpinionMapControls({
   const PhaseIcon = phaseInfo?.icon
 
   return (
-    <Card className="border-border shadow-sm">
-      <CardContent className="p-4 sm:p-6">
+    <Card className="shadow-sm">
+      <CardContent>
         <div className="space-y-4">
           {/* Configuration */}
           <div className="flex flex-col sm:flex-row sm:items-center gap-4">
             <div className="flex flex-wrap items-center gap-3 flex-1">
               {/* Time Period */}
               <div className="flex items-center gap-2">
-                <span className="text-body-sm text-muted-foreground shrink-0">
+                <span className="text-sm text-muted-foreground shrink-0">
                   Period:
                 </span>
                 <Select 
@@ -125,7 +125,7 @@ export function TwitterOpinionMapControls({
 
               {/* Sample Size */}
               <div className="flex items-center gap-2">
-                <span className="text-body-sm text-muted-foreground shrink-0">
+                <span className="text-sm text-muted-foreground shrink-0">
                   Sample:
                 </span>
                 <Select 
@@ -150,8 +150,8 @@ export function TwitterOpinionMapControls({
 
             {/* Sample Size Warning */}
             {sampleSize > 5000 && !isGenerating && (
-              <div className="text-caption text-amber-600 dark:text-amber-500 flex items-center gap-1.5">
-                <Clock className="h-3.5 w-3.5" />
+              <div className="text-xs text-amber-600 dark:text-amber-500 flex items-center gap-1.5">
+                <Clock className="size-3.5" />
                 <span>Large samples may take up to 15 minutes to process</span>
               </div>
             )}
@@ -161,16 +161,16 @@ export function TwitterOpinionMapControls({
               onClick={handleGenerateClick}
               disabled={isGenerating}
               size="default"
-              className="w-full sm:w-auto transition-all duration-[150ms]"
+              className="w-full sm:w-auto transition-all duration-[var(--transition-fast)]"
             >
               {isGenerating ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Loader2 className="mr-2 size-4 animate-spin" />
                   Generating...
                 </>
               ) : (
                 <>
-                  <Sparkles className="mr-2 h-4 w-4" />
+                  <Sparkles className="mr-2 size-4" />
                   Generate Opinion Map
                 </>
               )}
@@ -188,12 +188,12 @@ export function TwitterOpinionMapControls({
                       'p-2.5 rounded-lg bg-muted/50 transition-all duration-300', 
                       phaseInfo.color
                     )}>
-                      <PhaseIcon className="h-4 w-4 animate-spin" />
+                      <PhaseIcon className="size-4 animate-spin" />
                     </div>
                   )}
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <span className="text-body-sm font-semibold">
+                      <span className="text-sm font-semibold">
                         {phaseInfo?.label || 'Processing'}
                       </span>
                       <Badge 
@@ -204,7 +204,7 @@ export function TwitterOpinionMapControls({
                       </Badge>
                     </div>
                     {session.phase_message && (
-                      <p className="text-caption text-muted-foreground">
+                      <p className="text-xs text-muted-foreground">
                         {session.phase_message}
                       </p>
                     )}
@@ -213,11 +213,11 @@ export function TwitterOpinionMapControls({
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-9 w-9 hover:bg-destructive/10 hover:text-destructive transition-all duration-[150ms]"
+                  className="h-9 w-9 hover:bg-destructive/10 hover:text-destructive transition-all duration-[var(--transition-fast)]"
                   onClick={onCancel}
                   title="Cancel Generation"
                 >
-                  <X className="h-4 w-4" />
+                  <X className="size-4" />
                 </Button>
               </div>
 
@@ -229,7 +229,7 @@ export function TwitterOpinionMapControls({
                 />
                 
                 {/* Stats */}
-                <div className="flex items-center justify-between text-caption text-muted-foreground">
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
                   <span>
                     {session.vectorized_tweets > 0 && session.total_tweets ? (
                       <>
@@ -276,14 +276,14 @@ export function TwitterOpinionMapControls({
             <div className="flex items-center gap-3 p-3 rounded-lg border border-primary/30 bg-primary/5 animate-in fade-in-0 slide-in-from-top-2 duration-300">
               <div className="flex-shrink-0">
                 <div className="p-2 rounded-full bg-primary/10">
-                  <Sparkles className="h-4 w-4 text-primary" />
+                  <Sparkles className="size-4 text-primary" />
                 </div>
               </div>
               <div className="flex-1 space-y-0.5">
-                <p className="text-body-sm font-medium">
+                <p className="text-sm font-medium">
                   Opinion map generated successfully
                 </p>
-                <div className="flex items-center gap-4 text-caption text-muted-foreground">
+                <div className="flex items-center gap-4 text-xs text-muted-foreground">
                   <span>{session.total_tweets?.toLocaleString()} posts</span>
                   <span>•</span>
                   <span>{session.total_clusters} clusters</span>
@@ -303,14 +303,14 @@ export function TwitterOpinionMapControls({
             <div className="flex items-center gap-3 p-3 rounded-lg border border-destructive/30 bg-destructive/5 animate-in fade-in-0 slide-in-from-top-2 duration-300">
               <div className="flex-shrink-0">
                 <div className="p-2 rounded-full bg-destructive/10">
-                  <X className="h-4 w-4 text-destructive" />
+                  <X className="size-4 text-destructive" />
                 </div>
               </div>
               <div className="flex-1 space-y-0.5">
-                <p className="text-body-sm font-medium text-destructive">
+                <p className="text-sm font-medium text-destructive">
                   Generation failed
                 </p>
-                <p className="text-caption text-muted-foreground">
+                <p className="text-xs text-muted-foreground">
                   {session.error_message || 'An unknown error occurred'}
                 </p>
               </div>

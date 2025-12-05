@@ -141,11 +141,11 @@ export function TikTokRulesList({ rules, onEdit, onCreateNew, onRefresh }: TikTo
       <div className="space-y-5">
         {/* Header with count and action */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <p className="text-body-sm text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             {rules.length} active rule{rules.length !== 1 ? 's' : ''}
           </p>
           <Button onClick={onCreateNew} size="sm" className="gap-2 w-full sm:w-auto">
-            <Plus className="h-4 w-4" />
+            <Plus className="size-4" />
             <span>New Rule</span>
           </Button>
         </div>
@@ -166,10 +166,10 @@ export function TikTokRulesList({ rules, onEdit, onCreateNew, onRefresh }: TikTo
                   {rule.is_active ? "Active" : "Paused"}
                 </Badge>
                 <div className="flex-1 min-w-0">
-                  <p className="text-body-sm font-medium truncate">
+                  <p className="text-sm font-medium truncate">
                     {rule.rule_name}
                   </p>
-                  <p className="text-caption text-muted-foreground">
+                  <p className="text-xs text-muted-foreground">
                     Created {formatDistanceToNow(new Date(rule.created_at))}
                   </p>
                 </div>
@@ -178,27 +178,27 @@ export function TikTokRulesList({ rules, onEdit, onCreateNew, onRefresh }: TikTo
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8 flex-shrink-0"
+                      className="size-8 flex-shrink-0"
                       disabled={deletingId === rule.id || pausingId === rule.id}
                     >
-                      <MoreVertical className="h-4 w-4" />
+                      <MoreVertical className="size-4" />
                       <span className="sr-only">Open menu</span>
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-48">
                     <DropdownMenuItem onClick={() => onEdit(rule)}>
-                      <Pencil className="mr-2 h-4 w-4" />
+                      <Pencil className="mr-2 size-4" />
                       <span>Edit</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => handlePause(rule)}>
                       {rule.is_active ? (
                         <>
-                          <Pause className="mr-2 h-4 w-4" />
+                          <Pause className="mr-2 size-4" />
                           <span>Pause</span>
                         </>
                       ) : (
                         <>
-                          <Play className="mr-2 h-4 w-4" />
+                          <Play className="mr-2 size-4" />
                           <span>Resume</span>
                         </>
                       )}
@@ -207,7 +207,7 @@ export function TikTokRulesList({ rules, onEdit, onCreateNew, onRefresh }: TikTo
                       onClick={() => handleDelete(rule)}
                       className="text-destructive focus:text-destructive"
                     >
-                      <Trash2 className="mr-2 h-4 w-4" />
+                      <Trash2 className="mr-2 size-4" />
                       <span>Delete</span>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -216,23 +216,23 @@ export function TikTokRulesList({ rules, onEdit, onCreateNew, onRefresh }: TikTo
 
               {/* Query Preview */}
               <div className="rounded-lg border border-dashed border-border/60 bg-muted/20 p-3">
-                <p className="text-caption font-mono text-muted-foreground break-all">
+                <p className="text-xs font-mono text-muted-foreground break-all">
                   {getQueryDisplay(rule)}
                   {rule.country && ` [${rule.country.toUpperCase()}]`}
                 </p>
               </div>
 
               {/* Metadata */}
-              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-caption text-muted-foreground">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs text-muted-foreground">
                 <span className="flex items-center gap-1.5">
-                  <Clock className="h-3.5 w-3.5 flex-shrink-0" />
+                  <Clock className="size-3.5 flex-shrink-0" />
                   <span>Check every {getIntervalDisplay(rule.interval_minutes)}</span>
                 </span>
                 {rule.last_polled_at && (
                   <>
                     <span className="hidden sm:inline">•</span>
                     <span className="flex items-center gap-1.5">
-                      <Activity className="h-3.5 w-3.5 flex-shrink-0" />
+                      <Activity className="size-3.5 flex-shrink-0" />
                       <span>Last checked {formatDistanceToNow(new Date(rule.last_polled_at))}</span>
                     </span>
                   </>

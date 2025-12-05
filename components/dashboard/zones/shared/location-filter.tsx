@@ -107,8 +107,8 @@ export function LocationFilter({
     return (
       <div className={cn("space-y-3", className)}>
         <div className="flex items-center gap-2">
-          <MapPin className="h-4 w-4 text-muted-foreground" />
-          <Skeleton className="h-4 w-24" />
+          <MapPin className="size-4 text-muted-foreground" />
+          <Skeleton className="size-44" />
         </div>
         <Skeleton className="h-9 w-full" />
         <div className="space-y-2">
@@ -125,11 +125,11 @@ export function LocationFilter({
     return (
       <div className={cn("space-y-3", className)}>
         <div className="flex items-center gap-2">
-          <MapPin className="h-4 w-4 text-muted-foreground" />
-          <span className="text-body-sm font-medium">{displayLabel}</span>
+          <MapPin className="size-4 text-muted-foreground" />
+          <span className="text-sm font-medium">{displayLabel}</span>
         </div>
         <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3">
-          <p className="text-caption text-destructive">{error}</p>
+          <p className="text-xs text-destructive">{error}</p>
         </div>
       </div>
     );
@@ -140,11 +140,11 @@ export function LocationFilter({
     return (
       <div className={cn("space-y-3", className)}>
         <div className="flex items-center gap-2">
-          <MapPin className="h-4 w-4 text-muted-foreground" />
-          <span className="text-body-sm font-medium">{displayLabel}</span>
+          <MapPin className="size-4 text-muted-foreground" />
+          <span className="text-sm font-medium">{displayLabel}</span>
         </div>
         <div className="rounded-lg border border-dashed border-border/60 bg-muted/20 p-4 text-center">
-          <p className="text-caption text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             No location data available
           </p>
         </div>
@@ -157,10 +157,10 @@ export function LocationFilter({
       {/* Header with counter */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <MapPin className="h-4 w-4 text-muted-foreground" />
-          <span className="text-body-sm font-medium">{displayLabel}</span>
+          <MapPin className="size-4 text-muted-foreground" />
+          <span className="text-sm font-medium">{displayLabel}</span>
           {selected.length > 0 && (
-            <Badge variant="secondary" className="h-5 px-1.5 text-caption tabular-nums">
+            <Badge variant="secondary" className="h-5 px-1.5 text-xs tabular-nums">
               {selected.length}
             </Badge>
           )}
@@ -170,7 +170,7 @@ export function LocationFilter({
             variant="ghost"
             size="sm"
             onClick={clearAll}
-            className="h-6 px-2 text-caption transition-colors duration-[150ms] hover:text-destructive"
+            className="h-6 px-2 text-xs transition-colors duration-[var(--transition-fast)] hover:text-destructive"
           >
             Clear
           </Button>
@@ -180,21 +180,21 @@ export function LocationFilter({
       {/* Search (only if many locations) */}
       {locations.length > 5 && (
         <div className="relative">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Search locations..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="h-9 pl-9 pr-9 text-body-sm transition-shadow duration-[150ms] focus-visible:shadow-[var(--shadow-sm)]"
+            className="h-9 pl-9 pr-9 text-sm transition-shadow duration-[var(--transition-fast)] focus-visible:shadow-[var(--shadow-sm)]"
           />
           {search && (
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setSearch("")}
-              className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 p-0 transition-colors duration-[150ms]"
+              className="absolute right-1 top-1/2 size-7 -translate-y-1/2 p-0 transition-colors duration-[var(--transition-fast)]"
             >
-              <X className="h-3.5 w-3.5" />
+              <X className="size-3.5" />
             </Button>
           )}
         </div>
@@ -205,7 +205,7 @@ export function LocationFilter({
         <div className="space-y-1">
           {filteredLocations.length === 0 ? (
             <div className="py-12 text-center">
-              <p className="text-caption text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 No locations found
               </p>
             </div>
@@ -217,7 +217,7 @@ export function LocationFilter({
                   key={loc.name}
                   onClick={() => toggleLocation(loc.name)}
                   className={cn(
-                    "flex w-full items-center justify-between gap-3 rounded-md px-3 py-2 text-left transition-colors duration-[150ms]",
+                    "flex w-full items-center justify-between gap-3 rounded-md px-3 py-2 text-left transition-colors duration-[var(--transition-fast)]",
                     isSelected
                       ? "bg-primary/10 text-primary"
                       : "hover:bg-muted/50"
@@ -226,7 +226,7 @@ export function LocationFilter({
                   <div className="flex min-w-0 flex-1 items-center gap-2.5">
                     <div
                       className={cn(
-                        "flex h-4 w-4 flex-shrink-0 items-center justify-center rounded border-2 transition-colors duration-[150ms]",
+                        "flex h-4 w-4 flex-shrink-0 items-center justify-center rounded border-2 transition-colors duration-[var(--transition-fast)]",
                         isSelected
                           ? "border-primary bg-primary"
                           : "border-muted-foreground/30"
@@ -234,7 +234,7 @@ export function LocationFilter({
                     >
                       {isSelected && (
                         <svg
-                          className="h-3 w-3 text-primary-foreground"
+                          className="size-3 text-primary-foreground"
                           viewBox="0 0 12 12"
                           fill="none"
                           stroke="currentColor"
@@ -246,13 +246,13 @@ export function LocationFilter({
                         </svg>
                       )}
                     </div>
-                    <span className="truncate text-body-sm font-medium" title={loc.name}>
+                    <span className="truncate text-sm font-medium" title={loc.name}>
                       {loc.name}
                     </span>
                   </div>
                   <Badge
                     variant="secondary"
-                    className="h-5 flex-shrink-0 px-1.5 text-caption tabular-nums"
+                    className="h-5 flex-shrink-0 px-1.5 text-xs tabular-nums"
                   >
                     {loc.count.toLocaleString()}
                   </Badge>
@@ -273,7 +273,7 @@ export function LocationFilter({
               <Badge
                 key={name}
                 variant="secondary"
-                className="h-6 gap-1.5 border border-primary/20 bg-primary/10 px-2 text-caption font-medium text-primary transition-colors duration-[150ms] hover:bg-primary/15"
+                className="h-6 gap-1.5 border border-primary/20 bg-primary/10 px-2 text-xs font-medium text-primary transition-colors duration-[var(--transition-fast)] hover:bg-primary/15"
               >
                 <span className="max-w-[100px] truncate" title={loc.name}>
                   {loc.name}
@@ -283,10 +283,10 @@ export function LocationFilter({
                     e.stopPropagation();
                     toggleLocation(name);
                   }}
-                  className="transition-colors duration-[150ms] hover:text-destructive"
+                  className="transition-colors duration-[var(--transition-fast)] hover:text-destructive"
                   aria-label={`Remove ${loc.name}`}
                 >
-                  <X className="h-3 w-3" />
+                  <X className="size-3" />
                 </button>
               </Badge>
             );

@@ -48,7 +48,7 @@ export function InfluenceSettings({ config, updateConfig, clusters }: InfluenceS
                     <div className="space-y-1 cursor-pointer" onClick={() => toggleCluster(cluster.cluster_id)}>
                       <div className="flex items-center gap-2">
                         <div 
-                          className="h-3 w-3 rounded-full" 
+                          className="size-3 rounded-full" 
                           style={{ backgroundColor: color }}
                         />
                         <Label 

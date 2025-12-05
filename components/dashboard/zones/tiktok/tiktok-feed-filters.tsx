@@ -185,7 +185,7 @@ export function TikTokFeedFilters({
       {/* Search Bar */}
       <div className="relative">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <Input
             type="text"
             placeholder="Search videos or users (@username)..."
@@ -201,14 +201,14 @@ export function TikTokFeedFilters({
                 setShowAutocomplete(false);
               }
             }}
-            className="pl-10 pr-10 h-11 transition-shadow duration-[150ms] focus-visible:shadow-[var(--shadow-sm)]"
+            className="pl-10 pr-10 h-11 transition-shadow duration-[var(--transition-fast)] focus-visible:shadow-[var(--shadow-sm)]"
           />
           {searchTerm && (
             <button
               onClick={handleClearSearch}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors duration-[150ms]"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors duration-[var(--transition-fast)]"
             >
-              <X className="h-4 w-4" />
+              <X className="size-4" />
             </button>
           )}
         </div>
@@ -220,31 +220,31 @@ export function TikTokFeedFilters({
               <button
                 key={`${result.type}-${result.value}-${index}`}
                 onClick={() => handleSelectAutocomplete(result)}
-                className="w-full px-4 py-3 flex items-center gap-3 hover:bg-muted/50 transition-colors duration-[150ms] text-left"
+                className="w-full px-4 py-3 flex items-center gap-3 hover:bg-muted/50 transition-colors duration-[var(--transition-fast)] text-left"
               >
                 {result.type === "user" && result.metadata?.avatar_thumb ? (
                   <img
                     src={result.metadata.avatar_thumb}
                     alt={result.label}
-                    className="h-8 w-8 rounded-full object-cover"
+                    className="size-8 rounded-full object-cover"
                   />
                 ) : (
-                  <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                  <div className="size-8 rounded-full bg-primary/10 flex items-center justify-center">
                     {result.type === "user" ? (
-                      <User className="h-4 w-4 text-primary" />
+                      <User className="size-4 text-primary" />
                     ) : (
-                      <Hash className="h-4 w-4 text-primary" />
+                      <Hash className="size-4 text-primary" />
                     )}
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <p className="text-body-sm font-medium truncate">
+                    <p className="text-sm font-medium truncate">
                       {result.label}
                     </p>
                     {result.type === "user" && result.metadata?.is_verified && (
                       <svg
-                        className="h-4 w-4 text-[#20D5EC] flex-shrink-0"
+                        className="size-4 text-[#20D5EC] flex-shrink-0"
                         viewBox="0 0 24 24"
                         fill="currentColor"
                       >
@@ -253,12 +253,12 @@ export function TikTokFeedFilters({
                     )}
                   </div>
                   {result.type === "user" && result.metadata?.follower_count && (
-                    <p className="text-caption text-muted-foreground">
+                    <p className="text-xs text-muted-foreground">
                       {result.metadata.follower_count.toLocaleString()} followers
                     </p>
                   )}
                 </div>
-                <Badge variant="secondary" className="text-caption">
+                <Badge variant="secondary" className="text-xs">
                   {result.type === "user" ? "User" : "Keyword"}
                 </Badge>
               </button>
@@ -269,7 +269,7 @@ export function TikTokFeedFilters({
         {/* Loading indicator */}
         {loading && (
           <div className="absolute right-12 top-1/2 -translate-y-1/2">
-            <div className="h-4 w-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+            <div className="size-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
           </div>
         )}
       </div>
@@ -283,7 +283,7 @@ export function TikTokFeedFilters({
             handleFilterChange("sort_by", value as SortOption)
           }
         >
-          <SelectTrigger className="h-9 w-[180px] transition-shadow duration-[150ms]">
+          <SelectTrigger className="h-9 w-[180px] transition-shadow duration-[var(--transition-fast)]">
             <SelectValue placeholder="Sort by" />
           </SelectTrigger>
           <SelectContent>
@@ -303,8 +303,8 @@ export function TikTokFeedFilters({
             handleFilterChange("profile_tag_type", value === "all" ? undefined : (value as ProfileTagType))
           }
         >
-          <SelectTrigger className="h-9 w-[160px] transition-shadow duration-[150ms]">
-            <User className="h-4 w-4 mr-2" />
+          <SelectTrigger className="h-9 w-[160px] transition-shadow duration-[var(--transition-fast)]">
+            <User className="size-4 mr-2" />
             <SelectValue placeholder="Profile type" />
           </SelectTrigger>
           <SelectContent>
@@ -326,8 +326,8 @@ export function TikTokFeedFilters({
             handleFilterChange("date_range", value === "all" ? undefined : value)
           }
         >
-          <SelectTrigger className="h-9 w-[140px] transition-shadow duration-[150ms]">
-            <Calendar className="h-4 w-4 mr-2" />
+          <SelectTrigger className="h-9 w-[140px] transition-shadow duration-[var(--transition-fast)]">
+            <Calendar className="size-4 mr-2" />
             <SelectValue placeholder="Time range" />
           </SelectTrigger>
           <SelectContent>
@@ -348,14 +348,14 @@ export function TikTokFeedFilters({
           size="sm"
           onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
           className={cn(
-            "gap-2 transition-all duration-[150ms]",
+            "gap-2 transition-all duration-[var(--transition-fast)]",
             activeFiltersCount > 0 && "border-primary text-primary"
           )}
         >
-          <Filter className="h-4 w-4" />
+          <Filter className="size-4" />
           Filters
           {activeFiltersCount > 0 && (
-            <Badge variant="default" className="h-5 w-5 rounded-full p-0 flex items-center justify-center">
+            <Badge variant="default" className="size-5 rounded-full p-0 flex items-center justify-center">
               {activeFiltersCount}
             </Badge>
           )}
@@ -364,13 +364,13 @@ export function TikTokFeedFilters({
         {/* Active Search Display */}
         {filters.search && (
           <Badge variant="secondary" className="gap-2">
-            <Search className="h-3 w-3" />
+            <Search className="size-3" />
             {filters.search}
             <button
               onClick={handleClearSearch}
-              className="hover:text-foreground transition-colors duration-[150ms]"
+              className="hover:text-foreground transition-colors duration-[var(--transition-fast)]"
             >
-              <X className="h-3 w-3" />
+              <X className="size-3" />
             </button>
           </Badge>
         )}
@@ -386,7 +386,7 @@ export function TikTokFeedFilters({
                 handleFilterChange("verified_only", !filters.verified_only || undefined)
               }
               className={cn(
-                "flex items-center gap-3 p-3 rounded-lg border transition-all duration-[150ms]",
+                "flex items-center gap-3 p-3 rounded-lg border transition-all duration-[var(--transition-fast)]",
                 filters.verified_only
                   ? "border-primary bg-primary/5 text-primary"
                   : "border-border hover:border-primary/50 hover:bg-muted/30"
@@ -394,7 +394,7 @@ export function TikTokFeedFilters({
             >
               <div
                 className={cn(
-                  "h-4 w-4 rounded border-2 flex items-center justify-center transition-all duration-[150ms]",
+                  "h-4 w-4 rounded border-2 flex items-center justify-center transition-all duration-[var(--transition-fast)]",
                   filters.verified_only
                     ? "border-primary bg-primary"
                     : "border-muted-foreground"
@@ -402,7 +402,7 @@ export function TikTokFeedFilters({
               >
                 {filters.verified_only && (
                   <svg
-                    className="h-3 w-3 text-white"
+                    className="size-3 text-white"
                     fill="none"
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -414,7 +414,7 @@ export function TikTokFeedFilters({
                   </svg>
                 )}
               </div>
-              <span className="text-body-sm font-medium">Verified Only</span>
+              <span className="text-sm font-medium">Verified Only</span>
             </button>
 
             <button
@@ -425,7 +425,7 @@ export function TikTokFeedFilters({
                 )
               }
               className={cn(
-                "flex items-center gap-3 p-3 rounded-lg border transition-all duration-[150ms]",
+                "flex items-center gap-3 p-3 rounded-lg border transition-all duration-[var(--transition-fast)]",
                 filters.active_tracking_only
                   ? "border-primary bg-primary/5 text-primary"
                   : "border-border hover:border-primary/50 hover:bg-muted/30"
@@ -433,7 +433,7 @@ export function TikTokFeedFilters({
             >
               <div
                 className={cn(
-                  "h-4 w-4 rounded border-2 flex items-center justify-center transition-all duration-[150ms]",
+                  "h-4 w-4 rounded border-2 flex items-center justify-center transition-all duration-[var(--transition-fast)]",
                   filters.active_tracking_only
                     ? "border-primary bg-primary"
                     : "border-muted-foreground"
@@ -441,7 +441,7 @@ export function TikTokFeedFilters({
               >
                 {filters.active_tracking_only && (
                   <svg
-                    className="h-3 w-3 text-white"
+                    className="size-3 text-white"
                     fill="none"
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -453,7 +453,7 @@ export function TikTokFeedFilters({
                   </svg>
                 )}
               </div>
-              <span className="text-body-sm font-medium">Active Tracking Only</span>
+              <span className="text-sm font-medium">Active Tracking Only</span>
             </button>
           </div>
 
@@ -482,14 +482,14 @@ export function TikTokFeedFilters({
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {/* Minimum Views */}
             <div className="space-y-2">
-              <label className="text-body-sm font-medium">Minimum Views</label>
+              <label className="text-sm font-medium">Minimum Views</label>
               <Select
                 value={filters.min_views?.toString() || "0"}
                 onValueChange={(value) =>
                   handleFilterChange("min_views", value === "0" ? undefined : parseInt(value))
                 }
               >
-                <SelectTrigger className="transition-shadow duration-[150ms]">
+                <SelectTrigger className="transition-shadow duration-[var(--transition-fast)]">
                   <SelectValue placeholder="Any" />
                 </SelectTrigger>
                 <SelectContent>
@@ -507,14 +507,14 @@ export function TikTokFeedFilters({
 
             {/* Minimum Likes */}
             <div className="space-y-2">
-              <label className="text-body-sm font-medium">Minimum Likes</label>
+              <label className="text-sm font-medium">Minimum Likes</label>
               <Select
                 value={filters.min_likes?.toString() || "0"}
                 onValueChange={(value) =>
                   handleFilterChange("min_likes", value === "0" ? undefined : parseInt(value))
                 }
               >
-                <SelectTrigger className="transition-shadow duration-[150ms]">
+                <SelectTrigger className="transition-shadow duration-[var(--transition-fast)]">
                   <SelectValue placeholder="Any" />
                 </SelectTrigger>
                 <SelectContent>
@@ -530,14 +530,14 @@ export function TikTokFeedFilters({
 
             {/* Minimum Comments */}
             <div className="space-y-2">
-              <label className="text-body-sm font-medium">Minimum Comments</label>
+              <label className="text-sm font-medium">Minimum Comments</label>
               <Select
                 value={filters.min_comments?.toString() || "0"}
                 onValueChange={(value) =>
                   handleFilterChange("min_comments", value === "0" ? undefined : parseInt(value))
                 }
               >
-                <SelectTrigger className="transition-shadow duration-[150ms]">
+                <SelectTrigger className="transition-shadow duration-[var(--transition-fast)]">
                   <SelectValue placeholder="Any" />
                 </SelectTrigger>
                 <SelectContent>
@@ -567,7 +567,7 @@ export function TikTokFeedFilters({
               }
               className="w-full gap-2"
             >
-              <X className="h-4 w-4" />
+              <X className="size-4" />
               Clear filters
             </Button>
           )}

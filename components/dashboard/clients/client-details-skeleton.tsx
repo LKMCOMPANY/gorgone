@@ -67,7 +67,7 @@ export function ClientDetailsSkeleton() {
                 className="flex flex-col gap-3 rounded-lg border p-4 md:flex-row md:items-center"
               >
                 {/* Avatar */}
-                <Skeleton className="h-10 w-10 shrink-0 rounded-full" />
+                <Skeleton className="size-10 shrink-0 rounded-full" />
                 
                 {/* User info */}
                 <div className="flex-1 space-y-1.5">
@@ -80,7 +80,7 @@ export function ClientDetailsSkeleton() {
                 <Skeleton className="h-6 w-[90px] rounded-full" />
                 
                 {/* Actions menu */}
-                <Skeleton className="h-8 w-8 shrink-0" />
+                <Skeleton className="size-8 shrink-0" />
               </div>
             ))}
           </div>

@@ -1,13 +1,14 @@
-import { TypographyH1, TypographyMuted } from "@/components/ui/typography";
-
 export default function DashboardPage() {
   return (
-    <div className="space-y-6">
-      <div className="space-y-2">
-        <TypographyH1>Dashboard</TypographyH1>
-        <TypographyMuted>
+    <div className="animate-in space-y-8">
+      {/* Page Header */}
+      <div className="space-y-1.5">
+        <h1 className="scroll-m-20 text-4xl font-extrabold tracking-tight">
+          Dashboard
+        </h1>
+        <p className="text-sm text-muted-foreground">
           Welcome to the social media monitoring platform
-        </TypographyMuted>
+        </p>
       </div>
     </div>
   );

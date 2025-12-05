@@ -99,8 +99,8 @@ export async function TwitterOverviewTab({ zoneId, period }: TwitterOverviewTabP
         {/* Period Selector */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="space-y-1">
-            <h2 className="text-heading-3 font-semibold">Overview Analytics</h2>
-            <p className="text-body-sm text-muted-foreground">
+            <h2 className="text-lg font-semibold font-semibold">Overview Analytics</h2>
+            <p className="text-sm text-muted-foreground">
               Monitor key metrics and performance trends for your zone
             </p>
           </div>
@@ -135,7 +135,7 @@ export async function TwitterOverviewTab({ zoneId, period }: TwitterOverviewTabP
         <div className="lg:col-span-1">
           <div className="h-full rounded-lg border border-dashed border-border/60 bg-muted/30 flex items-center justify-center p-12">
             <div className="text-center space-y-2">
-              <p className="text-body-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 Additional analytics coming soon
               </p>
             </div>

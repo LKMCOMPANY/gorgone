@@ -11,7 +11,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { TypographyMuted } from "@/components/ui/typography";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { updateClientUserAction } from "@/app/actions/clients";
@@ -102,9 +101,9 @@ export function EditUserDialog({
           disabled={loading}
           minLength={6}
         />
-        <TypographyMuted className="text-sm">
+        <p className="text-sm text-muted-foreground">
           Leave empty to keep the current password
-        </TypographyMuted>
+        </p>
       </div>
 
       <div className="space-y-2">
@@ -147,7 +146,7 @@ export function EditUserDialog({
           disabled={loading || !email.trim()}
           className="w-full sm:w-auto"
         >
-          {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {loading && <Loader2 className="mr-2 size-4 animate-spin" />}
           Save Changes
         </Button>
         <Button

@@ -46,12 +46,12 @@ export function TwitterClusterBadge({
         />
         
         {/* Cluster label */}
-        <span className="text-caption font-medium text-foreground">
+        <span className="text-xs font-medium text-foreground">
           {cluster.label}
         </span>
         
         {/* Tweet count */}
-        <span className="text-caption text-muted-foreground ml-auto">
+        <span className="text-xs text-muted-foreground ml-auto">
           {cluster.tweet_count.toLocaleString()} {cluster.tweet_count === 1 ? 'tweet' : 'tweets'}
         </span>
       </div>
@@ -60,10 +60,10 @@ export function TwitterClusterBadge({
       {cluster.avg_sentiment !== null && (
         <div className="space-y-1">
           <div className="flex items-center justify-between">
-            <span className="text-caption text-muted-foreground">
+            <span className="text-xs text-muted-foreground">
               Sentiment
             </span>
-            <span className="text-caption font-medium text-foreground">
+            <span className="text-xs font-medium text-foreground">
               {sentimentLabel}
             </span>
           </div>
@@ -81,7 +81,7 @@ export function TwitterClusterBadge({
             
             {/* Position indicator */}
             <div
-              className="absolute h-full w-1 bg-foreground rounded-full transition-all duration-[250ms]"
+              className="absolute h-full w-1 bg-foreground rounded-full transition-all duration-[var(--transition-base)]"
               style={{
                 left: `${((cluster.avg_sentiment + 1) / 2) * 100}%`,
                 transform: 'translateX(-50%)'

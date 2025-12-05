@@ -6,7 +6,6 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { TypographyMuted } from "@/components/ui/typography";
 import { toast } from "sonner";
 import { createClientAction } from "@/app/actions/clients";
 import { Loader2 } from "lucide-react";
@@ -61,9 +60,9 @@ export function CreateClientForm() {
             onChange={(e) => setName(e.target.value)}
             disabled={loading}
             required
-            className="h-10 transition-shadow duration-[150ms] focus-visible:shadow-[var(--shadow-sm)]"
+            className="h-10 transition-shadow duration-[var(--transition-fast)] focus-visible:shadow-[var(--shadow-sm)]"
           />
-          <p className="text-caption">
+          <p className="text-xs">
             The name of the client operation
           </p>
         </div>
@@ -77,9 +76,9 @@ export function CreateClientForm() {
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             disabled={loading}
-            className="h-10 transition-shadow duration-[150ms] focus-visible:shadow-[var(--shadow-sm)]"
+            className="h-10 transition-shadow duration-[var(--transition-fast)] focus-visible:shadow-[var(--shadow-sm)]"
           />
-          <p className="text-caption">
+          <p className="text-xs">
             Optional description of the client operation
           </p>
         </div>
@@ -96,7 +95,7 @@ export function CreateClientForm() {
             disabled={loading || !name.trim()}
             className="w-full sm:w-auto"
           >
-            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {loading && <Loader2 className="mr-2 size-4 animate-spin" />}
             Create Client
           </Button>
           <Button

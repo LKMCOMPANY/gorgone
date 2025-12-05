@@ -13,7 +13,7 @@ export function TikTokProfilesSkeleton() {
         <div className="flex gap-3">
           <div className="h-10 flex-1 animate-pulse rounded-lg bg-muted/30" />
           <div className="h-10 w-[200px] animate-pulse rounded-lg bg-muted/30" />
-          <div className="h-10 w-24 animate-pulse rounded-lg bg-muted/30" />
+          <div className="size-104 animate-pulse rounded-lg bg-muted/30" />
         </div>
       </div>
 
@@ -24,10 +24,10 @@ export function TikTokProfilesSkeleton() {
             {/* Left side */}
             <div className="p-4 sm:p-6 space-y-4">
               <div className="flex gap-4">
-                <div className="h-16 w-16 animate-pulse rounded-full bg-muted/30" />
+                <div className="size-16 animate-pulse rounded-full bg-muted/30" />
                 <div className="flex-1 space-y-2">
                   <div className="h-5 w-32 animate-pulse rounded bg-muted/30" />
-                  <div className="h-4 w-24 animate-pulse rounded bg-muted/30" />
+                  <div className="size-44 animate-pulse rounded bg-muted/30" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">

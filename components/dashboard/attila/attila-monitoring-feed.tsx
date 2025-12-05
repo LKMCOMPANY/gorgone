@@ -16,9 +16,9 @@ export function AttilaMonitoringFeed({ activity, zoneId }: AttilaMonitoringFeedP
     return (
       <div className="flex flex-col items-center justify-center py-24 text-center border border-dashed rounded-xl bg-muted/5">
         <div className="rounded-full bg-muted/30 p-4 mb-4">
-          <MessageSquare className="h-8 w-8 text-muted-foreground" />
+          <MessageSquare className="size-8 text-muted-foreground" />
         </div>
-        <h3 className="text-heading-3 mb-2">No Activity Recorded</h3>
+        <h3 className="text-lg font-semibold mb-2">No Activity Recorded</h3>
         <p className="text-body text-muted-foreground max-w-md mx-auto">
           Once your Attila avatars start responding to posts, the conversations will appear here in real-time.
         </p>
@@ -66,7 +66,7 @@ export function AttilaMonitoringFeed({ activity, zoneId }: AttilaMonitoringFeedP
                   
                   {/* Connector Icon (Mobile) */}
                   <div className="absolute left-[-24px] top-1 text-muted-foreground lg:hidden">
-                    <CornerDownRight className="h-4 w-4" />
+                    <CornerDownRight className="size-4" />
                   </div>
 
                   <div className="mb-1 flex items-center gap-2">

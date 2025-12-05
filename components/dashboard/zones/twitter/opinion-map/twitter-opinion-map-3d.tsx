@@ -716,26 +716,26 @@ function HoverTooltip({
         {/* Engagement Stats */}
         <div className="flex items-center gap-4 pt-2 border-t border-border/50">
           <div className="flex items-center gap-1.5">
-            <svg className="h-3.5 w-3.5 text-blue-500" fill="currentColor" viewBox="0 0 24 24">
+            <svg className="size-3.5 text-blue-500" fill="currentColor" viewBox="0 0 24 24">
               <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
             </svg>
             <span className="text-xs font-medium">{tweet.like_count.toLocaleString()}</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <svg className="h-3.5 w-3.5 text-emerald-500" fill="currentColor" viewBox="0 0 24 24">
+            <svg className="size-3.5 text-emerald-500" fill="currentColor" viewBox="0 0 24 24">
               <path d="M23 3a10.9 10.9 0 01-3.14 1.53 4.48 4.48 0 00-7.86 3v1A10.66 10.66 0 013 4s-4 9 5 13a11.64 11.64 0 01-7 2c9 5 20 0 20-11.5a4.5 4.5 0 00-.08-.83A7.72 7.72 0 0023 3z"/>
             </svg>
             <span className="text-xs font-medium">{tweet.retweet_count.toLocaleString()}</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <svg className="h-3.5 w-3.5 text-purple-500" fill="currentColor" viewBox="0 0 24 24">
+            <svg className="size-3.5 text-purple-500" fill="currentColor" viewBox="0 0 24 24">
               <path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/>
             </svg>
             <span className="text-xs font-medium">{tweet.reply_count.toLocaleString()}</span>
           </div>
           {tweet.view_count > 0 && (
             <div className="flex items-center gap-1.5">
-              <svg className="h-3.5 w-3.5 text-amber-500" fill="currentColor" viewBox="0 0 24 24">
+              <svg className="size-3.5 text-amber-500" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
                 <circle cx="12" cy="12" r="3"/>
               </svg>
@@ -828,21 +828,21 @@ export function TwitterOpinionMap3D({
         <Button
           variant="secondary"
           size="icon"
-          className="h-9 w-9 bg-background/95 backdrop-blur-md border-border/60 shadow-lg hover:bg-background hover:shadow-xl hover:scale-105 transition-all duration-[150ms]"
+          className="h-9 w-9 bg-background/95 backdrop-blur-md border-border/60 shadow-lg hover:bg-background hover:shadow-xl hover:scale-105 transition-all duration-[var(--transition-fast)]"
           onClick={handleReset}
           title="Fit to View"
         >
-          <RotateCcw className="h-4 w-4" />
+          <RotateCcw className="size-4" />
         </Button>
         <Button
           variant={autoRotate ? "default" : "secondary"}
           size="icon"
-          className="h-9 w-9 bg-background/95 backdrop-blur-md border-border/60 shadow-lg hover:bg-background hover:shadow-xl hover:scale-105 transition-all duration-[150ms]"
+          className="h-9 w-9 bg-background/95 backdrop-blur-md border-border/60 shadow-lg hover:bg-background hover:shadow-xl hover:scale-105 transition-all duration-[var(--transition-fast)]"
           onClick={() => setAutoRotate(!autoRotate)}
           title="Auto-Rotation"
         >
           <svg 
-            className="h-4 w-4" 
+            className="size-4" 
             fill="none" 
             strokeLinecap="round" 
             strokeLinejoin="round" 
@@ -856,11 +856,11 @@ export function TwitterOpinionMap3D({
         <Button
           variant="secondary"
           size="icon"
-          className="h-9 w-9 bg-background/95 backdrop-blur-md border-border/60 shadow-lg hover:bg-background hover:shadow-xl hover:scale-105 transition-all duration-[150ms]"
+          className="h-9 w-9 bg-background/95 backdrop-blur-md border-border/60 shadow-lg hover:bg-background hover:shadow-xl hover:scale-105 transition-all duration-[var(--transition-fast)]"
           onClick={handleDownload}
           title="Export PNG"
         >
-          <Download className="h-4 w-4" />
+          <Download className="size-4" />
         </Button>
       </div>
 
@@ -875,7 +875,7 @@ export function TwitterOpinionMap3D({
           {!isLegendCollapsed && (
             <>
               <div className="flex items-center gap-2 min-w-0 flex-1">
-                <Layers className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                <Layers className="size-4 text-muted-foreground flex-shrink-0" />
                 <span className="font-medium text-sm truncate">Clusters</span>
               </div>
               <Badge variant="outline" className="text-xs flex-shrink-0 border-border/60">
@@ -888,11 +888,11 @@ export function TwitterOpinionMap3D({
             variant="ghost"
             size="icon"
             className={cn(
-              "h-7 w-7 flex-shrink-0 transition-transform duration-300 hover:bg-muted/50",
+              "size-7 flex-shrink-0 transition-transform duration-300 hover:bg-muted/50",
               isLegendCollapsed ? "rotate-0" : "rotate-180"
             )}
           >
-            <ChevronRight className="h-4 w-4" />
+            <ChevronRight className="size-4" />
           </Button>
         </div>
 
@@ -911,13 +911,13 @@ export function TwitterOpinionMap3D({
                 <button
                   key={cluster.cluster_id}
                   className={cn(
-                    "flex items-start gap-2.5 w-full text-left hover:bg-muted/50 rounded-lg p-2.5 transition-all duration-[150ms]",
+                    "flex items-start gap-2.5 w-full text-left hover:bg-muted/50 rounded-lg p-2.5 transition-all duration-[var(--transition-fast)]",
                     isSelected && "bg-primary/8 ring-2 ring-primary/20 shadow-sm"
                   )}
                   onClick={() => onSelectCluster(cluster.cluster_id)}
                 >
                   <div
-                    className="w-3.5 h-3.5 rounded-full flex-shrink-0 mt-0.5 ring-2 ring-background/80 shadow-md transition-all duration-[150ms] hover:scale-125 hover:shadow-lg"
+                    className="w-3.5 h-3.5 rounded-full flex-shrink-0 mt-0.5 ring-2 ring-background/80 shadow-md transition-all duration-[var(--transition-fast)] hover:scale-125 hover:shadow-lg"
                     style={{ backgroundColor: getOpinionClusterColor(cluster.cluster_id) }}
                   />
                   <div className="flex-1 min-w-0">
@@ -985,7 +985,7 @@ export function TwitterOpinionMap3D({
       {/* Stats Overlay - Minimal */}
       <div className="absolute bottom-4 left-4 z-10">
         <div className="rounded-lg border border-border/60 bg-background/95 backdrop-blur-sm px-3 py-2 shadow-lg">
-          <p className="text-caption font-medium text-foreground">
+          <p className="text-xs font-medium text-foreground">
             {projections.length.toLocaleString()} tweets · {clusters.length} clusters
           </p>
         </div>

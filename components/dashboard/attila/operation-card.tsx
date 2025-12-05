@@ -35,13 +35,13 @@ interface OperationCardProps {
 const TypeIcon = ({ type }: { type: AttilaOperationType }) => {
   switch (type) {
     case "sniper":
-      return <Crosshair className="h-4 w-4" />;
+      return <Crosshair className="size-4" />;
     case "sentinel":
-      return <ShieldAlert className="h-4 w-4" />;
+      return <ShieldAlert className="size-4" />;
     case "influence":
-      return <Users className="h-4 w-4" />;
+      return <Users className="size-4" />;
     default:
-      return <Activity className="h-4 w-4" />;
+      return <Activity className="size-4" />;
   }
 };
 
@@ -118,18 +118,18 @@ export function OperationCard({ operation, zoneId }: OperationCardProps) {
       <div className="p-5 space-y-4">
         <div className="flex items-start justify-between">
           <div className="space-y-1">
-            <h3 className="text-heading-4 font-semibold truncate pr-4">
+            <h3 className="text-lg font-semibold truncate pr-4">
               {operation.name}
             </h3>
-            <p className="text-caption text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               Created {new Date(operation.created_at).toLocaleDateString()}
             </p>
           </div>
           <TypeBadge type={operation.type} />
         </div>
 
-        <div className="flex items-center gap-2 text-body-sm text-muted-foreground">
-          <div className={cn("h-2 w-2 rounded-full", isActive ? "bg-green-500" : "bg-slate-500")} />
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <div className={cn("size-2 rounded-full", isActive ? "bg-green-500" : "bg-slate-500")} />
           <span className="capitalize">{status}</span>
         </div>
       </div>
@@ -142,11 +142,11 @@ export function OperationCard({ operation, zoneId }: OperationCardProps) {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 text-muted-foreground hover:text-primary"
+                  className="size-8 text-muted-foreground hover:text-primary"
                   asChild
                 >
                   <Link href={`/dashboard/zones/${zoneId}/attila/${operation.id}`}>
-                    <Edit className="h-4 w-4" />
+                    <Edit className="size-4" />
                   </Link>
                 </Button>
               </TooltipTrigger>
@@ -165,13 +165,13 @@ export function OperationCard({ operation, zoneId }: OperationCardProps) {
                   onClick={handleToggleStatus}
                   disabled={isLoading}
                   className={cn(
-                    "h-8 w-8", 
+                    "size-8", 
                     isActive 
                       ? "text-orange-500 hover:text-orange-600 hover:bg-orange-500/10" 
                       : "text-green-500 hover:text-green-600 hover:bg-green-500/10"
                   )}
                 >
-                  {isActive ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                  {isActive ? <Pause className="size-4" /> : <Play className="size-4" />}
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
@@ -188,9 +188,9 @@ export function OperationCard({ operation, zoneId }: OperationCardProps) {
                   size="icon"
                   onClick={handleDelete}
                   disabled={isLoading}
-                  className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                  className="size-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                 >
-                  <Trash2 className="h-4 w-4" />
+                  <Trash2 className="size-4" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>Delete Operation</TooltipContent>

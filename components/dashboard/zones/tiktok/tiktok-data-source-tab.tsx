@@ -85,13 +85,13 @@ export function TikTokDataSourceTab({ zoneId }: TikTokDataSourceTabProps) {
       {/* Header with Collect Now button */}
       <div className="flex items-start justify-between gap-4">
         <div className="space-y-1.5">
-          <h3 className="text-heading-3 flex items-center gap-2">
-            <svg className="h-5 w-5 text-primary flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+          <h3 className="text-lg font-semibold flex items-center gap-2">
+            <svg className="size-5 text-primary flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
               <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
             </svg>
             <span>Data Sources</span>
           </h3>
-          <p className="text-body-sm text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             Configure monitoring rules to automatically capture videos matching your criteria
           </p>
         </div>
@@ -121,7 +121,7 @@ export function TikTokDataSourceTab({ zoneId }: TikTokDataSourceTabProps) {
             size="sm"
             className="gap-2"
           >
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
             </svg>
             Collect Now
@@ -149,12 +149,12 @@ export function TikTokDataSourceTab({ zoneId }: TikTokDataSourceTabProps) {
               </div>
               <div className="space-y-2">
                 <p className="text-body font-semibold">No monitoring rules yet</p>
-                <p className="text-body-sm text-muted-foreground max-w-md mx-auto">
+                <p className="text-sm text-muted-foreground max-w-md mx-auto">
                   Create your first rule to start capturing videos that match specific keywords, hashtags, or users
                 </p>
               </div>
               <Button onClick={handleCreateNew} className="gap-2">
-                <Plus className="h-4 w-4" />
+                <Plus className="size-4" />
                 Create First Rule
               </Button>
             </div>

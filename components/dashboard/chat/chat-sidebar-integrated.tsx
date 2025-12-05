@@ -134,8 +134,9 @@ export function ChatSidebarIntegrated({ zones }: ChatSidebarIntegratedProps) {
       {!isMobile && (
         <div
           className={cn(
-            "fixed right-0 top-0 z-30 flex h-screen flex-col border-l border-border bg-background",
-            "transition-transform duration-[300ms] ease-in-out",
+            "fixed right-0 top-0 z-30 flex h-screen flex-col border-l border-border glass",
+            "transition-transform duration-300 ease-in-out",
+            "shadow-xl",
             isOpen ? "translate-x-0" : "translate-x-full"
           )}
           style={{ width: "clamp(360px, 28vw, 480px)" }}
@@ -143,20 +144,20 @@ export function ChatSidebarIntegrated({ zones }: ChatSidebarIntegratedProps) {
         {/* Header */}
         <div className="flex items-center justify-between border-b border-border px-6 py-4">
           <div className="flex items-center gap-3 flex-1 min-w-0">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-              <MessageSquare className="h-5 w-5 text-primary" />
+            <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10 shadow-sm">
+              <MessageSquare className="size-5 text-primary" />
             </div>
             <div className="flex-1 min-w-0 space-y-1">
-              <h2 className="text-heading-3">AL-IA</h2>
+              <h2 className="scroll-m-20 text-xl font-semibold tracking-tight">AL-IA</h2>
 
               {/* Zone Selector */}
               {zones.length > 1 ? (
                 <div className="flex items-center gap-2">
-                  <span className="text-caption text-muted-foreground">
+                  <span className="text-xs text-muted-foreground">
                     Analyzing:
                   </span>
                   <Select value={activeZone.id} onValueChange={setSelectedZoneId}>
-                    <SelectTrigger className="h-6 w-auto border-none bg-muted/50 px-2 text-caption hover:bg-muted transition-colors duration-[150ms]">
+                    <SelectTrigger className="h-6 w-auto border-none bg-muted/50 px-2 text-xs hover:bg-muted transition-colors duration-[var(--transition-fast)]">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -169,7 +170,7 @@ export function ChatSidebarIntegrated({ zones }: ChatSidebarIntegratedProps) {
                   </Select>
                 </div>
               ) : (
-                <Badge variant="secondary" className="h-6 text-caption">
+                <Badge variant="secondary" className="h-6 text-xs">
                   {activeZone.name}
                 </Badge>
               )}
@@ -186,9 +187,9 @@ export function ChatSidebarIntegrated({ zones }: ChatSidebarIntegratedProps) {
                       variant="ghost"
                       size="icon"
                       onClick={handleNewConversation}
-                      className="h-8 w-8 transition-colors duration-[150ms]"
+                      className="size-8 transition-colors duration-[var(--transition-fast)]"
                     >
-                      <RotateCcw className="h-4 w-4" />
+                      <RotateCcw className="size-4" />
                       <span className="sr-only">New conversation</span>
                     </Button>
                   </TooltipTrigger>
@@ -204,9 +205,9 @@ export function ChatSidebarIntegrated({ zones }: ChatSidebarIntegratedProps) {
               variant="ghost"
               size="icon"
               onClick={close}
-              className="h-8 w-8 transition-colors duration-[150ms]"
+              className="size-8 transition-colors duration-[var(--transition-fast)]"
             >
-              <X className="h-4 w-4" />
+              <X className="size-4" />
               <span className="sr-only">Close chat</span>
             </Button>
           </div>
@@ -247,25 +248,25 @@ export function ChatSidebarIntegrated({ zones }: ChatSidebarIntegratedProps) {
             <SheetHeader className="border-b border-border px-6 py-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3 flex-1">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                    <MessageSquare className="h-5 w-5 text-primary" />
+                  <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10 shadow-sm">
+                    <MessageSquare className="size-5 text-primary" />
                   </div>
                   <div className="flex-1 space-y-2">
-                    <SheetTitle className="text-heading-3">AL-IA</SheetTitle>
+                    <SheetTitle className="scroll-m-20 text-xl font-semibold tracking-tight">AL-IA</SheetTitle>
                     <SheetDescription id="chat-description-mobile" className="sr-only">
                       AI-powered chat for analyzing zone data
                     </SheetDescription>
 
                   {zones.length > 1 ? (
                     <div className="flex items-center gap-2">
-                      <span className="text-caption text-muted-foreground">
+                      <span className="text-xs text-muted-foreground">
                         Analyzing:
                       </span>
                       <Select
                         value={activeZone.id}
                         onValueChange={setSelectedZoneId}
                       >
-                        <SelectTrigger className="h-7 w-auto border-none bg-muted/50 px-2 text-body-sm hover:bg-muted transition-colors duration-[150ms]">
+                        <SelectTrigger className="h-7 w-auto border-none bg-muted/50 px-2 text-sm hover:bg-muted transition-colors duration-[var(--transition-fast)]">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -291,9 +292,9 @@ export function ChatSidebarIntegrated({ zones }: ChatSidebarIntegratedProps) {
                     variant="ghost"
                     size="icon"
                     onClick={handleNewConversation}
-                    className="h-8 w-8 flex-shrink-0 transition-colors duration-[150ms]"
+                    className="size-8 flex-shrink-0 transition-colors duration-[var(--transition-fast)]"
                   >
-                    <RotateCcw className="h-4 w-4" />
+                    <RotateCcw className="size-4" />
                     <span className="sr-only">New conversation</span>
                   </Button>
                 )}

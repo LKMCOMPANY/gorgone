@@ -159,22 +159,29 @@ This includes:
 - **Mono**: Geist Mono (code)
 - Font features: Ligatures enabled, optimized rendering
 
-**Type Scale** (use utility classes):
-```css
-.text-display     → 36px / 700 / -0.02em (hero headings)
-.text-heading-1   → 30px / 700 / -0.01em (page titles)
-.text-heading-2   → 24px / 600 / -0.01em (section titles)
-.text-heading-3   → 20px / 600 (subsections)
-.text-body        → 16px / 400 (normal text)
-.text-body-sm     → 14px / 400 (compact text)
-.text-caption     → 12px / 400 (meta info, reduced opacity)
+**Type Scale** (shadcn-compliant, semantic HTML):
+```tsx
+/* Headings - Use semantic HTML */
+<h1 className="scroll-m-20 text-4xl font-extrabold tracking-tight">
+<h2 className="scroll-m-20 text-3xl font-semibold tracking-tight">
+<h3 className="scroll-m-20 text-2xl font-semibold tracking-tight">
+<h4 className="scroll-m-20 text-xl font-semibold tracking-tight">
+
+/* Body Text */
+<p className="leading-7 [&:not(:first-child)]:mt-6">
+<p className="text-sm text-muted-foreground">
+
+/* Specialized */
+<small className="text-sm font-medium leading-none">
+<code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm">
 ```
 
 **Typography Rules**:
-- ✅ Use custom utility classes: `text-heading-1`, `text-body-sm`, `text-caption`
-- ✅ Pair with semantic HTML: `<h1 className="text-heading-1">`, `<p className="text-body">`
-- ❌ NEVER hardcode font sizes: `text-[18px]` or `text-lg` for headings
-- ❌ NEVER use old Shadcn typography components (`TypographyH1`, `TypographyP`)
+- ✅ Use semantic HTML with utility classes directly
+- ✅ Available helpers: `.text-h1`, `.text-lead`, `.text-muted`, `.text-large`
+- ✅ Shadcn patterns: `scroll-m-20`, `tracking-tight`, `leading-7`
+- ❌ NEVER use wrapper components (`<TypographyH1>` - DELETED)
+- ❌ NEVER hardcode font sizes: `text-[18px]`
 
 ### 📐 Spacing System
 
@@ -230,38 +237,45 @@ transition-all duration-[250ms]
 
 ### 🃏 Card System
 
-**Professional Interactive Cards**:
+**Professional Card Variants**:
 
-**Base Style**:
 ```tsx
-<div className="card-interactive">
-  {/* Content */}
+/* Standard Card */
+<Card className="rounded-xl shadow-xs">
+  <CardHeader>
+    <CardTitle>Title</CardTitle>
+    <CardDescription>Description</CardDescription>
+  </CardHeader>
+  <CardContent>Content</CardContent>
+</Card>
+
+/* Interactive Card (hover effects) */
+<div className="card-interactive p-6">
+  {/* Adds border + shadow on hover */}
+</div>
+
+/* Glass Card (Apple-inspired) */
+<div className="glass-card p-6">
+  {/* Backdrop blur + transparency */}
+</div>
+
+/* Compact Card (dense data displays) */
+<div className="card-compact">
+  {/* Tight spacing for feeds */}
+</div>
+
+/* Danger Zone */
+<div className="card-danger">
+  {/* Destructive actions */}
 </div>
 ```
 
-**What it does**:
-- Subtle border color change on hover
-- Soft shadow on hover (depth without distraction)
-- Smooth 250ms transition
-- Theme-aware (different shadows for dark mode)
-
-**Card Variations**:
-```tsx
-// Standard content card
-<Card className="card-padding">  → 24px internal padding
-
-// Interactive list item
-<div className="card-interactive flex p-4"> → hover effects + flex
-
-// Form container
-<Card className="card-padding space-y-6"> → form field spacing
-```
-
 **Rules**:
-- ✅ Use `.card-interactive` for hoverable cards
-- ✅ Use `.card-padding` for consistent internal spacing
-- ✅ Combine with layout classes: `flex`, `grid`, `space-y-*`
-- ❌ NEVER hardcode padding in cards: Use `.card-padding`
+- ✅ Use `rounded-xl` for main cards
+- ✅ Use `shadow-xs` for subtle elevation
+- ✅ Use `.glass-card` for feed cards (Twitter, TikTok, Media)
+- ✅ Use `.card-compact` for dense monitoring data
+- ❌ NEVER hardcode padding values
 
 ### 🔗 Link System
 
@@ -351,26 +365,31 @@ transition-all duration-[250ms]
 When creating new components:
 
 - [ ] Use CSS variable-based colors (no hardcoded colors)
-- [ ] Use typography utility classes (`.text-heading-*`, `.text-body*`)
-- [ ] Use spacing system (`.card-padding`, consistent `space-y-*`)
-- [ ] Add subtle transitions (`duration-[150ms]` or `duration-[250ms]`)
-- [ ] Use `.card-interactive` for hoverable cards
-- [ ] Use `.link-primary` for links
+- [ ] Use semantic HTML with shadcn utility classes (`h1`, `p`, `small`)
+- [ ] Use spacing system (consistent `space-y-6` for pages)
+- [ ] Add transitions with CSS variables (`duration-[var(--transition-fast)]`)
+- [ ] Use `.glass-card` for feed/data cards
+- [ ] Use `.card-interactive` for hoverable elements
+- [ ] Use SVG sizing: `size-4`, `size-5` (not `h-* w-*`)
 - [ ] Add `.animate-in` to page containers
-- [ ] Input fields: `h-10` + focus shadow
+- [ ] Input/Button heights: `h-9` (default), `h-8` (sm), `h-10` (lg)
 - [ ] Test in both light and dark mode
 - [ ] Verify responsive behavior (mobile-first)
+- [ ] Check keyboard navigation and focus states
 
 ### 🚫 Anti-Patterns (DO NOT DO)
 
-❌ Hardcoded colors: `bg-white`, `text-black`, `#7550ff`  
-❌ Random font sizes: `text-[17px]`, `text-lg` for headings  
-❌ Inconsistent spacing: `mt-[13px]`, `gap-[19px]`  
-❌ Old components: `<TypographyH1>`, `<TypographyP>`  
+❌ Hardcoded colors: `bg-white`, `text-black`, `#7550ff`, `green-600`  
+❌ Typography components: `<TypographyH1>` (DELETED - use semantic HTML)  
+❌ Custom utility classes: `.text-heading-1`, `.text-body-sm` (DELETED)  
+❌ Random font sizes: `text-[17px]`  
+❌ Inconsistent spacing: `mt-[13px]`, `gap-[19px]`, `space-y-8` mixte  
+❌ Hardcoded transitions: `duration-150ms`, `duration-[250ms]` (use CSS vars)  
+❌ SVG sizing: `h-4 w-4` (use `size-4`)  
 ❌ Long animations: `duration-500`, `duration-1000`  
-❌ Hardcoded transitions: `hover:bg-gray-100`  
 ❌ Manual theme checks: `{theme === 'dark' ? ... : ...}`  
-❌ No hover states on interactive elements  
+❌ No hover/focus states on interactive elements  
+❌ Missing glassmorphism on feed cards  
 
 ### 🎯 Quality Standards
 

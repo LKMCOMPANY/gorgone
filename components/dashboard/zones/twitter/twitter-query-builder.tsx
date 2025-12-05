@@ -60,14 +60,14 @@ export function TwitterQueryBuilder({ config, onChange }: TwitterQueryBuilderPro
 
     return (
       <div className="space-y-2">
-        <Label className="text-body-sm">{label}</Label>
+        <Label className="text-sm">{label}</Label>
         <div className="space-y-2">
           <Input
             placeholder={placeholder}
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={handleKeyDown}
-            className="h-10 text-body-sm transition-all duration-[150ms]"
+            className="h-10 text-sm transition-all duration-[var(--transition-fast)]"
           />
           {values.length > 0 && (
             <div className="flex flex-wrap gap-2">
@@ -75,14 +75,14 @@ export function TwitterQueryBuilder({ config, onChange }: TwitterQueryBuilderPro
                 <Badge
                   key={value}
                   variant="secondary"
-                  className="gap-1 pr-1 transition-all duration-[150ms] hover:bg-secondary/80"
+                  className="gap-1 pr-1 transition-all duration-[var(--transition-fast)] hover:bg-secondary/80"
                 >
-                  <span className="text-body-sm">{value}</span>
+                  <span className="text-sm">{value}</span>
                   <button
                     onClick={() => removeTag(field, value)}
                     className="rounded-sm opacity-70 hover:opacity-100 transition-opacity"
                   >
-                    <X className="h-3 w-3" />
+                    <X className="size-3" />
                   </button>
                 </Badge>
               ))}
@@ -90,7 +90,7 @@ export function TwitterQueryBuilder({ config, onChange }: TwitterQueryBuilderPro
           )}
         </div>
         {description && (
-          <p className="text-caption text-muted-foreground">{description}</p>
+          <p className="text-xs text-muted-foreground">{description}</p>
         )}
       </div>
     );
@@ -100,7 +100,7 @@ export function TwitterQueryBuilder({ config, onChange }: TwitterQueryBuilderPro
     <div className="space-y-6">
       {/* USER OPERATORS */}
       <div className="rounded-lg border border-border bg-muted/20 p-4 space-y-4">
-        <h4 className="text-body-sm font-semibold">User Operators</h4>
+        <h4 className="text-sm font-semibold">User Operators</h4>
         
         <TagInput
           label="From Users"
@@ -126,7 +126,7 @@ export function TwitterQueryBuilder({ config, onChange }: TwitterQueryBuilderPro
 
       {/* CONTENT OPERATORS */}
       <div className="rounded-lg border border-border bg-muted/20 p-4 space-y-4">
-        <h4 className="text-body-sm font-semibold">Content Operators</h4>
+        <h4 className="text-sm font-semibold">Content Operators</h4>
         
         <TagInput
           label="Keywords"
@@ -160,18 +160,18 @@ export function TwitterQueryBuilder({ config, onChange }: TwitterQueryBuilderPro
       {/* ENGAGEMENT FILTERS */}
       <div className="rounded-lg border border-border bg-muted/20 p-4 space-y-4">
         <div className="flex items-center gap-2">
-          <h4 className="text-body-sm font-semibold">Engagement Filters</h4>
-          <Badge variant="secondary" className="text-caption">
+          <h4 className="text-sm font-semibold">Engagement Filters</h4>
+          <Badge variant="secondary" className="text-xs">
             AND logic
           </Badge>
         </div>
-        <p className="text-caption text-muted-foreground -mt-2">
+        <p className="text-xs text-muted-foreground -mt-2">
           All engagement thresholds must be met (combined with AND)
         </p>
         
         <div className="grid gap-4 sm:grid-cols-3">
           <div className="space-y-2">
-            <Label htmlFor="min-retweets" className="text-body-sm">
+            <Label htmlFor="min-retweets" className="text-sm">
               Min Retweets
             </Label>
             <Input
@@ -185,12 +185,12 @@ export function TwitterQueryBuilder({ config, onChange }: TwitterQueryBuilderPro
                   min_retweets: e.target.value ? Number(e.target.value) : null,
                 })
               }
-              className="h-10 text-body-sm"
+              className="h-10 text-sm"
             />
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="min-likes" className="text-body-sm">
+            <Label htmlFor="min-likes" className="text-sm">
               Min Likes
             </Label>
             <Input
@@ -204,12 +204,12 @@ export function TwitterQueryBuilder({ config, onChange }: TwitterQueryBuilderPro
                   min_likes: e.target.value ? Number(e.target.value) : null,
                 })
               }
-              className="h-10 text-body-sm"
+              className="h-10 text-sm"
             />
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="min-replies" className="text-body-sm">
+            <Label htmlFor="min-replies" className="text-sm">
               Min Replies
             </Label>
             <Input
@@ -223,7 +223,7 @@ export function TwitterQueryBuilder({ config, onChange }: TwitterQueryBuilderPro
                   min_replies: e.target.value ? Number(e.target.value) : null,
                 })
               }
-              className="h-10 text-body-sm"
+              className="h-10 text-sm"
             />
           </div>
         </div>
@@ -232,15 +232,15 @@ export function TwitterQueryBuilder({ config, onChange }: TwitterQueryBuilderPro
       {/* ADDITIONAL FILTERS */}
       <div className="rounded-lg border border-border bg-muted/20 p-4 space-y-3">
         <div className="flex items-center gap-2">
-          <h4 className="text-body-sm font-semibold">Additional Filters</h4>
-          <Badge variant="secondary" className="text-caption">
+          <h4 className="text-sm font-semibold">Additional Filters</h4>
+          <Badge variant="secondary" className="text-xs">
             AND logic
           </Badge>
         </div>
         
         <div className="space-y-3">
-          <div className="flex items-center justify-between rounded-lg border border-border bg-card p-3 transition-colors duration-[150ms] hover:bg-muted/30">
-            <Label htmlFor="verified-only" className="text-body-sm cursor-pointer">
+          <div className="flex items-center justify-between rounded-lg border border-border bg-card p-3 transition-colors duration-[var(--transition-fast)] hover:bg-muted/30">
+            <Label htmlFor="verified-only" className="text-sm cursor-pointer">
               Verified accounts only
             </Label>
             <Switch
@@ -250,8 +250,8 @@ export function TwitterQueryBuilder({ config, onChange }: TwitterQueryBuilderPro
             />
           </div>
           
-          <div className="flex items-center justify-between rounded-lg border border-border bg-card p-3 transition-colors duration-[150ms] hover:bg-muted/30">
-            <Label htmlFor="has-media" className="text-body-sm cursor-pointer">
+          <div className="flex items-center justify-between rounded-lg border border-border bg-card p-3 transition-colors duration-[var(--transition-fast)] hover:bg-muted/30">
+            <Label htmlFor="has-media" className="text-sm cursor-pointer">
               Has media (photos/videos)
             </Label>
             <Switch
@@ -261,8 +261,8 @@ export function TwitterQueryBuilder({ config, onChange }: TwitterQueryBuilderPro
             />
           </div>
           
-          <div className="flex items-center justify-between rounded-lg border border-border bg-card p-3 transition-colors duration-[150ms] hover:bg-muted/30">
-            <Label htmlFor="has-links" className="text-body-sm cursor-pointer">
+          <div className="flex items-center justify-between rounded-lg border border-border bg-card p-3 transition-colors duration-[var(--transition-fast)] hover:bg-muted/30">
+            <Label htmlFor="has-links" className="text-sm cursor-pointer">
               Has links
             </Label>
             <Switch
@@ -275,7 +275,7 @@ export function TwitterQueryBuilder({ config, onChange }: TwitterQueryBuilderPro
 
         {/* Language Select */}
         <div className="space-y-2 pt-2">
-          <Label htmlFor="language" className="text-body-sm">
+          <Label htmlFor="language" className="text-sm">
             Language
           </Label>
           <Select

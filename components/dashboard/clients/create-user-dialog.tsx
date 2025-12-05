@@ -11,7 +11,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { TypographyMuted } from "@/components/ui/typography";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { createClientUserAction } from "@/app/actions/clients";
@@ -97,9 +96,9 @@ export function CreateUserDialog({
           required
           minLength={6}
         />
-        <TypographyMuted className="text-sm">
+        <p className="text-sm text-muted-foreground">
           Minimum 6 characters
-        </TypographyMuted>
+        </p>
       </div>
 
       <div className="space-y-2">
@@ -116,9 +115,9 @@ export function CreateUserDialog({
             <SelectItem value="admin">Admin</SelectItem>
           </SelectContent>
         </Select>
-        <TypographyMuted className="text-sm">
+        <p className="text-sm text-muted-foreground">
           Manager and Operator can view data, Admin has view-only access to all clients
-        </TypographyMuted>
+        </p>
       </div>
 
       <div className="space-y-2">
@@ -145,7 +144,7 @@ export function CreateUserDialog({
           disabled={loading || !email.trim() || !password.trim()}
           className="w-full sm:w-auto"
         >
-          {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {loading && <Loader2 className="mr-2 size-4 animate-spin" />}
           Create User
         </Button>
         <Button

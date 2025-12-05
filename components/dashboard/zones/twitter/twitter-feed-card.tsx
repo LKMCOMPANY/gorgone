@@ -145,7 +145,7 @@ export function TwitterFeedCard({
     : "grid grid-cols-1 lg:grid-cols-2"
 
   return (
-    <Card className="max-w-full overflow-hidden transition-all duration-[250ms] hover:border-primary/30 hover:shadow-sm">
+    <Card className="max-w-full glass-card overflow-hidden transition-all duration-[var(--transition-base)] hover:border-primary/30 hover:shadow-lg">
       {/* Content Area - Responsive Layout */}
       <div className={layoutClass}>
         {/* Tweet Content */}
@@ -159,7 +159,7 @@ export function TwitterFeedCard({
                 <Badge
                   variant="secondary"
                   className={cn(
-                    "text-caption font-medium",
+                    "text-xs font-medium",
                     postType === "Repost" && "bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20",
                     postType === "Reply" && "bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20",
                     postType === "Quote" && "bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-500/20"
@@ -169,7 +169,7 @@ export function TwitterFeedCard({
                 </Badge>
 
                 {/* Relative Time */}
-                <span className="text-caption text-muted-foreground">
+                <span className="text-xs text-muted-foreground">
                   {relativeTime}
                 </span>
 
@@ -183,7 +183,7 @@ export function TwitterFeedCard({
                           key={tag.id}
                           variant="outline"
                           className={cn(
-                            "text-caption capitalize border hidden sm:inline-flex transition-colors duration-[150ms]",
+                            "text-xs capitalize border hidden sm:inline-flex transition-colors duration-[var(--transition-fast)]",
                             colors.bg,
                             colors.text,
                             colors.border
@@ -198,7 +198,7 @@ export function TwitterFeedCard({
                 {tags.length > 2 && (
                   <Badge
                     variant="secondary"
-                    className="text-caption hidden sm:inline-flex"
+                    className="text-xs hidden sm:inline-flex"
                   >
                     +{tags.length} tags
                   </Badge>
@@ -211,10 +211,10 @@ export function TwitterFeedCard({
                   href={twitterUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex-shrink-0 p-1.5 rounded-lg hover:bg-muted/50 text-muted-foreground hover:text-primary transition-all duration-[150ms]"
+                  className="flex-shrink-0 p-1.5 rounded-lg hover:bg-muted/50 text-muted-foreground hover:text-primary transition-all duration-[var(--transition-fast)]"
                   title="View on X"
                 >
-                  <ExternalLink className="h-3.5 w-3.5" />
+                  <ExternalLink className="size-3.5" />
                 </a>
               )}
             </div>
@@ -228,11 +228,11 @@ export function TwitterFeedCard({
                     src={tweet.author.profile_picture_url}
                     alt={tweet.author.name}
                     onError={() => setImageError(true)}
-                    className="h-10 w-10 rounded-full object-cover ring-2 ring-border/50"
+                    className="size-10 rounded-full object-cover ring-2 ring-border/50"
                   />
                 ) : (
-                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center ring-2 ring-border/50">
-                    <span className="text-body-sm font-semibold text-primary">
+                  <div className="size-10 rounded-full bg-primary/10 flex items-center justify-center ring-2 ring-border/50">
+                    <span className="text-sm font-semibold text-primary">
                       {tweet.author.name.charAt(0).toUpperCase()}
                     </span>
                   </div>
@@ -242,14 +242,14 @@ export function TwitterFeedCard({
               {/* Author Details */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-body-sm font-semibold truncate">
+                  <span className="text-sm font-semibold truncate">
                     {tweet.author.name}
                   </span>
                   
                   {/* Verified Badge */}
                   {(tweet.author.is_verified || tweet.author.is_blue_verified) && (
                     <svg
-                      className="h-3.5 w-3.5 text-blue-500 flex-shrink-0"
+                      className="size-3.5 text-blue-500 flex-shrink-0"
                       viewBox="0 0 24 24"
                       fill="currentColor"
                     >
@@ -257,8 +257,8 @@ export function TwitterFeedCard({
                     </svg>
                   )}
 
-                  <span className="text-caption text-muted-foreground">•</span>
-                  <span className="text-caption text-muted-foreground truncate">
+                  <span className="text-xs text-muted-foreground">•</span>
+                  <span className="text-xs text-muted-foreground truncate">
                     @{tweet.author.username}
                   </span>
                 </div>
@@ -274,7 +274,7 @@ export function TwitterFeedCard({
                 <Link
                   href={`/dashboard/zones/${zoneId}/feed?source=twitter&view=profiles&search=${tweet.author.username}`}
                 >
-                  <User className="h-3.5 w-3.5" />
+                  <User className="size-3.5" />
                   <span className="hidden sm:inline">Profile</span>
                 </Link>
               </Button>
@@ -291,7 +291,7 @@ export function TwitterFeedCard({
                     key={tag.id}
                     variant="outline"
                     className={cn(
-                      "text-caption capitalize border transition-colors duration-[150ms]",
+                      "text-xs capitalize border transition-colors duration-[var(--transition-fast)]",
                       colors.bg,
                       colors.text,
                       colors.border
@@ -345,18 +345,18 @@ export function TwitterFeedCard({
                         />
                       ) : (
                         <div className="w-full h-full bg-muted flex items-center justify-center">
-                          <Play className="h-12 w-12 text-muted-foreground" />
+                          <Play className="size-12 text-muted-foreground" />
                         </div>
                       )}
                       {/* Video overlay */}
-                      <div className="absolute inset-0 bg-black/20 flex items-center justify-center group-hover:bg-black/30 transition-colors duration-[150ms]">
-                        <div className="h-14 w-14 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center">
-                          <Play className="h-6 w-6 text-white fill-white" />
+                      <div className="absolute inset-0 bg-black/20 flex items-center justify-center group-hover:bg-black/30 transition-colors duration-[var(--transition-fast)]">
+                        <div className="size-14 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center">
+                          <Play className="size-6 text-white fill-white" />
                         </div>
                       </div>
                       {/* Duration badge */}
                       {item.duration_ms && (
-                        <div className="absolute bottom-2 left-2 px-2 py-1 bg-black/80 backdrop-blur-sm rounded text-white text-caption font-medium">
+                        <div className="absolute bottom-2 left-2 px-2 py-1 bg-black/80 backdrop-blur-sm rounded text-white text-xs font-medium">
                           {formatDuration(item.duration_ms)}
                         </div>
                       )}
@@ -369,7 +369,7 @@ export function TwitterFeedCard({
 
           {/* Quoted Tweet */}
           {quotedTweet && (
-            <div className="rounded-lg border border-border bg-muted/20 overflow-hidden hover:bg-muted/30 transition-colors duration-[150ms]">
+            <div className="rounded-lg border border-border bg-muted/20 overflow-hidden hover:bg-muted/30 transition-colors duration-[var(--transition-fast)]">
               <div className="p-3 sm:p-4 space-y-2.5">
                 {/* Quoted Author - Compact */}
                 <div className="flex items-center gap-2">
@@ -377,25 +377,25 @@ export function TwitterFeedCard({
                     <img
                       src={quotedTweet.author.profilePicture}
                       alt={quotedTweet.author.name}
-                      className="h-5 w-5 rounded-full object-cover"
+                      className="size-5 rounded-full object-cover"
                     />
                   ) : (
-                    <div className="h-5 w-5 rounded-full bg-muted flex items-center justify-center">
+                    <div className="size-5 rounded-full bg-muted flex items-center justify-center">
                       <span className="text-[10px] font-medium">
                         {quotedTweet.author?.name?.charAt(0).toUpperCase()}
                       </span>
                     </div>
                   )}
                   <div className="flex items-center gap-1 min-w-0">
-                    <span className="text-body-sm font-semibold truncate">
+                    <span className="text-sm font-semibold truncate">
                       {quotedTweet.author?.name}
                     </span>
                     {quotedTweet.author?.isBlueVerified && (
-                      <svg className="h-3 w-3 text-blue-500 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                      <svg className="size-3 text-blue-500 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M22.5 12.5c0-1.58-.875-2.95-2.148-3.6.154-.435.238-.905.238-1.4 0-2.21-1.71-3.998-3.818-3.998-.47 0-.92.084-1.336.25C14.818 2.415 13.51 1.5 12 1.5s-2.816.917-3.437 2.25c-.415-.165-.866-.25-1.336-.25-2.11 0-3.818 1.79-3.818 4 0 .494.083.964.237 1.4-1.272.65-2.147 2.018-2.147 3.6 0 1.495.782 2.798 1.942 3.486-.02.17-.032.34-.032.514 0 2.21 1.708 4 3.818 4 .47 0 .92-.086 1.335-.25.62 1.334 1.926 2.25 3.437 2.25 1.512 0 2.818-.916 3.437-2.25.415.163.865.248 1.336.248 2.11 0 3.818-1.79 3.818-4 0-.174-.012-.344-.033-.513 1.158-.687 1.943-1.99 1.943-3.484zm-6.616-3.334l-4.334 6.5c-.145.217-.382.334-.625.334-.143 0-.288-.04-.416-.126l-.115-.094-2.415-2.415c-.293-.293-.293-.768 0-1.06s.768-.294 1.06 0l1.77 1.767 3.825-5.74c.23-.345.696-.436 1.04-.207.346.23.44.696.21 1.04z" />
                       </svg>
                     )}
-                    <span className="text-caption text-muted-foreground truncate">
+                    <span className="text-xs text-muted-foreground truncate">
                       @{quotedTweet.author?.userName}
                     </span>
                   </div>
@@ -405,7 +405,7 @@ export function TwitterFeedCard({
                 <TwitterFormattedText
                   text={quotedTweet.text || ""}
                   entities={quotedTweet.entities}
-                  className="text-body-sm text-muted-foreground line-clamp-3"
+                  className="text-sm text-muted-foreground line-clamp-3"
                 />
 
                 {/* Quoted Media (if any) */}
@@ -425,12 +425,12 @@ export function TwitterFeedCard({
                           className="w-full h-full object-cover"
                         />
                         <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
-                          <div className="h-12 w-12 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center">
-                            <Play className="h-5 w-5 text-white fill-white" />
+                          <div className="size-12 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center">
+                            <Play className="size-5 text-white fill-white" />
                           </div>
                         </div>
                         {quotedTweet.media[0].video_info?.duration_millis && (
-                          <div className="absolute bottom-2 left-2 px-2 py-1 bg-black/80 backdrop-blur-sm rounded text-white text-caption font-medium">
+                          <div className="absolute bottom-2 left-2 px-2 py-1 bg-black/80 backdrop-blur-sm rounded text-white text-xs font-medium">
                             {formatDuration(quotedTweet.media[0].video_info.duration_millis)}
                           </div>
                         )}
@@ -454,10 +454,10 @@ export function TwitterFeedCard({
             <div className="pt-2 border-t border-border/40 animate-in fade-in-0 duration-200">
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-dashed border-border bg-muted/20">
                 <div className="w-2.5 h-2.5 rounded-full shrink-0 bg-muted-foreground/40" />
-                <span className="text-caption font-medium text-muted-foreground">
+                <span className="text-xs font-medium text-muted-foreground">
                   Unique perspective
                 </span>
-                <span className="text-caption text-muted-foreground/60">
+                <span className="text-xs text-muted-foreground/60">
                   Doesn&apos;t fit main clusters
                 </span>
               </div>

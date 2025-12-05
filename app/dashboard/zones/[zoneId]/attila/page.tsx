@@ -45,52 +45,54 @@ export default async function AttilaPage({ params }: AttilaPageProps) {
   const activity = await getAttilaActivity(zoneId);
 
   return (
-    <div className="animate-in fade-in-0 duration-300 space-y-8" style={{ animationDelay: "50ms" }}>
+    <div className="animate-in space-y-6">
+      {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="space-y-1">
-          <h1 className="text-heading-1 flex items-center gap-3">
-            <Bot className="h-8 w-8 text-primary" />
+        <div className="space-y-1.5">
+          <h1 className="scroll-m-20 text-3xl font-semibold tracking-tight flex items-center gap-3">
+            <Bot className="size-8 text-primary" />
             Attila Automation
           </h1>
-          <p className="text-body text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             Manage automated AI response operations and monitor activity
           </p>
         </div>
         <CreateOperationDialog zoneId={zoneId} />
       </div>
 
-      <Tabs defaultValue="operations" className="space-y-8">
-        <div className="border-b pb-px">
+      {/* Tabs */}
+      <Tabs defaultValue="operations" className="space-y-6">
+        <div className="border-b">
           <TabsList className="bg-transparent p-0 h-auto space-x-6">
             <TabsTrigger 
               value="operations" 
-              className="rounded-none border-b-2 border-transparent px-0 py-2 data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none font-medium text-muted-foreground data-[state=active]:text-foreground transition-all"
+              className="rounded-none border-b-2 border-transparent px-0 py-2.5 data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none font-medium text-muted-foreground data-[state=active]:text-foreground transition-all duration-[var(--transition-fast)]"
             >
               <div className="flex items-center gap-2">
-                <Bot className="h-4 w-4" />
+                <Bot className="size-4" />
                 <span>Operations</span>
               </div>
             </TabsTrigger>
             <TabsTrigger 
               value="monitoring" 
-              className="rounded-none border-b-2 border-transparent px-0 py-2 data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none font-medium text-muted-foreground data-[state=active]:text-foreground transition-all"
+              className="rounded-none border-b-2 border-transparent px-0 py-2.5 data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none font-medium text-muted-foreground data-[state=active]:text-foreground transition-all duration-[var(--transition-fast)]"
             >
               <div className="flex items-center gap-2">
-                <Activity className="h-4 w-4" />
+                <Activity className="size-4" />
                 <span>Live Monitoring</span>
               </div>
             </TabsTrigger>
           </TabsList>
         </div>
 
-        <TabsContent value="operations" className="animate-in slide-in-from-bottom-2 duration-300 outline-none">
+        <TabsContent value="operations" className="outline-none">
            <AttilaOperationsList 
              zoneId={zoneId} 
              initialOperations={operations || []} 
            />
         </TabsContent>
 
-        <TabsContent value="monitoring" className="animate-in slide-in-from-bottom-2 duration-300 outline-none">
+        <TabsContent value="monitoring" className="outline-none">
            <Suspense fallback={<AttilaMonitoringSkeleton />}>
              <AttilaMonitoringFeed 
                activity={activity} 

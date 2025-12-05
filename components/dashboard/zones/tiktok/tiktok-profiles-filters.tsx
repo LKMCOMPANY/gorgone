@@ -126,7 +126,7 @@ export function TikTokProfilesFilters({ zoneId, filters, onFiltersChange }: TikT
         <div className="flex flex-col sm:flex-row gap-3">
           {/* Search with Autocomplete */}
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground z-10" />
             <Input
               placeholder="Search profiles (@username or name)..."
               value={searchTerm}
@@ -149,7 +149,7 @@ export function TikTokProfilesFilters({ zoneId, filters, onFiltersChange }: TikT
                 onClick={handleClearSearch}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground z-10"
               >
-                <X className="h-4 w-4" />
+                <X className="size-4" />
               </button>
             )}
 
@@ -160,25 +160,25 @@ export function TikTokProfilesFilters({ zoneId, filters, onFiltersChange }: TikT
                   <button
                     key={`${result.value}-${index}`}
                     onClick={() => handleSelectAutocomplete(result)}
-                    className="w-full px-4 py-3 flex items-center gap-3 hover:bg-muted/50 transition-colors duration-[150ms] text-left"
+                    className="w-full px-4 py-3 flex items-center gap-3 hover:bg-muted/50 transition-colors duration-[var(--transition-fast)] text-left"
                   >
                     {result.metadata?.avatar_thumb ? (
-                      <img src={result.metadata.avatar_thumb} alt={result.label} className="h-8 w-8 rounded-full object-cover" />
+                      <img src={result.metadata.avatar_thumb} alt={result.label} className="size-8 rounded-full object-cover" />
                     ) : (
-                      <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                        <User className="h-4 w-4 text-primary" />
+                      <div className="size-8 rounded-full bg-primary/10 flex items-center justify-center">
+                        <User className="size-4 text-primary" />
                       </div>
                     )}
                     <div className="flex-1 min-w-0">
-                      <p className="text-body-sm font-medium truncate">{result.label}</p>
+                      <p className="text-sm font-medium truncate">{result.label}</p>
                       {result.metadata?.follower_count && (
-                        <p className="text-caption text-muted-foreground">
+                        <p className="text-xs text-muted-foreground">
                           {result.metadata.follower_count.toLocaleString()} followers
                         </p>
                       )}
                     </div>
                     {result.metadata?.is_verified && (
-                      <svg className="h-4 w-4 text-[#20D5EC]" viewBox="0 0 24 24" fill="currentColor">
+                      <svg className="size-4 text-[#20D5EC]" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                     )}
@@ -210,10 +210,10 @@ export function TikTokProfilesFilters({ zoneId, filters, onFiltersChange }: TikT
             onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
             className="gap-2"
           >
-            <Filter className="h-4 w-4" />
+            <Filter className="size-4" />
             Filters
             {activeFiltersCount > 0 && (
-              <Badge variant="default" className="ml-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-caption">
+              <Badge variant="default" className="ml-1 size-5 rounded-full p-0 flex items-center justify-center text-xs">
                 {activeFiltersCount}
               </Badge>
             )}
@@ -226,8 +226,8 @@ export function TikTokProfilesFilters({ zoneId, filters, onFiltersChange }: TikT
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {/* Profile Tag */}
               <div className="space-y-2">
-                <Label className="flex items-center gap-2 text-body-sm">
-                  <Hash className="h-4 w-4" />
+                <Label className="flex items-center gap-2 text-sm">
+                  <Hash className="size-4" />
                   Profile Label
                 </Label>
                 <Select
@@ -252,7 +252,7 @@ export function TikTokProfilesFilters({ zoneId, filters, onFiltersChange }: TikT
 
               {/* Min Followers */}
               <div className="space-y-2">
-                <Label className="text-body-sm">Min. Followers</Label>
+                <Label className="text-sm">Min. Followers</Label>
                 <Input
                   type="number"
                   placeholder="Any"
@@ -263,7 +263,7 @@ export function TikTokProfilesFilters({ zoneId, filters, onFiltersChange }: TikT
 
               {/* Min Videos */}
               <div className="space-y-2">
-                <Label className="text-body-sm">Min. Videos in Zone</Label>
+                <Label className="text-sm">Min. Videos in Zone</Label>
                 <Input
                   type="number"
                   placeholder="Any"
@@ -274,7 +274,7 @@ export function TikTokProfilesFilters({ zoneId, filters, onFiltersChange }: TikT
 
               {/* Verified Only */}
               <div className="flex items-center justify-between rounded-lg border border-border bg-muted/20 p-3">
-                <Label htmlFor="verified-only-profiles" className="text-body-sm cursor-pointer">
+                <Label htmlFor="verified-only-profiles" className="text-sm cursor-pointer">
                   Verified Only
                 </Label>
                 <Switch

@@ -202,12 +202,12 @@ export function TwitterLocationHeatmap({
     return (
       <Card className={cn("overflow-hidden border-border/50", className)}>
         <div className="flex flex-col items-center justify-center h-[540px] text-center space-y-3 p-6 bg-muted/10">
-          <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center">
-            <Globe className="h-6 w-6 text-muted-foreground" />
+          <div className="size-12 rounded-full bg-muted flex items-center justify-center">
+            <Globe className="size-6 text-muted-foreground" />
           </div>
           <div className="space-y-1.5">
-            <p className="text-body-sm font-medium">Mapbox Token Missing</p>
-            <p className="text-caption text-muted-foreground max-w-sm">
+            <p className="text-sm font-medium">Mapbox Token Missing</p>
+            <p className="text-xs text-muted-foreground max-w-sm">
               Configure NEXT_PUBLIC_MAPBOX_TOKEN to enable the location heatmap
             </p>
           </div>
@@ -220,12 +220,12 @@ export function TwitterLocationHeatmap({
     return (
       <Card className={cn("overflow-hidden border-border/50", className)}>
         <div className="flex flex-col items-center justify-center h-[540px] text-center space-y-3 p-6 bg-muted/10">
-          <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-            <Globe className="h-6 w-6 text-primary" />
+          <div className="size-12 rounded-full bg-primary/10 flex items-center justify-center">
+            <Globe className="size-6 text-primary" />
           </div>
           <div className="space-y-1.5">
-            <p className="text-body-sm font-medium">No Location Data</p>
-            <p className="text-caption text-muted-foreground max-w-sm">
+            <p className="text-sm font-medium">No Location Data</p>
+            <p className="text-xs text-muted-foreground max-w-sm">
               Location data will appear when profiles include geographic information
             </p>
           </div>
@@ -309,7 +309,7 @@ export function TwitterLocationHeatmap({
 
         {/* Minimal title overlay - top left */}
         <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-background/90 backdrop-blur-sm border border-border/50 rounded-lg px-2.5 py-1.5 shadow-sm">
-          <Globe className="h-3 w-3 text-primary" />
+          <Globe className="size-3 text-primary" />
           <span className="text-[11px] font-semibold text-foreground">Geographic Distribution</span>
           <Badge variant="secondary" className="text-[9px] h-4 px-1 ml-0.5">
             {data.length}
@@ -368,11 +368,11 @@ export function TwitterLocationHeatmapSkeleton({ className }: { className?: stri
         {/* Center content */}
         <div className="relative flex flex-col items-center gap-4 text-muted-foreground">
           <div className="relative">
-            <Globe className="h-12 w-12 text-primary/40 animate-pulse" />
-            <Loader2 className="h-6 w-6 text-primary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-spin" />
+            <Globe className="size-12 text-primary/40 animate-pulse" />
+            <Loader2 className="size-6 text-primary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-spin" />
           </div>
           <div className="space-y-1 text-center">
-            <p className="text-body-sm font-medium text-foreground">Loading Geographic Data</p>
+            <p className="text-sm font-medium text-foreground">Loading Geographic Data</p>
             <p className="text-[11px] text-muted-foreground">
               Analyzing locations and normalizing countries...
             </p>

@@ -103,7 +103,7 @@ export function TwitterFormattedText({ text, entities, className }: FormattedTex
           href={entity.data.expanded_url || entity.data.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-primary hover:underline transition-all duration-[150ms]"
+          className="text-primary hover:underline transition-all duration-[var(--transition-fast)]"
           onClick={(e) => e.stopPropagation()}
         >
           {displayUrl}
@@ -116,7 +116,7 @@ export function TwitterFormattedText({ text, entities, className }: FormattedTex
           href={`https://twitter.com/${entity.data.screen_name}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-primary hover:underline transition-all duration-[150ms]"
+          className="text-primary hover:underline transition-all duration-[var(--transition-fast)]"
           onClick={(e) => e.stopPropagation()}
         >
           @{entity.data.screen_name}
@@ -129,7 +129,7 @@ export function TwitterFormattedText({ text, entities, className }: FormattedTex
           href={`https://twitter.com/hashtag/${entity.data.text}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-primary hover:underline transition-all duration-[150ms]"
+          className="text-primary hover:underline transition-all duration-[var(--transition-fast)]"
           onClick={(e) => e.stopPropagation()}
         >
           #{entity.data.text}

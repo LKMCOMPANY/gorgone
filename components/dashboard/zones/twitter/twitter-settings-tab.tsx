@@ -19,13 +19,13 @@ export function TwitterSettingsTab({ zoneId }: TwitterSettingsTabProps) {
       <TabsList className="grid w-full grid-cols-2 mb-8 h-11">
         <TabsTrigger 
           value="data-source"
-          className="text-body-sm font-medium transition-all duration-[150ms] data-[state=active]:shadow-sm"
+          className="text-sm font-medium transition-all duration-[var(--transition-fast)] data-[state=active]:shadow-sm"
         >
           Data Source
         </TabsTrigger>
         <TabsTrigger 
           value="tracked-profiles"
-          className="text-body-sm font-medium transition-all duration-[150ms] data-[state=active]:shadow-sm"
+          className="text-sm font-medium transition-all duration-[var(--transition-fast)] data-[state=active]:shadow-sm"
         >
           Tracked Profiles
         </TabsTrigger>

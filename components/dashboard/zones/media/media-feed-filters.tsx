@@ -196,7 +196,7 @@ export function MediaFeedFilters({
       {/* Search Bar */}
       <div className="relative">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <Input
             type="text"
             placeholder="Search articles by title or keywords..."
@@ -212,14 +212,14 @@ export function MediaFeedFilters({
                 setShowAutocomplete(false);
               }
             }}
-            className="pl-10 pr-10 h-11 transition-shadow duration-[150ms] focus-visible:shadow-[var(--shadow-sm)]"
+            className="pl-10 pr-10 h-11 transition-shadow duration-[var(--transition-fast)] focus-visible:shadow-[var(--shadow-sm)]"
           />
           {searchTerm && (
             <button
               onClick={handleClearSearch}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors duration-[150ms]"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors duration-[var(--transition-fast)]"
             >
-              <X className="h-4 w-4" />
+              <X className="size-4" />
             </button>
           )}
         </div>
@@ -231,29 +231,29 @@ export function MediaFeedFilters({
               <button
                 key={`${result.type}-${result.value}-${index}`}
                 onClick={() => handleSelectAutocomplete(result)}
-                className="w-full px-4 py-3 flex items-center gap-3 hover:bg-muted/50 transition-colors duration-[150ms] text-left"
+                className="w-full px-4 py-3 flex items-center gap-3 hover:bg-muted/50 transition-colors duration-[var(--transition-fast)] text-left"
               >
                 {/* Icon */}
-                <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <div className="size-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                   {result.type === "source" ? (
-                    <Globe className="h-4 w-4 text-primary" />
+                    <Globe className="size-4 text-primary" />
                   ) : (
-                    <Hash className="h-4 w-4 text-primary" />
+                    <Hash className="size-4 text-primary" />
                   )}
                 </div>
 
                 {/* Content */}
                 <div className="flex-1 min-w-0">
-                  <p className="text-body-sm font-medium truncate">{result.label}</p>
+                  <p className="text-sm font-medium truncate">{result.label}</p>
                   {result.type === "source" && result.metadata?.location_country && (
-                    <p className="text-caption text-muted-foreground truncate">
+                    <p className="text-xs text-muted-foreground truncate">
                       {result.metadata.location_country}
                     </p>
                   )}
                 </div>
 
                 {/* Type Badge */}
-                <Badge variant="secondary" className="text-caption flex-shrink-0">
+                <Badge variant="secondary" className="text-xs flex-shrink-0">
                   {result.type === "source" ? "Source" : "Keyword"}
                 </Badge>
               </button>
@@ -264,7 +264,7 @@ export function MediaFeedFilters({
         {/* Loading indicator */}
         {loading && (
           <div className="absolute right-12 top-1/2 -translate-y-1/2">
-            <div className="h-4 w-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+            <div className="size-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
           </div>
         )}
       </div>
@@ -276,8 +276,8 @@ export function MediaFeedFilters({
           value={filters.sortBy}
           onValueChange={(value: any) => handleFilterChange("sortBy", value)}
         >
-          <SelectTrigger className="h-9 w-[180px] transition-shadow duration-[150ms]">
-            <TrendingUp className="mr-2 h-4 w-4" />
+          <SelectTrigger className="h-9 w-[180px] transition-shadow duration-[var(--transition-fast)]">
+            <TrendingUp className="mr-2 size-4" />
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -291,7 +291,7 @@ export function MediaFeedFilters({
         <button
           onClick={() => handleFilterChange("verifiedOnly", !filters.verifiedOnly)}
           className={cn(
-            "flex h-9 items-center gap-2 rounded-md border px-3 transition-all duration-[150ms]",
+            "flex h-9 items-center gap-2 rounded-md border px-3 transition-all duration-[var(--transition-fast)]",
             filters.verifiedOnly
               ? "border-primary bg-primary/5 text-primary"
               : "border-border hover:border-primary/50 hover:bg-muted/30"
@@ -299,13 +299,13 @@ export function MediaFeedFilters({
         >
           <div
             className={cn(
-              "flex h-4 w-4 items-center justify-center rounded border-2 transition-all duration-[150ms]",
+              "flex h-4 w-4 items-center justify-center rounded border-2 transition-all duration-[var(--transition-fast)]",
               filters.verifiedOnly ? "border-primary bg-primary" : "border-muted-foreground"
             )}
           >
             {filters.verifiedOnly && (
               <svg
-                className="h-3 w-3 text-white"
+                className="size-3 text-white"
                 fill="none"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -317,8 +317,8 @@ export function MediaFeedFilters({
               </svg>
             )}
           </div>
-          <ShieldCheck className="h-4 w-4" />
-          <span className="text-body-sm font-medium">Verified Only</span>
+          <ShieldCheck className="size-4" />
+          <span className="text-sm font-medium">Verified Only</span>
         </button>
 
         {/* Advanced Filters Toggle */}
@@ -327,14 +327,14 @@ export function MediaFeedFilters({
           size="sm"
           onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
           className={cn(
-            "ml-auto gap-2 transition-all duration-[150ms]",
+            "ml-auto gap-2 transition-all duration-[var(--transition-fast)]",
             activeFiltersCount > 0 && "border-primary text-primary"
           )}
         >
-          <Filter className="h-4 w-4" />
+          <Filter className="size-4" />
           <span>Filters</span>
           {activeFiltersCount > 0 && (
-            <Badge variant="default" className="h-5 w-5 rounded-full p-0 flex items-center justify-center">
+            <Badge variant="default" className="size-5 rounded-full p-0 flex items-center justify-center">
               {activeFiltersCount}
             </Badge>
           )}
@@ -343,13 +343,13 @@ export function MediaFeedFilters({
         {/* Active Search Display */}
         {filters.search && (
           <Badge variant="secondary" className="gap-2">
-            <Search className="h-3 w-3" />
+            <Search className="size-3" />
             {filters.search}
             <button
               onClick={handleClearSearch}
-              className="hover:text-foreground transition-colors duration-[150ms]"
+              className="hover:text-foreground transition-colors duration-[var(--transition-fast)]"
             >
-              <X className="h-3 w-3" />
+              <X className="size-3" />
             </button>
           </Badge>
         )}
@@ -364,13 +364,13 @@ export function MediaFeedFilters({
               variant="secondary"
               className="gap-2 capitalize"
             >
-              <Globe className="h-3 w-3" />
+              <Globe className="size-3" />
               {source}
               <button
                 onClick={() => handleRemoveSource(source)}
-                className="hover:text-foreground transition-colors duration-[150ms]"
+                className="hover:text-foreground transition-colors duration-[var(--transition-fast)]"
               >
-                <X className="h-3 w-3" />
+                <X className="size-3" />
               </button>
             </Badge>
           ))}
@@ -383,8 +383,8 @@ export function MediaFeedFilters({
           {/* Date Range */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="date-start" className="flex items-center gap-2 text-body-sm font-medium">
-                <Calendar className="h-4 w-4" />
+              <Label htmlFor="date-start" className="flex items-center gap-2 text-sm font-medium">
+                <Calendar className="size-4" />
                 From Date
               </Label>
               <Input
@@ -392,11 +392,11 @@ export function MediaFeedFilters({
                 type="date"
                 value={filters.startDate}
                 onChange={(e) => handleFilterChange("startDate", e.target.value)}
-                className="h-10 transition-shadow duration-[150ms] focus-visible:shadow-[var(--shadow-sm)]"
+                className="h-10 transition-shadow duration-[var(--transition-fast)] focus-visible:shadow-[var(--shadow-sm)]"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="date-end" className="text-body-sm font-medium">
+              <Label htmlFor="date-end" className="text-sm font-medium">
                 To Date
               </Label>
               <Input
@@ -404,7 +404,7 @@ export function MediaFeedFilters({
                 type="date"
                 value={filters.endDate}
                 onChange={(e) => handleFilterChange("endDate", e.target.value)}
-                className="h-10 transition-shadow duration-[150ms] focus-visible:shadow-[var(--shadow-sm)]"
+                className="h-10 transition-shadow duration-[var(--transition-fast)] focus-visible:shadow-[var(--shadow-sm)]"
               />
             </div>
           </div>
@@ -429,7 +429,7 @@ export function MediaFeedFilters({
           {/* Sentiment Range */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="min-sentiment" className="text-body-sm font-medium">
+              <Label htmlFor="min-sentiment" className="text-sm font-medium">
                 Min Sentiment
               </Label>
               <Select
@@ -440,7 +440,7 @@ export function MediaFeedFilters({
               >
                 <SelectTrigger
                   id="min-sentiment"
-                  className="h-10 transition-shadow duration-[150ms] focus-visible:shadow-[var(--shadow-sm)]"
+                  className="h-10 transition-shadow duration-[var(--transition-fast)] focus-visible:shadow-[var(--shadow-sm)]"
                 >
                   <SelectValue placeholder="Any" />
                 </SelectTrigger>
@@ -454,7 +454,7 @@ export function MediaFeedFilters({
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="max-sentiment" className="text-body-sm font-medium">
+              <Label htmlFor="max-sentiment" className="text-sm font-medium">
                 Max Sentiment
               </Label>
               <Select
@@ -465,7 +465,7 @@ export function MediaFeedFilters({
               >
                 <SelectTrigger
                   id="max-sentiment"
-                  className="h-10 transition-shadow duration-[150ms] focus-visible:shadow-[var(--shadow-sm)]"
+                  className="h-10 transition-shadow duration-[var(--transition-fast)] focus-visible:shadow-[var(--shadow-sm)]"
                 >
                   <SelectValue placeholder="Any" />
                 </SelectTrigger>
@@ -501,7 +501,7 @@ export function MediaFeedFilters({
               }
               className="w-full gap-2"
             >
-              <X className="h-4 w-4" />
+              <X className="size-4" />
               Clear Advanced Filters
             </Button>
           )}

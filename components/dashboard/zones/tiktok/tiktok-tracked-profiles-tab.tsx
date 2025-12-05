@@ -245,8 +245,8 @@ export function TikTokTrackedProfilesTab({ zoneId }: TikTokTrackedProfilesTabPro
     <div className="space-y-6 animate-in fade-in-0 duration-300">
       {/* Header */}
       <div className="space-y-1.5">
-        <h3 className="text-heading-3">Tracked Profiles</h3>
-        <p className="text-body-sm text-muted-foreground">
+        <h3 className="text-lg font-semibold">Tracked Profiles</h3>
+        <p className="text-sm text-muted-foreground">
           Tag and categorize TikTok profiles for Share of Voice analysis and targeted monitoring
         </p>
       </div>
@@ -259,7 +259,7 @@ export function TikTokTrackedProfilesTab({ zoneId }: TikTokTrackedProfilesTabPro
               <TabsTrigger
                 key={labelType.value}
                 value={labelType.value}
-                className="text-caption sm:text-body-sm data-[state=active]:shadow-sm"
+                className="text-xs sm:text-sm data-[state=active]:shadow-sm"
               >
                 <span className="hidden sm:inline">{labelType.label}</span>
                 <span className="sm:hidden">{labelType.label.substring(0, 3)}</span>
@@ -271,15 +271,15 @@ export function TikTokTrackedProfilesTab({ zoneId }: TikTokTrackedProfilesTabPro
             <TabsContent key={labelType.value} value={labelType.value} className="space-y-6 mt-6">
               {/* Label Description */}
               <div className={`rounded-lg border p-4 ${labelType.color}`}>
-                <h4 className="text-body-sm font-semibold mb-1">{labelType.label}</h4>
-                <p className="text-caption opacity-80">
+                <h4 className="text-sm font-semibold mb-1">{labelType.label}</h4>
+                <p className="text-xs opacity-80">
                   {labelType.description}
                 </p>
               </div>
 
               {/* Add Profile Form */}
               <div className="space-y-3">
-                <Label htmlFor="add-profile" className="text-body-sm font-medium">
+                <Label htmlFor="add-profile" className="text-sm font-medium">
                   Add Profile
                 </Label>
                 <div className="flex gap-2">
@@ -302,19 +302,19 @@ export function TikTokTrackedProfilesTab({ zoneId }: TikTokTrackedProfilesTabPro
                     disabled={!currentInput.trim() || isSaving}
                     size="sm"
                   >
-                    {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Add"}
+                    {isSaving ? <Loader2 className="size-4 animate-spin" /> : "Add"}
                   </Button>
                 </div>
               </div>
 
               {/* Current Profiles */}
               <div className="space-y-2">
-                <Label className="text-body-sm font-medium">
+                <Label className="text-sm font-medium">
                   Tracked Profiles ({profiles[activeTab].length})
                 </Label>
                 {profiles[activeTab].length === 0 ? (
                   <div className="rounded-lg border border-dashed border-border/60 bg-muted/20 p-8 text-center">
-                    <p className="text-body-sm text-muted-foreground">
+                    <p className="text-sm text-muted-foreground">
                       No profiles tracked in this category yet
                     </p>
                   </div>
@@ -326,13 +326,13 @@ export function TikTokTrackedProfilesTab({ zoneId }: TikTokTrackedProfilesTabPro
                         variant="outline"
                         className="gap-2 pl-3 pr-2 py-1.5"
                       >
-                        <span className="text-body-sm">@{username}</span>
+                        <span className="text-sm">@{username}</span>
                         <button
                           onClick={() => removeProfile(username, activeTab)}
                           disabled={isSaving}
                           className="ml-1 rounded-full hover:bg-muted p-0.5 transition-colors"
                         >
-                          <X className="h-3 w-3" />
+                          <X className="size-3" />
                         </button>
                       </Badge>
                     ))}
@@ -342,7 +342,7 @@ export function TikTokTrackedProfilesTab({ zoneId }: TikTokTrackedProfilesTabPro
 
               {/* Bulk Upload */}
               <div className="space-y-3">
-                <Label htmlFor="bulk-upload" className="text-body-sm font-medium">
+                <Label htmlFor="bulk-upload" className="text-sm font-medium">
                   Bulk Upload
                 </Label>
                 <Textarea
@@ -352,7 +352,7 @@ export function TikTokTrackedProfilesTab({ zoneId }: TikTokTrackedProfilesTabPro
                   onChange={(e) => setBulkInput(e.target.value)}
                   disabled={isSaving}
                   rows={5}
-                  className="font-mono text-body-sm"
+                  className="font-mono text-sm"
                 />
                 <Button
                   onClick={handleBulkUpload}
@@ -362,9 +362,9 @@ export function TikTokTrackedProfilesTab({ zoneId }: TikTokTrackedProfilesTabPro
                   className="w-full sm:w-auto gap-2"
                 >
                   {isSaving ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <Loader2 className="size-4 animate-spin" />
                   ) : (
-                    <Upload className="h-4 w-4" />
+                    <Upload className="size-4" />
                   )}
                   Upload Profiles
                 </Button>

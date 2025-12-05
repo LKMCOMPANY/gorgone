@@ -135,14 +135,14 @@ export function TikTokProfilesContent({ zoneId, initialSearch }: TikTokProfilesC
 
       {/* Results Count */}
       {!loading && profiles.length > 0 && (
-        <div className="flex items-center justify-between text-body-sm text-muted-foreground">
+        <div className="flex items-center justify-between text-sm text-muted-foreground">
           <p>
             Showing {profiles.length} profile{profiles.length !== 1 ? "s" : ""}{" "}
             {filters.search && (
               <span>for <span className="font-medium text-foreground">&quot;{filters.search}&quot;</span></span>
             )}
           </p>
-          {hasMore && <p className="hidden sm:block text-caption">Scroll for more</p>}
+          {hasMore && <p className="hidden sm:block text-xs">Scroll for more</p>}
         </div>
       )}
 
@@ -157,7 +157,7 @@ export function TikTokProfilesContent({ zoneId, initialSearch }: TikTokProfilesC
             </div>
             <div className="space-y-2">
               <p className="text-body font-semibold">No profiles found</p>
-              <p className="text-body-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 {filters.search ? `No results for "${filters.search}"` : "No profiles have posted videos in this zone yet"}
               </p>
             </div>
@@ -177,8 +177,8 @@ export function TikTokProfilesContent({ zoneId, initialSearch }: TikTokProfilesC
           {/* Intersection Observer Target */}
           <div ref={observerRef} className="h-20 flex items-center justify-center">
             {loadingMore && (
-              <div className="flex items-center gap-2 text-body-sm text-muted-foreground">
-                <Loader2 className="h-4 w-4 animate-spin" />
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Loader2 className="size-4 animate-spin" />
                 <span>Loading more profiles...</span>
               </div>
             )}

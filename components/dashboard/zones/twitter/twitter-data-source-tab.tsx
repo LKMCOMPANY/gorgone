@@ -70,13 +70,13 @@ export function TwitterDataSourceTab({ zoneId }: TwitterDataSourceTabProps) {
     <div className="space-y-6 animate-in fade-in-0 duration-300">
       {/* Header */}
       <div className="space-y-1.5">
-        <h3 className="text-heading-3 flex items-center gap-2">
-          <svg className="h-5 w-5 text-primary flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+        <h3 className="text-lg font-semibold flex items-center gap-2">
+          <svg className="size-5 text-primary flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
             <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
           </svg>
           <span>Data Sources</span>
         </h3>
-        <p className="text-body-sm text-muted-foreground">
+        <p className="text-sm text-muted-foreground">
           Configure monitoring rules to automatically capture tweets matching your criteria
         </p>
       </div>
@@ -101,12 +101,12 @@ export function TwitterDataSourceTab({ zoneId }: TwitterDataSourceTabProps) {
               </div>
               <div className="space-y-2">
                 <p className="text-body font-semibold">No monitoring rules yet</p>
-                <p className="text-body-sm text-muted-foreground max-w-md mx-auto">
+                <p className="text-sm text-muted-foreground max-w-md mx-auto">
                   Create your first rule to start capturing tweets that match specific keywords, mentions, or criteria
                 </p>
               </div>
               <Button onClick={handleCreateNew} className="gap-2">
-                <Plus className="h-4 w-4" />
+                <Plus className="size-4" />
                 Create First Rule
               </Button>
             </div>

@@ -1,16 +1,17 @@
 "use client";
 
 import * as React from "react";
-import { Bot, User as UserIcon, MessageSquare } from "lucide-react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Conversation, ConversationContent, ConversationEmpty } from "@/components/ai/conversation";
+import { Message, MessageContent } from "@/components/ai/message";
+import { Response } from "@/components/ai/response";
+import { Tool } from "@/components/ai/tool";
+import { Loader } from "@/components/ai/loader";
 import { ChatQuickActions } from "./chat-quick-actions";
-import { MessageContent } from "./message-content";
-import { cn } from "@/lib/utils";
-import type { Message } from "ai";
+import { ChatChart } from "./chat-chart";
+import type { Message as AIMessage } from "ai";
 
 interface ChatMessagesProps {
-  messages: Message[];
+  messages: AIMessage[];
   isLoading: boolean;
   onQuickAction?: (query: string) => void;
 }
@@ -20,92 +21,78 @@ export function ChatMessages({
   isLoading,
   onQuickAction,
 }: ChatMessagesProps) {
-  const scrollRef = React.useRef<HTMLDivElement>(null);
-
-  // Auto-scroll to bottom on new messages
-  React.useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-  }, [messages]);
-
+  // Empty state
   if (messages.length === 0 && !isLoading) {
-    return <ChatMessagesEmpty onQuickAction={onQuickAction} />;
+    return (
+      <ConversationEmpty
+        title="Start a conversation"
+        description="Ask questions about your monitored data"
+      >
+        <ChatQuickActions show={true} onSelect={onQuickAction} />
+      </ConversationEmpty>
+    );
   }
 
   return (
-    <div ref={scrollRef} className="space-y-6 p-6 max-w-full overflow-x-hidden">
+    <ConversationContent>
       {messages.map((message) => (
-        <ChatMessage key={message.id} message={message} />
+        <Message key={message.id} from={message.role as "user" | "assistant"}>
+          <MessageContent>
+            {/* Tool Invocations */}
+            {(message as any).toolInvocations?.map((tool: any, idx: number) => {
+              // Visualization tools
+              if (tool.state === "result" && tool.result?._type === "visualization") {
+                return (
+                  <ChatChart
+                    key={idx}
+                    type={tool.result.chart_type}
+                    title={tool.result.title}
+                    data={tool.result.data}
+                    config={tool.result.config}
+                  />
+                );
+              }
+
+              // Regular tools
+              return (
+                <Tool
+                  key={idx}
+                  name={tool.toolName}
+                  status={
+                    tool.state === "result"
+                      ? "complete"
+                      : tool.state === "partial-call"
+                        ? "in-progress"
+                        : "pending"
+                  }
+                  defaultOpen={false}
+                >
+                  {tool.state === "result" && tool.result && (
+                    <pre className="text-xs overflow-x-auto">
+                      {JSON.stringify(tool.result, null, 2)}
+                    </pre>
+                  )}
+                </Tool>
+              );
+            })}
+
+            {/* Message Content */}
+            {message.content && (
+              <Response showCopy={message.role === "assistant"}>
+                {message.content}
+              </Response>
+            )}
+          </MessageContent>
+        </Message>
       ))}
+
+      {/* Loading Indicator */}
       {isLoading && messages.length > 0 && (
-        <div className="flex gap-3 max-w-full">
-          <Avatar className="h-8 w-8 flex-shrink-0 bg-primary/10">
-            <AvatarFallback>
-              <Bot className="h-4 w-4 text-primary" />
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1 min-w-0 space-y-2">
-            <Skeleton className="h-4 w-3/4" />
-            <Skeleton className="h-4 w-1/2" />
-          </div>
-        </div>
+        <Message from="assistant">
+          <Loader text="Analyzing your data..." />
+        </Message>
       )}
-    </div>
-  );
-}
-
-interface ChatMessageProps {
-  message: Message;
-}
-
-function ChatMessage({ message }: ChatMessageProps) {
-  const isUser = message.role === "user";
-
-  return (
-    <div className="group flex gap-3 max-w-full overflow-hidden">
-      <Avatar className={cn("h-8 w-8 flex-shrink-0", !isUser && "bg-primary/10")}>
-        <AvatarFallback>
-          {isUser ? (
-            <UserIcon className="h-4 w-4" />
-          ) : (
-            <Bot className="h-4 w-4 text-primary" />
-          )}
-        </AvatarFallback>
-      </Avatar>
-      <div className="flex-1 min-w-0 max-w-full overflow-hidden">
-        <MessageContent 
-          content={message.content} 
-          role={message.role}
-          toolInvocations={(message as any).toolInvocations}
-        />
-      </div>
-    </div>
-  );
-}
-
-interface ChatMessagesEmptyProps {
-  onQuickAction?: (query: string) => void;
-}
-
-function ChatMessagesEmpty({ onQuickAction }: ChatMessagesEmptyProps) {
-  return (
-    <div className="flex h-full flex-col">
-      <div className="flex flex-1 items-center justify-center p-8">
-        <div className="text-center space-y-3">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-            <MessageSquare className="h-6 w-6 text-primary" />
-          </div>
-          <div className="space-y-1">
-            <p className="text-body font-medium">Start a conversation</p>
-            <p className="text-body-sm text-muted-foreground">
-              Ask questions about your monitored data
-            </p>
-          </div>
-        </div>
-      </div>
-      <ChatQuickActions show={true} onSelect={onQuickAction} />
-    </div>
+    </ConversationContent>
   );
 }
 

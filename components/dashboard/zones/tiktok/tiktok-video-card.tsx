@@ -91,7 +91,7 @@ export function TikTokVideoCard({
     : "grid grid-cols-1 lg:grid-cols-2";
 
   return (
-    <Card className="max-w-full overflow-hidden transition-all duration-[250ms] hover:border-primary/30 hover:shadow-sm">
+    <Card className="max-w-full glass-card overflow-hidden transition-all duration-[var(--transition-base)] hover:border-primary/30 hover:shadow-lg">
       {/* Content Area - Responsive Layout (SAME AS TWITTER) */}
       <div className={layoutClass}>
         {/* Video Content */}
@@ -102,12 +102,12 @@ export function TikTokVideoCard({
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2 flex-wrap min-w-0">
                 {/* Video Badge */}
-                <Badge variant="secondary" className="text-caption font-medium">
+                <Badge variant="secondary" className="text-xs font-medium">
                   Video
                 </Badge>
 
                 {/* Relative Time */}
-                <span className="text-caption text-muted-foreground">
+                <span className="text-xs text-muted-foreground">
                   {relativeTime}
                 </span>
 
@@ -121,7 +121,7 @@ export function TikTokVideoCard({
                           key={tag.tag_type}
                           variant="outline"
                           className={cn(
-                            "text-caption capitalize border hidden sm:inline-flex transition-colors duration-[150ms]",
+                            "text-xs capitalize border hidden sm:inline-flex transition-colors duration-[var(--transition-fast)]",
                             colors.bg,
                             colors.text,
                             colors.border
@@ -134,7 +134,7 @@ export function TikTokVideoCard({
                   </>
                 )}
                 {tags.length > 2 && (
-                  <Badge variant="secondary" className="text-caption hidden sm:inline-flex">
+                  <Badge variant="secondary" className="text-xs hidden sm:inline-flex">
                     +{tags.length} tags
                   </Badge>
                 )}
@@ -146,10 +146,10 @@ export function TikTokVideoCard({
                   href={tiktokUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex-shrink-0 p-1.5 rounded-lg hover:bg-muted/50 text-muted-foreground hover:text-primary transition-all duration-[150ms]"
+                  className="flex-shrink-0 p-1.5 rounded-lg hover:bg-muted/50 text-muted-foreground hover:text-primary transition-all duration-[var(--transition-fast)]"
                   title="View on TikTok"
                 >
-                  <ExternalLink className="h-3.5 w-3.5" />
+                  <ExternalLink className="size-3.5" />
                 </a>
               )}
             </div>
@@ -163,11 +163,11 @@ export function TikTokVideoCard({
                     src={video.author.avatar_thumb}
                     alt={video.author.nickname}
                     onError={() => setImageError(true)}
-                    className="h-10 w-10 rounded-full object-cover ring-2 ring-border/50"
+                    className="size-10 rounded-full object-cover ring-2 ring-border/50"
                   />
                 ) : (
-                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center ring-2 ring-border/50">
-                    <span className="text-body-sm font-semibold text-primary">
+                  <div className="size-10 rounded-full bg-primary/10 flex items-center justify-center ring-2 ring-border/50">
+                    <span className="text-sm font-semibold text-primary">
                       {video.author?.nickname?.charAt(0).toUpperCase() || "?"}
                     </span>
                   </div>
@@ -177,14 +177,14 @@ export function TikTokVideoCard({
               {/* Author Details */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-body-sm font-semibold truncate">
+                  <span className="text-sm font-semibold truncate">
                     {video.author?.nickname || "Unknown"}
                   </span>
                   
                   {/* Verified Badge - TikTok Blue */}
                   {video.author?.is_verified && (
                     <svg
-                      className="h-3.5 w-3.5 text-[#20D5EC] flex-shrink-0"
+                      className="size-3.5 text-[#20D5EC] flex-shrink-0"
                       viewBox="0 0 24 24"
                       fill="currentColor"
                     >
@@ -192,8 +192,8 @@ export function TikTokVideoCard({
                     </svg>
                   )}
 
-                  <span className="text-caption text-muted-foreground">•</span>
-                  <span className="text-caption text-muted-foreground truncate">
+                  <span className="text-xs text-muted-foreground">•</span>
+                  <span className="text-xs text-muted-foreground truncate">
                     @{video.author?.username || "unknown"}
                   </span>
                 </div>
@@ -211,7 +211,7 @@ export function TikTokVideoCard({
                     key={tag.tag_type}
                     variant="outline"
                     className={cn(
-                      "text-caption capitalize border transition-colors duration-[150ms]",
+                      "text-xs capitalize border transition-colors duration-[var(--transition-fast)]",
                       colors.bg,
                       colors.text,
                       colors.border
@@ -241,14 +241,14 @@ export function TikTokVideoCard({
                   className="w-full h-full object-cover"
                 />
                 {/* Video overlay */}
-                <div className="absolute inset-0 bg-black/20 flex items-center justify-center group-hover:bg-black/30 transition-colors duration-[150ms]">
-                  <div className="h-14 w-14 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center">
-                    <Play className="h-6 w-6 text-white fill-white" />
+                <div className="absolute inset-0 bg-black/20 flex items-center justify-center group-hover:bg-black/30 transition-colors duration-[var(--transition-fast)]">
+                  <div className="size-14 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center">
+                    <Play className="size-6 text-white fill-white" />
                   </div>
                 </div>
                 {/* Duration badge */}
                 {video.duration && (
-                  <div className="absolute bottom-2 left-2 px-2 py-1 bg-black/80 backdrop-blur-sm rounded text-white text-caption font-medium">
+                  <div className="absolute bottom-2 left-2 px-2 py-1 bg-black/80 backdrop-blur-sm rounded text-white text-xs font-medium">
                     {formatDuration(video.duration)}
                   </div>
                 )}
@@ -258,14 +258,14 @@ export function TikTokVideoCard({
 
           {/* Music Info (SAME STYLE AS QUOTED TWEET) */}
           {video.music_title && (
-            <div className="rounded-lg border border-border bg-muted/20 overflow-hidden hover:bg-muted/30 transition-colors duration-[150ms]">
+            <div className="rounded-lg border border-border bg-muted/20 overflow-hidden hover:bg-muted/30 transition-colors duration-[var(--transition-fast)]">
               <div className="p-3 sm:p-4 space-y-2.5">
                 <div className="flex items-center gap-2">
-                  <Music className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                  <Music className="size-4 text-muted-foreground flex-shrink-0" />
                   <div className="flex-1 min-w-0">
-                    <p className="text-body-sm font-medium truncate">{video.music_title}</p>
+                    <p className="text-sm font-medium truncate">{video.music_title}</p>
                     {video.music_author && (
-                      <p className="text-caption text-muted-foreground truncate">
+                      <p className="text-xs text-muted-foreground truncate">
                         {video.music_author}
                       </p>
                     )}

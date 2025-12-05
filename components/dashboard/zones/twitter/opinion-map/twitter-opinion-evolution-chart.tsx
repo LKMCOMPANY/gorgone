@@ -68,14 +68,14 @@ export function TwitterOpinionEvolutionChart({
   const selectedClusterId = selection.type === 'selected' ? selection.clusterId : null
 
   return (
-    <Card className="border-border shadow-sm">
-      <CardHeader className="space-y-1.5 pb-4">
-        <CardTitle className="text-heading-2">Opinion Evolution</CardTitle>
-        <CardDescription className="text-body-sm">
+    <Card className="shadow-sm">
+      <CardHeader>
+        <CardTitle>Opinion Evolution</CardTitle>
+        <CardDescription>
           Distribution of opinion clusters over time. Click on areas to explore clusters.
         </CardDescription>
       </CardHeader>
-      <CardContent className="pt-0 space-y-4">
+      <CardContent>
         <ChartContainer config={chartConfig} className="h-[280px] w-full">
           <AreaChart 
             data={data}
@@ -196,7 +196,7 @@ export function TwitterOpinionEvolutionChart({
                   key={cluster.cluster_id}
                   onClick={() => onSelectCluster(cluster.cluster_id)}
                   className={cn(
-                    'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-caption font-medium transition-all duration-[150ms]',
+                    'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-all duration-[var(--transition-fast)]',
                     'border hover:border-primary/50 hover:bg-muted/50',
                     isSelected 
                       ? 'border-primary/50 bg-primary/10 text-foreground' 
@@ -204,7 +204,7 @@ export function TwitterOpinionEvolutionChart({
                   )}
                 >
                   <div
-                    className="w-2 h-2 rounded-full flex-shrink-0"
+                    className="size-2 rounded-full flex-shrink-0"
                     style={{ backgroundColor: color }}
                   />
                   <span className="truncate max-w-[120px] sm:max-w-none">
@@ -224,13 +224,13 @@ export function TwitterOpinionEvolutionChart({
                   className="w-3 h-3 rounded-full flex-shrink-0"
                   style={{ backgroundColor: getOpinionClusterColor(selectedClusterId) }}
                 />
-                <span className="text-body-sm font-medium">
+                <span className="text-sm font-medium">
                   {clusters.find(c => c.cluster_id === selectedClusterId)?.label}
                 </span>
               </div>
               <button
                 onClick={() => onSelectCluster(-1)} // Deselect
-                className="text-caption text-muted-foreground hover:text-foreground transition-colors duration-[150ms] flex-shrink-0"
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors duration-[var(--transition-fast)] flex-shrink-0"
               >
                 Clear
               </button>
@@ -239,20 +239,20 @@ export function TwitterOpinionEvolutionChart({
         )}
 
         {/* Stats Summary */}
-        <div className="grid grid-cols-3 gap-3 sm:gap-4">
-          <div className="space-y-1">
-            <p className="text-caption text-muted-foreground">Data Points</p>
-            <p className="text-body font-semibold">{data.length}</p>
+        <div className="grid grid-cols-3 gap-6 pt-4 mt-2 border-t border-border">
+          <div className="space-y-1.5">
+            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Data Points</p>
+            <p className="text-2xl font-bold tracking-tight">{data.length}</p>
           </div>
-          <div className="space-y-1">
-            <p className="text-caption text-muted-foreground">Time Range</p>
-            <p className="text-caption sm:text-body-sm font-medium truncate">
+          <div className="space-y-1.5">
+            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Time Range</p>
+            <p className="text-sm font-medium truncate">
               {data.length > 0 ? `${data[0].date} - ${data[data.length - 1].date}` : 'N/A'}
             </p>
           </div>
-          <div className="space-y-1">
-            <p className="text-caption text-muted-foreground">Clusters</p>
-            <p className="text-body font-semibold">{clusters.length}</p>
+          <div className="space-y-1.5">
+            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Clusters</p>
+            <p className="text-2xl font-bold tracking-tight">{clusters.length}</p>
           </div>
         </div>
       </CardContent>

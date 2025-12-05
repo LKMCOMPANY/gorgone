@@ -20,7 +20,7 @@ export function ChatChart({ type, title, data, config }: ChatChartProps) {
   if (!data || data.length === 0) {
     return (
       <div className="rounded-lg border border-dashed border-border/60 bg-muted/20 p-6 text-center">
-        <p className="text-body-sm text-muted-foreground">
+        <p className="text-sm text-muted-foreground">
           No data available for visualization
         </p>
       </div>

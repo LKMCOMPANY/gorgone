@@ -425,12 +425,12 @@ export function TwitterOpinionMapView({ zoneId }: TwitterOpinionMapViewProps) {
         <Card className="border-border shadow-sm">
           <div className="flex flex-col items-center justify-center py-20 px-6">
             <div className="space-y-4 text-center max-w-md">
-              <div className="mx-auto w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center transition-all duration-[250ms] hover:bg-primary/15">
+              <div className="mx-auto size-200 rounded-full bg-primary/10 flex items-center justify-center transition-all duration-[var(--transition-base)] hover:bg-primary/15">
                 <Sparkles className="w-10 h-10 text-primary" />
               </div>
               <div className="space-y-2">
-                <h3 className="text-heading-2">No Opinion Map Yet</h3>
-                <p className="text-body-sm text-muted-foreground max-w-sm mx-auto">
+                <h3 className="text-xl font-semibold">No Opinion Map Yet</h3>
+                <p className="text-sm text-muted-foreground max-w-sm mx-auto">
                   Generate your first 3D opinion map to visualize opinion clusters and track their evolution over time
                 </p>
               </div>
@@ -509,7 +509,7 @@ export function TwitterOpinionMapView({ zoneId }: TwitterOpinionMapViewProps) {
                   <TabsList className="w-full h-auto bg-transparent p-1 rounded-none gap-1">
                     <TabsTrigger 
                       value="clusters" 
-                      className="flex-1 h-10 rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground transition-all duration-[150ms] hover:text-foreground"
+                      className="flex-1 h-10 rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground transition-all duration-[var(--transition-fast)] hover:text-foreground"
                     >
                       <span className="font-medium">Clusters</span>
                       <Badge variant="secondary" className="ml-2 text-xs font-medium px-1.5 py-0.5 bg-primary/10 text-foreground border-0">
@@ -518,7 +518,7 @@ export function TwitterOpinionMapView({ zoneId }: TwitterOpinionMapViewProps) {
                     </TabsTrigger>
                     <TabsTrigger 
                       value="tweets" 
-                      className="flex-1 h-10 rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground transition-all duration-[150ms] hover:text-foreground"
+                      className="flex-1 h-10 rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground transition-all duration-[var(--transition-fast)] hover:text-foreground"
                     >
                       <span className="font-medium">Posts</span>
                       {selectedCluster && (
@@ -558,8 +558,8 @@ export function TwitterOpinionMapView({ zoneId }: TwitterOpinionMapViewProps) {
                           </svg>
                         </div>
                         <div className="space-y-1">
-                          <p className="text-body-sm font-medium text-foreground">Select a Cluster</p>
-                          <p className="text-caption text-muted-foreground">
+                          <p className="text-sm font-medium text-foreground">Select a Cluster</p>
+                          <p className="text-xs text-muted-foreground">
                             Click on the map or choose from the clusters tab to view posts
                           </p>
                         </div>

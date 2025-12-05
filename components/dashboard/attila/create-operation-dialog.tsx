@@ -100,7 +100,7 @@ export function CreateOperationDialog({ zoneId }: CreateOperationDialogProps) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button className="gap-2">
-          <Plus className="h-4 w-4" />
+          <Plus className="size-4" />
           New Operation
         </Button>
       </DialogTrigger>
@@ -142,7 +142,7 @@ export function CreateOperationDialog({ zoneId }: CreateOperationDialogProps) {
                       )}
                       onClick={() => setSelectedType(type.id)}
                     >
-                      <Icon className={cn("h-6 w-6 mb-3", isSelected ? "text-primary" : "text-muted-foreground")} />
+                      <Icon className={cn("size-6 mb-3", isSelected ? "text-primary" : "text-muted-foreground")} />
                       <h3 className="font-medium text-sm mb-1">{type.title}</h3>
                       <p className="text-xs text-muted-foreground line-clamp-3">
                         {type.description}

@@ -16,7 +16,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { TypographyP, TypographyMuted } from "@/components/ui/typography";
 import { MoreVertical, Mail, Shield, Building, Trash2, Edit } from "lucide-react";
 import { toast } from "sonner";
 import type { ClientUser } from "@/types";
@@ -64,7 +63,7 @@ export function ClientUsersList({
   if (users.length === 0) {
     return (
       <div className="py-16 text-center">
-        <p className="text-body-sm text-muted-foreground">
+        <p className="text-sm text-muted-foreground">
           No users yet. Add your first user to get started.
         </p>
       </div>
@@ -80,29 +79,29 @@ export function ClientUsersList({
               className="card-interactive flex flex-col gap-3 p-4 md:flex-row md:items-center"
             >
             {/* Avatar */}
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
               {user.email.charAt(0).toUpperCase()}
             </div>
 
             {/* User info */}
             <div className="flex-1 space-y-1.5">
               <div className="flex items-center gap-2">
-                <Mail className="h-3.5 w-3.5 text-muted-foreground/50" />
-                <p className="text-body-sm font-medium">{user.email}</p>
+                <Mail className="size-3.5 text-muted-foreground/50" />
+                <p className="text-sm font-medium">{user.email}</p>
               </div>
               <div className="flex flex-wrap items-center gap-3">
                 <div className="flex items-center gap-1.5 text-muted-foreground">
-                  <Shield className="h-3 w-3" />
-                  <span className="text-caption">{getRoleName(user.role)}</span>
+                  <Shield className="size-3" />
+                  <span className="text-xs">{getRoleName(user.role)}</span>
                 </div>
                 {user.organization && (
                   <div className="flex items-center gap-1.5 text-muted-foreground">
-                    <Building className="h-3 w-3" />
-                    <span className="text-caption">{user.organization}</span>
+                    <Building className="size-3" />
+                    <span className="text-xs">{user.organization}</span>
                   </div>
                 )}
               </div>
-              <p className="text-caption">
+              <p className="text-xs">
                 Created {formatDate(user.created_at)}
               </p>
             </div>
@@ -115,21 +114,21 @@ export function ClientUsersList({
             {/* Actions */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
-                  <MoreVertical className="h-4 w-4" />
+                <Button variant="ghost" size="icon" className="size-8 shrink-0">
+                  <MoreVertical className="size-4" />
                   <span className="sr-only">Open menu</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={() => setEditingUser(user)}>
-                  <Edit className="mr-2 h-4 w-4" />
+                  <Edit className="mr-2 size-4" />
                   Edit User
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() => handleDeleteUser(user)}
                   className="text-destructive focus:text-destructive"
                 >
-                  <Trash2 className="mr-2 h-4 w-4" />
+                  <Trash2 className="mr-2 size-4" />
                   Delete User
                 </DropdownMenuItem>
               </DropdownMenuContent>

@@ -95,7 +95,7 @@ export function AttilaEditorLayout({
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" asChild>
             <Link href={`/dashboard/zones/${zoneId}/attila`}>
-              <ArrowLeft className="h-4 w-4" />
+              <ArrowLeft className="size-4" />
             </Link>
           </Button>
           <div className="space-y-1">
@@ -103,13 +103,13 @@ export function AttilaEditorLayout({
               <Input 
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="text-heading-4 font-semibold h-auto p-0 border-none focus-visible:ring-0 bg-transparent w-[300px]"
+                className="text-lg font-semibold h-auto p-0 border-none focus-visible:ring-0 bg-transparent w-[300px]"
               />
               <Badge variant="outline" className="capitalize">{operation.type}</Badge>
-              {isSaving && <span className="text-caption text-muted-foreground animate-pulse">Saving...</span>}
+              {isSaving && <span className="text-xs text-muted-foreground animate-pulse">Saving...</span>}
             </div>
-            <div className="flex items-center gap-2 text-body-sm">
-               <div className={`h-2 w-2 rounded-full ${status === 'active' ? 'bg-green-500' : 'bg-slate-400'}`} />
+            <div className="flex items-center gap-2 text-sm">
+               <div className={`size-2 rounded-full ${status === 'active' ? 'bg-green-500' : 'bg-slate-400'}`} />
                <span className="capitalize text-muted-foreground">{status}</span>
             </div>
           </div>
@@ -123,11 +123,11 @@ export function AttilaEditorLayout({
            >
              {status === 'active' ? (
                <>
-                 <Pause className="h-4 w-4" /> Pause Operation
+                 <Pause className="size-4" /> Pause Operation
                </>
              ) : (
                <>
-                 <Play className="h-4 w-4" /> Start Operation
+                 <Play className="size-4" /> Start Operation
                </>
              )}
            </Button>

@@ -145,7 +145,7 @@ export function TwitterProfilesContent({ zoneId, initialSearch }: TwitterProfile
 
       {/* Results Count */}
       {!loading && profiles.length > 0 && (
-        <div className="flex items-center justify-between text-body-sm text-muted-foreground animate-in fade-in-0 duration-200">
+        <div className="flex items-center justify-between text-sm text-muted-foreground animate-in fade-in-0 duration-200">
           <p>
             <span className="font-medium text-foreground">{profiles.length}</span> profile{profiles.length !== 1 ? 's' : ''}{" "}
             {filters.search && (
@@ -155,7 +155,7 @@ export function TwitterProfilesContent({ zoneId, initialSearch }: TwitterProfile
             )}
           </p>
           {hasMore && (
-            <p className="hidden sm:block text-caption">Scroll for more</p>
+            <p className="hidden sm:block text-xs">Scroll for more</p>
           )}
         </div>
       )}
@@ -182,7 +182,7 @@ export function TwitterProfilesContent({ zoneId, initialSearch }: TwitterProfile
             </div>
             <div className="space-y-2">
               <p className="text-body font-semibold">No profiles found</p>
-              <p className="text-body-sm text-muted-foreground max-w-sm mx-auto">
+              <p className="text-sm text-muted-foreground max-w-sm mx-auto">
                 {filters.search || filters.profile_tag_type || filters.verified_only || 
                  filters.min_followers || filters.min_tweets
                   ? "Try adjusting your filters or search criteria to see more results"
@@ -210,13 +210,13 @@ export function TwitterProfilesContent({ zoneId, initialSearch }: TwitterProfile
           <div ref={observerRef} className="py-8">
             {loadingMore && (
               <div className="flex flex-col items-center gap-3">
-                <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                <p className="text-body-sm text-muted-foreground">Loading more profiles...</p>
+                <Loader2 className="size-6 animate-spin text-primary" />
+                <p className="text-sm text-muted-foreground">Loading more profiles...</p>
               </div>
             )}
             {!loadingMore && !hasMore && (
               <div className="text-center py-4">
-                <p className="text-body-sm text-muted-foreground">
+                <p className="text-sm text-muted-foreground">
                   No more profiles to load
                 </p>
               </div>

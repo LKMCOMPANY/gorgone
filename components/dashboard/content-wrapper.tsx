@@ -14,7 +14,7 @@ export function DashboardContentWrapper({
   return (
     <div
       className={cn(
-        "flex min-h-screen w-full transition-[margin] duration-[300ms] ease-in-out",
+        "flex min-h-screen w-full transition-[margin] duration-300 ease-in-out",
         // Add right margin on desktop when chat is open
         isOpen && "lg:mr-[clamp(360px,28vw,480px)]"
       )}

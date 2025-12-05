@@ -180,11 +180,11 @@ export function TikTokEngagementChart({ videoId, currentStats }: TikTokEngagemen
   if (!data || !data.initial_metrics) {
     return (
       <div className="space-y-3">
-        <p className="text-body-sm font-semibold">Engagement Evolution</p>
+        <p className="text-sm font-semibold">Engagement Evolution</p>
         <div className="rounded-lg border border-dashed border-border/60 bg-muted/20 p-8 text-center">
           <div className="space-y-2">
-            <p className="text-body-sm font-medium">No tracking data</p>
-            <p className="text-caption text-muted-foreground">
+            <p className="text-sm font-medium">No tracking data</p>
+            <p className="text-xs text-muted-foreground">
               Engagement tracking will begin once the video is collected
             </p>
           </div>
@@ -243,22 +243,22 @@ export function TikTokEngagementChart({ videoId, currentStats }: TikTokEngagemen
       <div className="flex items-center justify-between gap-3">
         <div className="space-y-0.5 min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <h3 className="text-body-sm font-semibold">Engagement Evolution</h3>
+            <h3 className="text-sm font-semibold">Engagement Evolution</h3>
             {trackingStatus && (
               isCold ? (
-                <Badge variant="secondary" className="gap-1 text-caption px-2 py-0.5">
-                  <Pause className="h-3 w-3" />
+                <Badge variant="secondary" className="gap-1 text-xs px-2 py-0.5">
+                  <Pause className="size-3" />
                   <span className="hidden sm:inline">Paused</span>
                 </Badge>
               ) : (
-                <Badge variant="secondary" className="gap-1 text-caption px-2 py-0.5 bg-chart-2/10 text-chart-2 border-chart-2/20">
-                  <Activity className="h-3 w-3" />
+                <Badge variant="secondary" className="gap-1 text-xs px-2 py-0.5 bg-chart-2/10 text-chart-2 border-chart-2/20">
+                  <Activity className="size-3" />
                   <span className="hidden sm:inline">Active</span>
                 </Badge>
               )
             )}
           </div>
-          <p className="text-caption text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             {data.snapshots.length} snapshot{data.snapshots.length !== 1 ? "s" : ""}
           </p>
         </div>
@@ -269,15 +269,15 @@ export function TikTokEngagementChart({ videoId, currentStats }: TikTokEngagemen
           disabled={refreshing}
           className="gap-2 h-8 px-3"
         >
-          <RefreshCw className={cn("h-3.5 w-3.5", refreshing && "animate-spin")} />
-          <span className="sr-only sm:not-sr-only text-caption">Refresh</span>
+          <RefreshCw className={cn("size-3.5", refreshing && "animate-spin")} />
+          <span className="sr-only sm:not-sr-only text-xs">Refresh</span>
         </Button>
       </div>
 
       {/* Conditional Info Message (SAME AS TWITTER) */}
       {isCold && hasLimitedData && (
         <div className="rounded-lg border border-muted bg-muted/20 p-3">
-          <p className="text-caption text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             Tracking paused due to low engagement activity. Use Refresh to get latest data.
           </p>
         </div>
@@ -287,12 +287,12 @@ export function TikTokEngagementChart({ videoId, currentStats }: TikTokEngagemen
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "reach" | "engagement")}>
         <TabsList className="grid w-full max-w-xs grid-cols-2">
           <TabsTrigger value="engagement" className="gap-1.5 data-[state=active]:shadow-none">
-            <TrendingUp className="h-4 w-4" />
+            <TrendingUp className="size-4" />
             <span className="hidden sm:inline">Engagement</span>
             <span className="sm:hidden">Eng.</span>
           </TabsTrigger>
           <TabsTrigger value="reach" className="gap-1.5 data-[state=active]:shadow-none">
-            <Eye className="h-4 w-4" />
+            <Eye className="size-4" />
             Reach
           </TabsTrigger>
         </TabsList>
@@ -494,25 +494,25 @@ export function TikTokEngagementChart({ videoId, currentStats }: TikTokEngagemen
           {/* Stats Summary - Compact & Colored (EXACT SAME AS TWITTER) */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-3 border-t border-border/60">
             <div className="space-y-1">
-              <p className="text-caption text-muted-foreground">Likes</p>
+              <p className="text-xs text-muted-foreground">Likes</p>
               <p className="text-body font-semibold" style={{ color: "var(--chart-1)" }}>
                 {formatCompactNumber(latestMetrics.digg_count)}
               </p>
             </div>
             <div className="space-y-1">
-              <p className="text-caption text-muted-foreground">Comments</p>
+              <p className="text-xs text-muted-foreground">Comments</p>
               <p className="text-body font-semibold" style={{ color: "var(--chart-2)" }}>
                 {formatCompactNumber(latestMetrics.comment_count)}
               </p>
             </div>
             <div className="space-y-1">
-              <p className="text-caption text-muted-foreground">Shares</p>
+              <p className="text-xs text-muted-foreground">Shares</p>
               <p className="text-body font-semibold" style={{ color: "var(--chart-3)" }}>
                 {formatCompactNumber(latestMetrics.share_count)}
               </p>
             </div>
             <div className="space-y-1">
-              <p className="text-caption text-muted-foreground">Saves</p>
+              <p className="text-xs text-muted-foreground">Saves</p>
               <p className="text-body font-semibold" style={{ color: "var(--chart-4)" }}>
                 {formatCompactNumber(latestMetrics.collect_count)}
               </p>
@@ -520,13 +520,13 @@ export function TikTokEngagementChart({ videoId, currentStats }: TikTokEngagemen
           </div>
 
           {/* Meta Info */}
-          <div className="flex items-center justify-between text-caption text-muted-foreground pt-2">
+          <div className="flex items-center justify-between text-xs text-muted-foreground pt-2">
             <span>
               {data.snapshots.length} update{data.snapshots.length !== 1 ? "s" : ""} • Last: {trackingStatus?.last_updated_at ? formatDistanceToNow(new Date(trackingStatus.last_updated_at), { addSuffix: true }) : "Never"}
             </span>
             {data.predictions && (
               <span className="flex items-center gap-1">
-                <TrendingUp className="h-3 w-3" />
+                <TrendingUp className="size-3" />
                 {(data.predictions.confidence * 100).toFixed(0)}% confidence
               </span>
             )}
@@ -603,7 +603,7 @@ export function TikTokEngagementChart({ videoId, currentStats }: TikTokEngagemen
           {/* Stats Summary - Reach Tab (EXACT SAME AS TWITTER) */}
           <div className="grid grid-cols-1 gap-4 pt-3 border-t border-border/60">
             <div className="space-y-1">
-              <p className="text-caption text-muted-foreground">Views</p>
+              <p className="text-xs text-muted-foreground">Views</p>
               <p className="text-body font-semibold" style={{ color: "var(--primary)" }}>
                 {formatCompactNumber(latestMetrics.play_count)}
               </p>
@@ -611,13 +611,13 @@ export function TikTokEngagementChart({ videoId, currentStats }: TikTokEngagemen
           </div>
 
           {/* Meta Info */}
-          <div className="flex items-center justify-between text-caption text-muted-foreground pt-2">
+          <div className="flex items-center justify-between text-xs text-muted-foreground pt-2">
             <span>
               Tracking {isCold ? "stopped" : "active"} • {trackingStatus?.update_count || 0} update{trackingStatus?.update_count !== 1 ? "s" : ""} recorded
             </span>
             {data.predictions && (
               <span className="flex items-center gap-1">
-                <TrendingUp className="h-3 w-3" />
+                <TrendingUp className="size-3" />
                 Predictions available
               </span>
             )}

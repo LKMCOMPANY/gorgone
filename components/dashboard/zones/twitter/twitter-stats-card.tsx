@@ -45,14 +45,14 @@ export function TwitterStatsCard({
   return (
     <Card 
       className={cn(
-        "group relative overflow-hidden",
-        "p-4 transition-all duration-300 ease-out",
-        "hover:shadow-md hover:-translate-y-0.5",
-        "border-border/50 hover:border-border"
+        "group relative overflow-hidden glass-card",
+        "p-4 transition-all duration-[var(--transition-base)]",
+        "hover:shadow-xl hover:-translate-y-0.5",
+        "border-border/60 hover:border-primary/20"
       )}
     >
       {/* Subtle background gradient on hover */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.03] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-[var(--transition-base)]" />
       
       <div className="relative space-y-3">
         {/* Label + Change Badge on same line */}
@@ -66,8 +66,8 @@ export function TwitterStatsCard({
               className={cn(
                 "text-[10px] h-5 px-1.5 font-medium border transition-all duration-200",
                 isPositive
-                  ? "bg-green-500/10 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800"
-                  : "bg-red-500/10 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800"
+                  ? "bg-[var(--tactical-green)]/10 text-[var(--tactical-green)] border-[var(--tactical-green)]/20"
+                  : "bg-[var(--tactical-red)]/10 text-[var(--tactical-red)] border-[var(--tactical-red)]/20"
               )}
             >
               {isPositive ? "↑" : "↓"} {Math.abs(percentageChange)}%

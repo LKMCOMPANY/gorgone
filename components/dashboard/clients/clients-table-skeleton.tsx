@@ -48,7 +48,7 @@ export function ClientsTableSkeleton() {
 
                 {/* Actions menu */}
                 <div className="ml-auto w-[60px]">
-                  <Skeleton className="ml-auto h-8 w-8" />
+                  <Skeleton className="ml-auto size-8" />
                 </div>
               </div>
             </div>

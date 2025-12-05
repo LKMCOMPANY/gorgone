@@ -10,8 +10,8 @@ export function TwitterOpinionMapSkeleton() {
   return (
     <div className="space-y-6 animate-in fade-in-0 duration-300">
       {/* Controls skeleton */}
-      <Card className="border-border shadow-sm">
-        <CardContent className="p-4 sm:p-6">
+      <Card className="shadow-sm">
+        <CardContent>
           <div className="flex flex-col sm:flex-row sm:items-center gap-4">
             <div className="flex flex-wrap items-center gap-3 flex-1">
               <Skeleton className="h-10 w-32" />
@@ -53,26 +53,26 @@ export function TwitterOpinionMapSkeleton() {
 
           {/* Chart skeleton */}
           <Card className="border-border shadow-sm">
-            <CardHeader className="space-y-2 pb-4">
+            <CardHeader>
               <Skeleton className="h-6 w-48" />
               <Skeleton className="h-4 w-full max-w-md" />
             </CardHeader>
-            <CardContent className="space-y-4 pb-6">
+            <CardContent>
               {/* Chart area */}
               <Skeleton className="h-[320px] w-full rounded-lg" />
               
               {/* Stats grid */}
               <div className="grid grid-cols-3 gap-4 pt-4 border-t border-border">
                 <div className="space-y-2">
-                  <Skeleton className="h-3 w-20" />
+                  <Skeleton className="size-30" />
                   <Skeleton className="h-5 w-16" />
                 </div>
                 <div className="space-y-2">
-                  <Skeleton className="h-3 w-24" />
-                  <Skeleton className="h-5 w-20" />
+                  <Skeleton className="size-34" />
+                  <Skeleton className="size-50" />
                 </div>
                 <div className="space-y-2">
-                  <Skeleton className="h-3 w-28" />
+                  <Skeleton className="size-38" />
                   <Skeleton className="h-5 w-12" />
                 </div>
               </div>
@@ -107,7 +107,7 @@ export function TwitterOpinionMapSkeleton() {
                   <Skeleton className="w-3.5 h-3.5 rounded-full flex-shrink-0 mt-0.5" />
                   <div className="flex-1 space-y-2 min-w-0">
                     <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-3 w-20" />
+                    <Skeleton className="size-30" />
                   </div>
                 </div>
               ))}

@@ -147,9 +147,9 @@ export function TwitterRuleDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[720px] gap-0 max-h-[90vh] overflow-y-auto">
-        <DialogHeader className="space-y-3">
-          <DialogTitle className="text-heading-2">
+      <DialogContent className="sm:max-w-[720px] max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="text-xl font-semibold">
             {editingRule ? "Edit Monitoring Rule" : "Create Monitoring Rule"}
           </DialogTitle>
           <DialogDescription className="text-body text-muted-foreground">
@@ -160,7 +160,7 @@ export function TwitterRuleDialog({
         <div className="py-6 space-y-6">
           {/* Rule Name */}
           <div className="space-y-2">
-            <Label htmlFor="rule-name" className="text-body-sm font-medium">
+            <Label htmlFor="rule-name" className="text-sm font-medium">
               Rule Name
             </Label>
             <Input
@@ -168,10 +168,10 @@ export function TwitterRuleDialog({
               placeholder="e.g., Elon Musk Monitoring"
               value={ruleName}
               onChange={(e) => setRuleName(e.target.value)}
-              className="h-10 transition-all duration-[150ms] focus-visible:shadow-[var(--shadow-sm)]"
+              className="h-10 transition-all duration-[var(--transition-fast)] focus-visible:shadow-[var(--shadow-sm)]"
               autoFocus
             />
-            <p className="text-caption text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               Choose a descriptive name for this monitoring rule
             </p>
           </div>
@@ -179,10 +179,10 @@ export function TwitterRuleDialog({
           {/* Mode Tabs */}
           <Tabs value={mode} onValueChange={(value) => setMode(value as "simple" | "builder")} className="w-full">
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="simple" className="text-body-sm">
+              <TabsTrigger value="simple" className="text-sm">
                 Simple Mode
               </TabsTrigger>
-              <TabsTrigger value="builder" className="text-body-sm">
+              <TabsTrigger value="builder" className="text-sm">
                 Query Builder
               </TabsTrigger>
             </TabsList>
@@ -190,7 +190,7 @@ export function TwitterRuleDialog({
             {/* SIMPLE MODE */}
             <TabsContent value="simple" className="space-y-4 mt-6">
               <div className="space-y-2">
-                <Label htmlFor="query" className="text-body-sm font-medium">
+                <Label htmlFor="query" className="text-sm font-medium">
                   Twitter Query
                 </Label>
                 <Textarea
@@ -198,9 +198,9 @@ export function TwitterRuleDialog({
                   placeholder="from:elonmusk OR @elonmusk OR &quot;Elon Musk&quot;"
                   value={queryString}
                   onChange={(e) => setQueryString(e.target.value)}
-                  className="min-h-[120px] font-mono text-body-sm resize-none transition-all duration-[150ms]"
+                  className="min-h-[120px] font-mono text-sm resize-none transition-all duration-[var(--transition-fast)]"
                 />
-                <p className="text-caption text-muted-foreground">
+                <p className="text-xs text-muted-foreground">
                   Use Twitter's search syntax (AND, OR, -, etc.)
                 </p>
               </div>
@@ -215,8 +215,8 @@ export function TwitterRuleDialog({
 
               {/* QUERY PREVIEW */}
               <div className="rounded-lg border border-dashed border-border/60 bg-muted/30 p-4 space-y-2">
-                <Label className="text-body-sm font-medium">Generated Query</Label>
-                <p className="text-body-sm font-mono text-muted-foreground break-all">
+                <Label className="text-sm font-medium">Generated Query</Label>
+                <p className="text-sm font-mono text-muted-foreground break-all">
                   {generatedQuery || "(empty query)"}
                 </p>
               </div>
@@ -225,7 +225,7 @@ export function TwitterRuleDialog({
 
           {/* INTERVAL */}
           <div className="space-y-3">
-            <Label className="text-body-sm font-medium">
+            <Label className="text-sm font-medium">
               Check Interval: <span className="font-normal text-muted-foreground">{interval} seconds</span>
             </Label>
             <div className="flex items-center gap-4">
@@ -239,7 +239,7 @@ export function TwitterRuleDialog({
                 className="flex-1 h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
               />
             </div>
-            <p className="text-caption text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               How often to check for new tweets (minimum 60 seconds)
             </p>
           </div>
@@ -250,14 +250,14 @@ export function TwitterRuleDialog({
             variant="outline"
             onClick={() => onOpenChange(false)}
             disabled={isSaving}
-            className="transition-all duration-[150ms]"
+            className="transition-all duration-[var(--transition-fast)]"
           >
             Cancel
           </Button>
           <Button
             onClick={handleSave}
             disabled={isSaving || !isValid}
-            className="min-w-[120px] transition-all duration-[150ms]"
+            className="min-w-[120px] transition-all duration-[var(--transition-fast)]"
           >
             {isSaving ? "Saving..." : editingRule ? "Update Rule" : "Create Rule"}
           </Button>

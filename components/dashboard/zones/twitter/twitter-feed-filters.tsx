@@ -162,21 +162,21 @@ export function TwitterFeedFilters({
       {/* Search Bar */}
       <div className="relative">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <Input
             type="text"
             placeholder="Search by keyword or username..."
             value={searchTerm}
             onChange={(e) => handleSearchChange(e.target.value)}
             onFocus={() => setShowAutocomplete(true)}
-            className="pl-10 pr-10 h-11 transition-shadow duration-[150ms] focus-visible:shadow-[var(--shadow-sm)]"
+            className="pl-10 pr-10 h-11 transition-shadow duration-[var(--transition-fast)] focus-visible:shadow-[var(--shadow-sm)]"
           />
           {searchTerm && (
             <button
               onClick={handleClearSearch}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors duration-[150ms]"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors duration-[var(--transition-fast)]"
             >
-              <X className="h-4 w-4" />
+              <X className="size-4" />
             </button>
           )}
         </div>
@@ -188,31 +188,31 @@ export function TwitterFeedFilters({
               <button
                 key={`${result.type}-${result.value}-${index}`}
                 onClick={() => handleSelectAutocomplete(result)}
-                className="w-full px-4 py-3 flex items-center gap-3 hover:bg-muted/50 transition-colors duration-[150ms] text-left"
+                className="w-full px-4 py-3 flex items-center gap-3 hover:bg-muted/50 transition-colors duration-[var(--transition-fast)] text-left"
               >
                 {result.type === "user" && result.metadata?.profile_picture_url ? (
                   <img
                     src={result.metadata.profile_picture_url}
                     alt={result.label}
-                    className="h-8 w-8 rounded-full object-cover"
+                    className="size-8 rounded-full object-cover"
                   />
                 ) : (
-                  <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                  <div className="size-8 rounded-full bg-primary/10 flex items-center justify-center">
                     {result.type === "user" ? (
-                      <User className="h-4 w-4 text-primary" />
+                      <User className="size-4 text-primary" />
                     ) : (
-                      <Hash className="h-4 w-4 text-primary" />
+                      <Hash className="size-4 text-primary" />
                     )}
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <p className="text-body-sm font-medium truncate">
+                    <p className="text-sm font-medium truncate">
                       {result.label}
                     </p>
                     {result.type === "user" && result.metadata?.is_verified && (
                       <svg
-                        className="h-4 w-4 text-blue-500 flex-shrink-0"
+                        className="size-4 text-blue-500 flex-shrink-0"
                         viewBox="0 0 24 24"
                         fill="currentColor"
                       >
@@ -221,12 +221,12 @@ export function TwitterFeedFilters({
                     )}
                   </div>
                   {result.type === "user" && result.metadata?.followers_count && (
-                    <p className="text-caption text-muted-foreground">
+                    <p className="text-xs text-muted-foreground">
                       {result.metadata.followers_count.toLocaleString()} followers
                     </p>
                   )}
                 </div>
-                <Badge variant="secondary" className="text-caption">
+                <Badge variant="secondary" className="text-xs">
                   {result.type === "user" ? "User" : "Keyword"}
                 </Badge>
               </button>
@@ -237,7 +237,7 @@ export function TwitterFeedFilters({
         {/* Loading indicator */}
         {loading && (
           <div className="absolute right-12 top-1/2 -translate-y-1/2">
-            <div className="h-4 w-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+            <div className="size-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
           </div>
         )}
       </div>
@@ -251,8 +251,8 @@ export function TwitterFeedFilters({
             handleFilterChange("sort_by", value as SortOption)
           }
         >
-          <SelectTrigger className="h-9 w-[180px] transition-shadow duration-[150ms]">
-            <TrendingUp className="h-4 w-4 mr-2" />
+          <SelectTrigger className="h-9 w-[180px] transition-shadow duration-[var(--transition-fast)]">
+            <TrendingUp className="size-4 mr-2" />
             <SelectValue placeholder="Sort by" />
           </SelectTrigger>
           <SelectContent>
@@ -272,8 +272,8 @@ export function TwitterFeedFilters({
             handleFilterChange("post_type", value === "all" ? undefined : (value as PostType))
           }
         >
-          <SelectTrigger className="h-9 w-[140px] transition-shadow duration-[150ms]">
-            <svg className="h-4 w-4 mr-2" fill="currentColor" viewBox="0 0 24 24">
+          <SelectTrigger className="h-9 w-[140px] transition-shadow duration-[var(--transition-fast)]">
+            <svg className="size-4 mr-2" fill="currentColor" viewBox="0 0 24 24">
               <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
             </svg>
             <SelectValue placeholder="Post type" />
@@ -294,8 +294,8 @@ export function TwitterFeedFilters({
             handleFilterChange("profile_tag_type", value === "all" ? undefined : (value as ProfileTagType))
           }
         >
-          <SelectTrigger className="h-9 w-[160px] transition-shadow duration-[150ms]">
-            <User className="h-4 w-4 mr-2" />
+          <SelectTrigger className="h-9 w-[160px] transition-shadow duration-[var(--transition-fast)]">
+            <User className="size-4 mr-2" />
             <SelectValue placeholder="Profile type" />
           </SelectTrigger>
           <SelectContent>
@@ -317,8 +317,8 @@ export function TwitterFeedFilters({
             handleFilterChange("date_range", value === "all" ? undefined : value)
           }
         >
-          <SelectTrigger className="h-9 w-[140px] transition-shadow duration-[150ms]">
-            <Calendar className="h-4 w-4 mr-2" />
+          <SelectTrigger className="h-9 w-[140px] transition-shadow duration-[var(--transition-fast)]">
+            <Calendar className="size-4 mr-2" />
             <SelectValue placeholder="Time range" />
           </SelectTrigger>
           <SelectContent>
@@ -339,14 +339,14 @@ export function TwitterFeedFilters({
           size="sm"
           onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
           className={cn(
-            "gap-2 transition-all duration-[150ms]",
+            "gap-2 transition-all duration-[var(--transition-fast)]",
             activeFiltersCount > 0 && "border-primary text-primary"
           )}
         >
-          <Filter className="h-4 w-4" />
+          <Filter className="size-4" />
           Filters
           {activeFiltersCount > 0 && (
-            <Badge variant="default" className="h-5 w-5 rounded-full p-0 flex items-center justify-center">
+            <Badge variant="default" className="size-5 rounded-full p-0 flex items-center justify-center">
               {activeFiltersCount}
             </Badge>
           )}
@@ -355,13 +355,13 @@ export function TwitterFeedFilters({
         {/* Active Search Display */}
         {filters.search && (
           <Badge variant="secondary" className="gap-2">
-            <Search className="h-3 w-3" />
+            <Search className="size-3" />
             {filters.search}
             <button
               onClick={handleClearSearch}
-              className="hover:text-foreground transition-colors duration-[150ms]"
+              className="hover:text-foreground transition-colors duration-[var(--transition-fast)]"
             >
-              <X className="h-3 w-3" />
+              <X className="size-3" />
             </button>
           </Badge>
         )}
@@ -369,15 +369,15 @@ export function TwitterFeedFilters({
         {/* Active Post Type Filter */}
         {filters.post_type && (
           <Badge variant="secondary" className="gap-2 capitalize">
-            <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 24 24">
+            <svg className="size-3" fill="currentColor" viewBox="0 0 24 24">
               <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
             </svg>
             {filters.post_type}s
             <button
               onClick={() => handleFilterChange("post_type", undefined)}
-              className="hover:text-foreground transition-colors duration-[150ms]"
+              className="hover:text-foreground transition-colors duration-[var(--transition-fast)]"
             >
-              <X className="h-3 w-3" />
+              <X className="size-3" />
             </button>
           </Badge>
         )}
@@ -385,13 +385,13 @@ export function TwitterFeedFilters({
         {/* Active Profile Tag Filter */}
         {filters.profile_tag_type && (
           <Badge variant="secondary" className="gap-2 capitalize">
-            <User className="h-3 w-3" />
+            <User className="size-3" />
             {filters.profile_tag_type.replace("_", " ")}
             <button
               onClick={() => handleFilterChange("profile_tag_type", undefined)}
-              className="hover:text-foreground transition-colors duration-[150ms]"
+              className="hover:text-foreground transition-colors duration-[var(--transition-fast)]"
             >
-              <X className="h-3 w-3" />
+              <X className="size-3" />
             </button>
           </Badge>
         )}
@@ -407,7 +407,7 @@ export function TwitterFeedFilters({
                 handleFilterChange("has_links", !filters.has_links || undefined)
               }
               className={cn(
-                "flex items-center gap-3 p-3 rounded-lg border transition-all duration-[150ms]",
+                "flex items-center gap-3 p-3 rounded-lg border transition-all duration-[var(--transition-fast)]",
                 filters.has_links
                   ? "border-primary bg-primary/5 text-primary"
                   : "border-border hover:border-primary/50 hover:bg-muted/30"
@@ -415,7 +415,7 @@ export function TwitterFeedFilters({
             >
               <div
                 className={cn(
-                  "h-4 w-4 rounded border-2 flex items-center justify-center transition-all duration-[150ms]",
+                  "h-4 w-4 rounded border-2 flex items-center justify-center transition-all duration-[var(--transition-fast)]",
                   filters.has_links
                     ? "border-primary bg-primary"
                     : "border-muted-foreground"
@@ -423,7 +423,7 @@ export function TwitterFeedFilters({
               >
                 {filters.has_links && (
                   <svg
-                    className="h-3 w-3 text-white"
+                    className="size-3 text-white"
                     fill="none"
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -435,7 +435,7 @@ export function TwitterFeedFilters({
                   </svg>
                 )}
               </div>
-              <span className="text-body-sm font-medium">Has Links</span>
+              <span className="text-sm font-medium">Has Links</span>
             </button>
 
             <button
@@ -446,7 +446,7 @@ export function TwitterFeedFilters({
                 )
               }
               className={cn(
-                "flex items-center gap-3 p-3 rounded-lg border transition-all duration-[150ms]",
+                "flex items-center gap-3 p-3 rounded-lg border transition-all duration-[var(--transition-fast)]",
                 filters.verified_only
                   ? "border-primary bg-primary/5 text-primary"
                   : "border-border hover:border-primary/50 hover:bg-muted/30"
@@ -454,7 +454,7 @@ export function TwitterFeedFilters({
             >
               <div
                 className={cn(
-                  "h-4 w-4 rounded border-2 flex items-center justify-center transition-all duration-[150ms]",
+                  "h-4 w-4 rounded border-2 flex items-center justify-center transition-all duration-[var(--transition-fast)]",
                   filters.verified_only
                     ? "border-primary bg-primary"
                     : "border-muted-foreground"
@@ -462,7 +462,7 @@ export function TwitterFeedFilters({
               >
                 {filters.verified_only && (
                   <svg
-                    className="h-3 w-3 text-white"
+                    className="size-3 text-white"
                     fill="none"
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -474,7 +474,7 @@ export function TwitterFeedFilters({
                   </svg>
                 )}
               </div>
-              <span className="text-body-sm font-medium">Verified Only</span>
+              <span className="text-sm font-medium">Verified Only</span>
             </button>
 
             <button
@@ -485,7 +485,7 @@ export function TwitterFeedFilters({
                 )
               }
               className={cn(
-                "flex items-center gap-3 p-3 rounded-lg border transition-all duration-[150ms]",
+                "flex items-center gap-3 p-3 rounded-lg border transition-all duration-[var(--transition-fast)]",
                 filters.active_tracking_only
                   ? "border-primary bg-primary/5 text-primary"
                   : "border-border hover:border-primary/50 hover:bg-muted/30"
@@ -493,7 +493,7 @@ export function TwitterFeedFilters({
             >
               <div
                 className={cn(
-                  "h-4 w-4 rounded border-2 flex items-center justify-center transition-all duration-[150ms]",
+                  "h-4 w-4 rounded border-2 flex items-center justify-center transition-all duration-[var(--transition-fast)]",
                   filters.active_tracking_only
                     ? "border-primary bg-primary"
                     : "border-muted-foreground"
@@ -501,7 +501,7 @@ export function TwitterFeedFilters({
               >
                 {filters.active_tracking_only && (
                   <svg
-                    className="h-3 w-3 text-white"
+                    className="size-3 text-white"
                     fill="none"
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -513,7 +513,7 @@ export function TwitterFeedFilters({
                   </svg>
                 )}
               </div>
-              <span className="text-body-sm font-medium">Active Tracking Only</span>
+              <span className="text-sm font-medium">Active Tracking Only</span>
             </button>
           </div>
 
@@ -541,14 +541,14 @@ export function TwitterFeedFilters({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Minimum Views */}
             <div className="space-y-2">
-              <label className="text-body-sm font-medium">Minimum Views</label>
+              <label className="text-sm font-medium">Minimum Views</label>
               <Select
                 value={filters.min_views?.toString() || "0"}
                 onValueChange={(value) =>
                   handleFilterChange("min_views", value === "0" ? undefined : parseInt(value))
                 }
               >
-                <SelectTrigger className="transition-shadow duration-[150ms]">
+                <SelectTrigger className="transition-shadow duration-[var(--transition-fast)]">
                   <SelectValue placeholder="Any" />
                 </SelectTrigger>
                 <SelectContent>
@@ -566,14 +566,14 @@ export function TwitterFeedFilters({
 
             {/* Minimum Retweets */}
             <div className="space-y-2">
-              <label className="text-body-sm font-medium">Minimum Retweets</label>
+              <label className="text-sm font-medium">Minimum Retweets</label>
               <Select
                 value={filters.min_retweets?.toString() || "0"}
                 onValueChange={(value) =>
                   handleFilterChange("min_retweets", value === "0" ? undefined : parseInt(value))
                 }
               >
-                <SelectTrigger className="transition-shadow duration-[150ms]">
+                <SelectTrigger className="transition-shadow duration-[var(--transition-fast)]">
                   <SelectValue placeholder="Any" />
                 </SelectTrigger>
                 <SelectContent>
@@ -590,14 +590,14 @@ export function TwitterFeedFilters({
 
             {/* Minimum Likes */}
             <div className="space-y-2">
-              <label className="text-body-sm font-medium">Minimum Likes</label>
+              <label className="text-sm font-medium">Minimum Likes</label>
               <Select
                 value={filters.min_likes?.toString() || "0"}
                 onValueChange={(value) =>
                   handleFilterChange("min_likes", value === "0" ? undefined : parseInt(value))
                 }
               >
-                <SelectTrigger className="transition-shadow duration-[150ms]">
+                <SelectTrigger className="transition-shadow duration-[var(--transition-fast)]">
                   <SelectValue placeholder="Any" />
                 </SelectTrigger>
                 <SelectContent>
@@ -614,14 +614,14 @@ export function TwitterFeedFilters({
 
             {/* Minimum Replies */}
             <div className="space-y-2">
-              <label className="text-body-sm font-medium">Minimum Replies</label>
+              <label className="text-sm font-medium">Minimum Replies</label>
               <Select
                 value={filters.min_replies?.toString() || "0"}
                 onValueChange={(value) =>
                   handleFilterChange("min_replies", value === "0" ? undefined : parseInt(value))
                 }
               >
-                <SelectTrigger className="transition-shadow duration-[150ms]">
+                <SelectTrigger className="transition-shadow duration-[var(--transition-fast)]">
                   <SelectValue placeholder="Any" />
                 </SelectTrigger>
                 <SelectContent>
@@ -651,7 +651,7 @@ export function TwitterFeedFilters({
               }
               className="w-full gap-2"
             >
-              <X className="h-4 w-4" />
+              <X className="size-4" />
               Clear filters
             </Button>
           )}

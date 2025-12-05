@@ -159,7 +159,7 @@ export function TikTokFeedContent({
 
       {/* Results Count (SAME AS TWITTER) */}
       {!loading && videos.length > 0 && (
-        <div className="flex items-center justify-between text-body-sm text-muted-foreground">
+        <div className="flex items-center justify-between text-sm text-muted-foreground">
           <p>
             Showing {videos.length} video{videos.length !== 1 ? 's' : ''}{" "}
             {filters.search && (
@@ -169,7 +169,7 @@ export function TikTokFeedContent({
             )}
           </p>
           {hasMore && (
-            <p className="hidden sm:block text-caption">Scroll for more</p>
+            <p className="hidden sm:block text-xs">Scroll for more</p>
           )}
         </div>
       )}
@@ -187,13 +187,13 @@ export function TikTokFeedContent({
                 <div className="px-4 sm:px-6 py-4 space-y-4">
                   <div className="flex items-center gap-3 animate-pulse">
                     <div className="h-5 w-16 rounded bg-muted/30" />
-                    <div className="h-3 w-24 rounded bg-muted/30" />
+                    <div className="size-34 rounded bg-muted/30" />
                   </div>
                   <div className="flex gap-3 animate-pulse">
-                    <div className="h-10 w-10 rounded-full bg-muted/30" />
+                    <div className="size-10 rounded-full bg-muted/30" />
                     <div className="flex-1 space-y-2">
                       <div className="h-4 w-32 rounded bg-muted/30" />
-                      <div className="h-3 w-24 rounded bg-muted/30" />
+                      <div className="size-34 rounded bg-muted/30" />
                     </div>
                   </div>
                   <div className="space-y-2 animate-pulse">
@@ -230,7 +230,7 @@ export function TikTokFeedContent({
             </div>
             <div className="space-y-2">
               <p className="text-body font-semibold">No videos found</p>
-              <p className="text-body-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 {filters.search 
                   ? `No results for "${filters.search}". Try adjusting your filters.`
                   : "Create monitoring rules to start collecting videos"
@@ -258,8 +258,8 @@ export function TikTokFeedContent({
           {/* Intersection Observer Target (SAME AS TWITTER) */}
           <div ref={observerRef} className="h-20 flex items-center justify-center">
             {loadingMore && (
-              <div className="flex items-center gap-2 text-body-sm text-muted-foreground">
-                <Loader2 className="h-4 w-4 animate-spin" />
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Loader2 className="size-4 animate-spin" />
                 <span>Loading more videos...</span>
               </div>
             )}

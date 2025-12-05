@@ -4,6 +4,7 @@ import { Menu, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSidebar } from "@/components/ui/sidebar";
 import { useChat } from "@/components/dashboard/chat/chat-provider";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { APP_NAME } from "@/lib/constants";
 import type { User } from "@/types";
 
@@ -25,34 +26,38 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="flex h-14 items-center justify-between px-4 lg:h-16">
-        <div className="flex items-center gap-2">
-          {/* Menu toggle - Always visible, before title */}
+    <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 shadow-xs backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="flex h-14 items-center justify-between px-4 lg:h-16 lg:px-6">
+        <div className="flex items-center gap-3">
+          {/* Menu toggle */}
           <Button
             variant="ghost"
             size="icon"
             onClick={toggleSidebar}
-            className="transition-colors duration-[150ms]"
+            className="transition-colors duration-[var(--transition-fast)]"
           >
-            <Menu className="h-5 w-5" />
+            <Menu className="size-5" />
             <span className="sr-only">Toggle sidebar</span>
           </Button>
           
+          {/* App Title */}
           <h2 className="text-lg font-bold tracking-tight sm:text-xl">
             {APP_NAME}
           </h2>
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Theme Toggle */}
+          <ThemeToggle />
+          
           {/* Chat Toggle */}
           <Button
             variant="ghost"
             size="icon"
             onClick={handleChatToggle}
-            className="transition-colors duration-[150ms]"
+            className="transition-colors duration-[var(--transition-fast)]"
           >
-            <MessageSquare className="h-5 w-5" />
+            <MessageSquare className="size-5" />
             <span className="sr-only">Open chat</span>
           </Button>
         </div>

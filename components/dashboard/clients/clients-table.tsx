@@ -11,7 +11,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { TypographyP, TypographyMuted } from "@/components/ui/typography";
 import { Search, MoreVertical, Eye, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -88,20 +87,20 @@ export function ClientsTable() {
       <div className="space-y-5">
         {/* Search bar */}
         <div className="relative max-w-sm">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground/50" />
+          <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground/50" />
           <Input
             type="search"
             placeholder="Search clients..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="h-10 pl-10 text-body-sm transition-shadow duration-[150ms] focus-visible:shadow-[var(--shadow-sm)]"
+            className="h-10 pl-10 text-sm transition-shadow duration-[var(--transition-fast)] focus-visible:shadow-[var(--shadow-sm)]"
           />
         </div>
 
         {/* Table */}
         {filteredClients.length === 0 ? (
           <div className="py-16 text-center">
-            <p className="text-body-sm text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               {searchQuery ? "No clients found" : "No clients yet"}
             </p>
           </div>
@@ -109,12 +108,12 @@ export function ClientsTable() {
           <div className="space-y-2.5">
             {/* Table header */}
             <div className="hidden items-center gap-4 border-b pb-3 md:flex">
-              <TypographyMuted className="w-[200px] flex-1">
+              <div className="w-[200px] flex-1 text-sm text-muted-foreground font-medium">
                 Name
-              </TypographyMuted>
-              <TypographyMuted className="w-[100px]">Users</TypographyMuted>
-              <TypographyMuted className="w-[80px]">Status</TypographyMuted>
-              <TypographyMuted className="w-[100px]">Created</TypographyMuted>
+              </div>
+              <div className="w-[100px] text-sm text-muted-foreground font-medium">Users</div>
+              <div className="w-[80px] text-sm text-muted-foreground font-medium">Status</div>
+              <div className="w-[100px] text-sm text-muted-foreground font-medium">Created</div>
               <div className="w-[60px]"></div>
             </div>
 
@@ -132,7 +131,7 @@ export function ClientsTable() {
                     {client.name}
                   </Link>
                   {client.description && (
-                    <p className="text-caption mt-1 md:hidden">
+                    <p className="text-xs mt-1 md:hidden">
                       {client.description}
                     </p>
                   )}
@@ -140,7 +139,7 @@ export function ClientsTable() {
 
                 <div className="flex items-center gap-4 md:contents">
                   <div className="w-[100px]">
-                    <p className="text-body-sm text-muted-foreground">
+                    <p className="text-sm text-muted-foreground">
                       {client.user_count} user{client.user_count !== 1 && "s"}
                     </p>
                   </div>
@@ -155,7 +154,7 @@ export function ClientsTable() {
                   </div>
 
                   <div className="hidden w-[100px] md:block">
-                    <p className="text-body-sm text-muted-foreground">
+                    <p className="text-sm text-muted-foreground">
                       {formatDate(client.created_at)}
                     </p>
                   </div>
@@ -163,8 +162,8 @@ export function ClientsTable() {
                   <div className="ml-auto w-[60px]">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <MoreVertical className="h-4 w-4" />
+                        <Button variant="ghost" size="icon" className="size-8">
+                          <MoreVertical className="size-4" />
                           <span className="sr-only">Open menu</span>
                         </Button>
                       </DropdownMenuTrigger>
@@ -174,7 +173,7 @@ export function ClientsTable() {
                             href={`/dashboard/clients/${client.id}`}
                             className="flex cursor-pointer items-center"
                           >
-                            <Eye className="mr-2 h-4 w-4" />
+                            <Eye className="mr-2 size-4" />
                             View Details
                           </Link>
                         </DropdownMenuItem>
@@ -182,7 +181,7 @@ export function ClientsTable() {
                           onClick={() => handleDelete(client.id, client.name)}
                           className="text-destructive focus:text-destructive"
                         >
-                          <Trash2 className="mr-2 h-4 w-4" />
+                          <Trash2 className="mr-2 size-4" />
                           Delete
                         </DropdownMenuItem>
                       </DropdownMenuContent>

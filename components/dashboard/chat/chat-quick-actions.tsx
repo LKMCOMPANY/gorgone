@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import {
   TrendingUp,
   Users,
@@ -15,8 +14,7 @@ import {
   Smile,
   FileText,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { Suggestions, Suggestion } from "@/components/ai/suggestion";
 
 const QUICK_ACTIONS = [
   {
@@ -90,28 +88,17 @@ export function ChatQuickActions({ onSelect, show = false }: ChatQuickActionsPro
   if (!show) return null;
 
   return (
-    <div className="border-b border-border p-4">
-      <p className="text-body-sm font-medium mb-3">Quick actions</p>
-      <div className="grid gap-2">
-        {QUICK_ACTIONS.map((action) => (
-          <Button
-            key={action.label}
-            variant="ghost"
-            className={cn(
-              "h-auto justify-start gap-3 p-3",
-              "transition-colors duration-[150ms]",
-              "hover:bg-muted/50"
-            )}
-            onClick={() => onSelect?.(action.query)}
-          >
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 flex-shrink-0">
-              <action.icon className="h-4 w-4 text-primary" />
-            </div>
-            <span className="text-body-sm text-left">{action.label}</span>
-          </Button>
-        ))}
-      </div>
-    </div>
+    <Suggestions title="Quick actions">
+      {QUICK_ACTIONS.map((action) => (
+        <Suggestion
+          key={action.label}
+          onClick={() => onSelect?.(action.query)}
+          icon={<action.icon className="size-4 text-primary" />}
+        >
+          {action.label}
+        </Suggestion>
+      ))}
+    </Suggestions>
   );
 }
 

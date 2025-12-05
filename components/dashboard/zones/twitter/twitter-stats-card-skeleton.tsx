@@ -17,13 +17,13 @@ export function TwitterStatsCardSkeleton({ index = 0 }: { index?: number }) {
       <div className="space-y-3">
         {/* Label + Badge */}
         <div className="flex items-center justify-between gap-2">
-          <Skeleton className="h-3 w-20" />
+          <Skeleton className="size-30" />
           <Skeleton className="h-5 w-14 rounded-full" />
         </div>
 
         {/* Value */}
         <div>
-          <Skeleton className="h-7 w-24" />
+          <Skeleton className="size-74" />
         </div>
 
         {/* Sparkline placeholder */}

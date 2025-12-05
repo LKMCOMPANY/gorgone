@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { TypographyMuted } from "@/components/ui/typography";
 import { createClient } from "@/lib/supabase/client";
 import { logger } from "@/lib/logger";
 
@@ -53,7 +52,9 @@ export function LoginForm() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-center">Sign In</CardTitle>
+        <div className="text-center">
+          <CardTitle>Sign In</CardTitle>
+        </div>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -86,9 +87,9 @@ export function LoginForm() {
           </div>
 
           {error && (
-            <TypographyMuted className="text-destructive text-center">
+            <p className="text-sm text-destructive text-center">
               {error}
-            </TypographyMuted>
+            </p>
           )}
 
           <Button type="submit" className="w-full" disabled={isLoading}>

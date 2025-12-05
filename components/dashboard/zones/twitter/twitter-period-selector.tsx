@@ -45,11 +45,11 @@ export function TwitterPeriodSelector({ currentPeriod }: TwitterPeriodSelectorPr
     <div className="flex items-center gap-3 flex-wrap">
       <div className="flex items-center gap-2 text-muted-foreground">
         {isPending ? (
-          <Loader2 className="h-4 w-4 animate-spin text-primary" />
+          <Loader2 className="size-4 animate-spin text-primary" />
         ) : (
-          <Clock className="h-4 w-4" />
+          <Clock className="size-4" />
         )}
-        <span className="text-body-sm font-medium">Period</span>
+        <span className="text-sm font-medium">Period</span>
       </div>
       <div className={cn(
         "inline-flex rounded-lg border border-border bg-muted/30 p-1 gap-1 shadow-sm transition-opacity duration-200",
@@ -61,7 +61,7 @@ export function TwitterPeriodSelector({ currentPeriod }: TwitterPeriodSelectorPr
             onClick={() => handlePeriodChange(period.value)}
             disabled={currentPeriod === period.value || isPending}
             className={cn(
-              "relative px-3 py-1.5 text-body-sm font-medium rounded-md",
+              "relative px-3 py-1.5 text-sm font-medium rounded-md",
               "transition-all duration-200 ease-out",
               "disabled:cursor-not-allowed",
               !isPending && "hover:scale-105 active:scale-95",

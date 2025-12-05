@@ -199,7 +199,7 @@ export function TikTokRuleDialog({
                 <SelectItem value="combined">Combined (Hashtag + Keywords)</SelectItem>
               </SelectContent>
             </Select>
-            <p className="text-caption text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               {ruleType === "keyword" && "Search for videos containing specific keywords (AND logic)"}
               {ruleType === "hashtag" && "Collect all videos using a specific hashtag"}
               {ruleType === "user" && "Monitor all posts from a specific TikTok user"}
@@ -222,7 +222,7 @@ export function TikTokRuleDialog({
                 onChange={(e) => setQuery(e.target.value)}
                 disabled={loading}
               />
-              <p className="text-caption text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 Multiple words are treated as AND (all words must be present)
               </p>
             </div>
@@ -238,7 +238,7 @@ export function TikTokRuleDialog({
                 onChange={(e) => setHashtag(e.target.value)}
                 disabled={loading}
               />
-              <p className="text-caption text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 Enter hashtag without the # symbol
               </p>
             </div>
@@ -254,7 +254,7 @@ export function TikTokRuleDialog({
                 onChange={(e) => setUsername(e.target.value)}
                 disabled={loading}
               />
-              <p className="text-caption text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 Enter TikTok username without the @ symbol
               </p>
             </div>
@@ -278,7 +278,7 @@ export function TikTokRuleDialog({
                 <SelectItem value="be">🇧🇪 Belgium</SelectItem>
               </SelectContent>
             </Select>
-            <p className="text-caption text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               Optionally filter results by geographic region
             </p>
           </div>
@@ -300,7 +300,7 @@ export function TikTokRuleDialog({
                 <SelectItem value="360">🕐 Every 6 hours (Low Priority)</SelectItem>
               </SelectContent>
             </Select>
-            <p className="text-caption text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               How often to check for new videos matching this rule
             </p>
           </div>
@@ -316,7 +316,7 @@ export function TikTokRuleDialog({
               Cancel
             </Button>
             <Button onClick={handleSubmit} disabled={loading}>
-              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {loading && <Loader2 className="mr-2 size-4 animate-spin" />}
               {editingRule ? "Update" : "Create"} Rule
             </Button>
           </div>

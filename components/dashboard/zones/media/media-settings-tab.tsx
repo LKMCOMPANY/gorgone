@@ -103,9 +103,9 @@ export function MediaSettingsTab({ zoneId }: MediaSettingsTabProps) {
     <div className="space-y-6 animate-in fade-in-0 duration-300">
       {/* Header Section */}
       <div className="space-y-1.5">
-        <h3 className="text-heading-3 flex items-center gap-2">
+        <h3 className="text-lg font-semibold flex items-center gap-2">
           <svg 
-            className="h-5 w-5 text-primary flex-shrink-0" 
+            className="size-5 text-primary flex-shrink-0" 
             fill="none" 
             strokeLinecap="round" 
             strokeLinejoin="round" 
@@ -117,7 +117,7 @@ export function MediaSettingsTab({ zoneId }: MediaSettingsTabProps) {
           </svg>
           <span>Media Monitoring</span>
         </h3>
-        <p className="text-body-sm text-muted-foreground">
+        <p className="text-sm text-muted-foreground">
           Configure monitoring rules to automatically capture news articles matching your criteria
         </p>
       </div>
@@ -142,12 +142,12 @@ export function MediaSettingsTab({ zoneId }: MediaSettingsTabProps) {
               </div>
               <div className="space-y-2">
                 <p className="text-body font-semibold">No monitoring rules yet</p>
-                <p className="text-body-sm text-muted-foreground max-w-md mx-auto">
+                <p className="text-sm text-muted-foreground max-w-md mx-auto">
                   Create your first rule to start capturing news articles from specific sources, keywords, or topics
                 </p>
               </div>
               <Button onClick={handleCreateNew} className="gap-2">
-                <Plus className="h-4 w-4" />
+                <Plus className="size-4" />
                 Create First Rule
               </Button>
             </div>

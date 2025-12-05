@@ -82,7 +82,7 @@ export function TwitterOpinionTweetSlider({
   if (!currentTweet) {
     return (
       <div className="flex items-center justify-center py-16 px-6">
-        <p className="text-body-sm text-muted-foreground">
+        <p className="text-sm text-muted-foreground">
           No posts in this cluster
         </p>
       </div>
@@ -101,11 +101,11 @@ export function TwitterOpinionTweetSlider({
         <Button
           variant="outline"
           size="icon"
-          className="h-8 w-8"
+          className="size-8"
           onClick={handlePrevious}
           disabled={validIndex === 0}
         >
-          <ChevronLeft className="h-4 w-4" />
+          <ChevronLeft className="size-4" />
         </Button>
 
         <div className="flex items-center gap-2">
@@ -116,7 +116,7 @@ export function TwitterOpinionTweetSlider({
           <Badge variant="secondary" className="text-xs font-medium">
             {cluster.label}
           </Badge>
-          <span className="text-body-sm text-muted-foreground">
+          <span className="text-sm text-muted-foreground">
             {validIndex + 1} / {sortedTweets.length}
           </span>
         </div>
@@ -124,11 +124,11 @@ export function TwitterOpinionTweetSlider({
         <Button
           variant="outline"
           size="icon"
-          className="h-8 w-8"
+          className="size-8"
           onClick={handleNext}
           disabled={validIndex === sortedTweets.length - 1}
         >
-          <ChevronRight className="h-4 w-4" />
+          <ChevronRight className="size-4" />
         </Button>
       </div>
 
@@ -143,7 +143,7 @@ export function TwitterOpinionTweetSlider({
             <div
               key={i}
               className={cn(
-                'h-1 rounded-full transition-all duration-[250ms]',
+                'h-1 rounded-full transition-all duration-[var(--transition-base)]',
                 isActive ? 'w-8 bg-primary' : 'w-1 bg-muted-foreground/30'
               )}
             />
@@ -167,7 +167,7 @@ export function TwitterOpinionTweetSlider({
         {/* Cluster Info */}
         {cluster.keywords && cluster.keywords.length > 0 && (
           <div className="p-4 rounded-lg border border-border bg-muted/30">
-            <p className="text-caption font-semibold text-foreground mb-2">
+            <p className="text-xs font-semibold text-foreground mb-2">
               Cluster Keywords
             </p>
             <div className="flex flex-wrap gap-1.5">
@@ -175,7 +175,7 @@ export function TwitterOpinionTweetSlider({
                 <Badge
                   key={i}
                   variant="outline"
-                  className="text-caption bg-card"
+                  className="text-xs bg-card"
                 >
                   {keyword}
                 </Badge>
@@ -187,7 +187,7 @@ export function TwitterOpinionTweetSlider({
         {/* Surrounding tweets preview */}
         {sortedTweets.length > 1 && (
           <div className="space-y-3">
-            <h4 className="text-body-sm font-semibold text-foreground">
+            <h4 className="text-sm font-semibold text-foreground">
               Other High-Engagement Posts
             </h4>
             <div className="space-y-2">
@@ -198,22 +198,22 @@ export function TwitterOpinionTweetSlider({
                   <button
                     key={proj.tweet_id}
                     onClick={() => onTweetChange(proj.tweet_id)}
-                    className="w-full text-left p-3 rounded-lg border border-border hover:border-primary/50 hover:bg-muted/30 transition-all duration-[150ms]"
+                    className="w-full text-left p-3 rounded-lg border border-border hover:border-primary/50 hover:bg-muted/30 transition-all duration-[var(--transition-fast)]"
                   >
-                    <p className="text-body-sm text-foreground line-clamp-2 break-words">
+                    <p className="text-sm text-foreground line-clamp-2 break-words">
                       {proj.text}
                     </p>
-                    <div className="flex items-center gap-3 mt-2 text-caption text-muted-foreground">
+                    <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
                       <span className="flex items-center gap-1">
-                        <Heart className="h-3 w-3" />
+                        <Heart className="size-3" />
                         {proj.like_count.toLocaleString()}
                       </span>
                       <span className="flex items-center gap-1">
-                        <Repeat2 className="h-3 w-3" />
+                        <Repeat2 className="size-3" />
                         {proj.retweet_count.toLocaleString()}
                       </span>
                       <span className="flex items-center gap-1">
-                        <MessageCircle className="h-3 w-3" />
+                        <MessageCircle className="size-3" />
                         {proj.reply_count.toLocaleString()}
                       </span>
                     </div>

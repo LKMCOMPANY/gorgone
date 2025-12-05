@@ -163,7 +163,7 @@ export function TwitterFeedContent({ zoneId, initialSearch, initialSearchType }:
 
       {/* Results Count */}
       {!loading && tweets.length > 0 && (
-        <div className="flex items-center justify-between text-body-sm text-muted-foreground">
+        <div className="flex items-center justify-between text-sm text-muted-foreground">
           <p>
             Showing {tweets.length} tweet{tweets.length !== 1 ? 's' : ''}{" "}
             {filters.search && (
@@ -173,7 +173,7 @@ export function TwitterFeedContent({ zoneId, initialSearch, initialSearchType }:
             )}
           </p>
           {hasMore && (
-            <p className="hidden sm:block text-caption">Scroll for more</p>
+            <p className="hidden sm:block text-xs">Scroll for more</p>
           )}
         </div>
       )}
@@ -189,12 +189,12 @@ export function TwitterFeedContent({ zoneId, initialSearch, initialSearchType }:
               <div className="px-4 sm:px-6 py-4 border-b border-border/60 bg-muted/20 animate-pulse">
                 <div className="flex items-center gap-3">
                   <div className="h-5 w-16 rounded bg-muted" />
-                  <div className="h-3 w-24 rounded bg-muted" />
+                  <div className="size-34 rounded bg-muted" />
                 </div>
               </div>
               <div className="p-4 sm:p-6 space-y-4">
                 <div className="flex gap-3">
-                  <div className="h-12 w-12 rounded-full bg-muted animate-pulse" />
+                  <div className="size-12 rounded-full bg-muted animate-pulse" />
                   <div className="flex-1 space-y-2">
                     <div className="h-4 w-32 rounded bg-muted animate-pulse" />
                     <div className="h-3 w-48 rounded bg-muted animate-pulse" />
@@ -202,7 +202,7 @@ export function TwitterFeedContent({ zoneId, initialSearch, initialSearchType }:
                 </div>
                 <div className="space-y-2">
                   <div className="h-4 w-full rounded bg-muted animate-pulse" />
-                  <div className="h-4 w-4/5 rounded bg-muted animate-pulse" />
+                  <div className="size-4/5 rounded bg-muted animate-pulse" />
                 </div>
               </div>
             </div>
@@ -229,7 +229,7 @@ export function TwitterFeedContent({ zoneId, initialSearch, initialSearchType }:
             </div>
             <div className="space-y-2">
               <p className="text-body font-semibold">No tweets found</p>
-              <p className="text-body-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 {filters.search || filters.post_type || filters.has_links || filters.verified_only || filters.profile_tag_type || 
                  filters.min_views || filters.min_retweets || filters.min_likes || filters.min_replies
                   ? "Try adjusting your filters or search criteria"
@@ -260,13 +260,13 @@ export function TwitterFeedContent({ zoneId, initialSearch, initialSearchType }:
           <div ref={observerRef} className="py-8">
             {loadingMore && (
               <div className="flex flex-col items-center gap-3">
-                <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                <p className="text-body-sm text-muted-foreground">Loading more tweets...</p>
+                <Loader2 className="size-6 animate-spin text-primary" />
+                <p className="text-sm text-muted-foreground">Loading more tweets...</p>
               </div>
             )}
             {!loadingMore && !hasMore && (
               <div className="text-center py-4">
-                <p className="text-body-sm text-muted-foreground">
+                <p className="text-sm text-muted-foreground">
                   No more tweets to load
                 </p>
               </div>

@@ -293,8 +293,8 @@ export function TwitterTrackedProfilesTab({ zoneId }: TwitterTrackedProfilesTabP
     <div className="space-y-6 animate-in fade-in-0 duration-300">
       {/* Header */}
       <div className="space-y-1.5">
-        <h3 className="text-heading-3">Tracked Profiles</h3>
-        <p className="text-body-sm text-muted-foreground">
+        <h3 className="text-lg font-semibold">Tracked Profiles</h3>
+        <p className="text-sm text-muted-foreground">
           Tag Twitter profiles to categorize them in your monitoring feed and calculate Share of Voice metrics
         </p>
       </div>
@@ -309,10 +309,10 @@ export function TwitterTrackedProfilesTab({ zoneId }: TwitterTrackedProfilesTabP
                 <TabsTrigger 
                   key={type.value} 
                   value={type.value}
-                  className="flex-shrink-0 flex flex-col items-center gap-2 px-4 py-3 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-[150ms]"
+                  className="flex-shrink-0 flex flex-col items-center gap-2 px-4 py-3 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-[var(--transition-fast)]"
                 >
-                  <span className="text-body-sm font-medium whitespace-nowrap">{type.label}</span>
-                  <Badge variant="outline" className={`text-caption px-2 py-0.5 h-5 min-w-[24px] justify-center ${type.color} transition-all duration-[150ms]`}>
+                  <span className="text-sm font-medium whitespace-nowrap">{type.label}</span>
+                  <Badge variant="outline" className={`text-xs px-2 py-0.5 h-5 min-w-[24px] justify-center ${type.color} transition-all duration-[var(--transition-fast)]`}>
                     {profiles[type.value].length}
                   </Badge>
                 </TabsTrigger>
@@ -332,11 +332,11 @@ export function TwitterTrackedProfilesTab({ zoneId }: TwitterTrackedProfilesTabP
                   <Badge className={`${type.color} border`}>
                     {type.label}
                   </Badge>
-                  <span className="text-caption text-muted-foreground">
+                  <span className="text-xs text-muted-foreground">
                     {profiles[type.value].length} profile(s) tracked
                   </span>
                 </div>
-                <p className="text-body-sm text-muted-foreground">
+                <p className="text-sm text-muted-foreground">
                   {type.description}
                 </p>
               </div>
@@ -345,7 +345,7 @@ export function TwitterTrackedProfilesTab({ zoneId }: TwitterTrackedProfilesTabP
               <div className="space-y-4 mb-6">
                 {/* Tag Input */}
                 <div className="space-y-2">
-                  <Label htmlFor={`input-${type.value}`} className="text-body-sm font-medium">
+                  <Label htmlFor={`input-${type.value}`} className="text-sm font-medium">
                     Add Profile
                   </Label>
                   <div className="flex flex-col sm:flex-row gap-2">
@@ -357,7 +357,7 @@ export function TwitterTrackedProfilesTab({ zoneId }: TwitterTrackedProfilesTabP
                       onChange={(e) => setCurrentInput(e.target.value)}
                       onKeyDown={handleInputKeyDown}
                       disabled={isSaving}
-                      className="flex-1 h-11 text-body-sm transition-shadow duration-[150ms] focus-visible:shadow-[var(--shadow-sm)]"
+                      className="flex-1 h-11 text-sm transition-shadow duration-[var(--transition-fast)] focus-visible:shadow-[var(--shadow-sm)]"
                     />
                     <Button
                       onClick={() => {
@@ -370,20 +370,20 @@ export function TwitterTrackedProfilesTab({ zoneId }: TwitterTrackedProfilesTabP
                       className="gap-2 h-11 sm:w-auto w-full"
                     >
                       {isSaving ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <Loader2 className="size-4 animate-spin" />
                       ) : (
                         "Add"
                       )}
                     </Button>
                   </div>
-                  <p className="text-caption text-muted-foreground">
+                  <p className="text-xs text-muted-foreground">
                     Press Enter or comma to add multiple handles
                   </p>
                 </div>
 
                 {/* Bulk Paste */}
                 <div className="space-y-2">
-                  <Label htmlFor={`bulk-${type.value}`} className="text-body-sm font-medium">
+                  <Label htmlFor={`bulk-${type.value}`} className="text-sm font-medium">
                     Bulk Import
                   </Label>
                   <Textarea
@@ -392,10 +392,10 @@ export function TwitterTrackedProfilesTab({ zoneId }: TwitterTrackedProfilesTabP
                     value={bulkInput}
                     onChange={(e) => setBulkInput(e.target.value)}
                     disabled={isSaving}
-                    className="min-h-[100px] font-mono text-body-sm resize-none transition-shadow duration-[150ms] focus-visible:shadow-[var(--shadow-sm)]"
+                    className="min-h-[100px] font-mono text-sm resize-none transition-shadow duration-[var(--transition-fast)] focus-visible:shadow-[var(--shadow-sm)]"
                   />
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                    <p className="text-caption text-muted-foreground">
+                    <p className="text-xs text-muted-foreground">
                       Supports comma, space, or newline separated handles
                     </p>
                     <Button
@@ -406,10 +406,10 @@ export function TwitterTrackedProfilesTab({ zoneId }: TwitterTrackedProfilesTabP
                       className="gap-2 w-full sm:w-auto"
                     >
                       {isSaving ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <Loader2 className="size-4 animate-spin" />
                       ) : (
                         <>
-                          <Upload className="h-4 w-4" />
+                          <Upload className="size-4" />
                           <span>Import {bulkInput.split(/[\n,\s]+/).filter(Boolean).length} handle(s)</span>
                         </>
                       )}
@@ -420,13 +420,13 @@ export function TwitterTrackedProfilesTab({ zoneId }: TwitterTrackedProfilesTabP
 
               {/* Tracked Profiles List */}
               <div className="space-y-3">
-                <Label className="text-body-sm font-medium">
+                <Label className="text-sm font-medium">
                   Tracked Profiles ({profiles[type.value].length})
                 </Label>
 
                 {profiles[type.value].length === 0 ? (
                   <div className="rounded-lg border border-dashed border-border/60 bg-muted/20 p-8 text-center">
-                    <p className="text-body-sm text-muted-foreground">
+                    <p className="text-sm text-muted-foreground">
                       No profiles tracked yet. Add handles above to start monitoring.
                     </p>
                   </div>
@@ -436,16 +436,16 @@ export function TwitterTrackedProfilesTab({ zoneId }: TwitterTrackedProfilesTabP
                       <Badge
                         key={username}
                         variant="outline"
-                        className={`${type.color} border pl-3 pr-1.5 py-1.5 gap-2 text-body-sm group hover:opacity-80 transition-all duration-[150ms]`}
+                        className={`${type.color} border pl-3 pr-1.5 py-1.5 gap-2 text-sm group hover:opacity-80 transition-all duration-[var(--transition-fast)]`}
                       >
                         <span className="font-medium">@{username}</span>
                         <button
                           onClick={() => removeProfile(username, type.value)}
                           disabled={isSaving}
-                          className="rounded-full p-0.5 hover:bg-foreground/10 transition-colors duration-[150ms]"
+                          className="rounded-full p-0.5 hover:bg-foreground/10 transition-colors duration-[var(--transition-fast)]"
                           aria-label={`Remove @${username}`}
                         >
-                          <X className="h-3.5 w-3.5" />
+                          <X className="size-3.5" />
                         </button>
                       </Badge>
                     ))}

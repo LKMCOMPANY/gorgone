@@ -70,10 +70,10 @@ export function TwitterOpinionMapGeneratingOverlay({
               )} />
             </div>
             <div className="flex-1 space-y-1.5 pt-1">
-              <h3 className="text-heading-3">
+              <h3 className="text-lg font-semibold">
                 {phaseInfo?.label || 'Processing'}
               </h3>
-              <p className="text-body-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 {session.phase_message || 'Please wait while we process your data...'}
               </p>
             </div>
@@ -82,7 +82,7 @@ export function TwitterOpinionMapGeneratingOverlay({
           {/* Progress bar */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-body-sm font-medium">
+              <span className="text-sm font-medium">
                 Progress
               </span>
               <Badge variant="secondary" className="text-xs font-semibold">
@@ -100,7 +100,7 @@ export function TwitterOpinionMapGeneratingOverlay({
             <div className="pt-4 border-t border-border">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <p className="text-caption text-muted-foreground">
+                  <p className="text-xs text-muted-foreground">
                     Processed
                   </p>
                   <p className="text-body font-semibold">
@@ -109,7 +109,7 @@ export function TwitterOpinionMapGeneratingOverlay({
                 </div>
                 {session.total_clusters && (
                   <div className="space-y-1">
-                    <p className="text-caption text-muted-foreground">
+                    <p className="text-xs text-muted-foreground">
                       Clusters
                     </p>
                     <p className="text-body font-semibold">
@@ -123,7 +123,7 @@ export function TwitterOpinionMapGeneratingOverlay({
 
           {/* Phase timeline */}
           <div className="space-y-2">
-            <p className="text-caption text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               Pipeline stages
             </p>
             <div className="flex items-center gap-1.5">
@@ -149,7 +149,7 @@ export function TwitterOpinionMapGeneratingOverlay({
           </div>
 
           {/* Help text */}
-          <p className="text-caption text-muted-foreground text-center pt-2">
+          <p className="text-xs text-muted-foreground text-center pt-2">
             This process may take several minutes. The page will update automatically when complete.
           </p>
         </div>

@@ -173,11 +173,11 @@ export function MediaRulesList({
       <div className="space-y-5">
         {/* Header with count and action */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <p className="text-body-sm text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             {rules.length} monitoring rule{rules.length !== 1 ? "s" : ""}
           </p>
           <Button onClick={onCreateNew} size="sm" className="gap-2 w-full sm:w-auto">
-            <Plus className="h-4 w-4" />
+            <Plus className="size-4" />
             <span>New Rule</span>
           </Button>
         </div>
@@ -198,11 +198,11 @@ export function MediaRulesList({
                   {rule.is_active ? "Active" : "Paused"}
                 </Badge>
                 <div className="flex-1 min-w-0">
-                  <p className="text-body-sm font-medium truncate">
+                  <p className="text-sm font-medium truncate">
                     {rule.name}
                   </p>
                   {rule.description && (
-                    <p className="text-caption text-muted-foreground line-clamp-1">
+                    <p className="text-xs text-muted-foreground line-clamp-1">
                       {rule.description}
                     </p>
                   )}
@@ -212,31 +212,31 @@ export function MediaRulesList({
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8 flex-shrink-0"
+                      className="size-8 flex-shrink-0"
                       disabled={deletingId === rule.id || togglingId === rule.id || fetchingId === rule.id}
                     >
-                      <MoreVertical className="h-4 w-4" />
+                      <MoreVertical className="size-4" />
                       <span className="sr-only">Open menu</span>
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-48">
                     <DropdownMenuItem onClick={() => handleFetchNow(rule)}>
-                      <Download className="mr-2 h-4 w-4" />
+                      <Download className="mr-2 size-4" />
                       <span>Fetch Now</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => onEdit(rule)}>
-                      <Pencil className="mr-2 h-4 w-4" />
+                      <Pencil className="mr-2 size-4" />
                       <span>Edit</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => handleToggle(rule)}>
                       {rule.is_active ? (
                         <>
-                          <Pause className="mr-2 h-4 w-4" />
+                          <Pause className="mr-2 size-4" />
                           <span>Pause</span>
                         </>
                       ) : (
                         <>
-                          <Play className="mr-2 h-4 w-4" />
+                          <Play className="mr-2 size-4" />
                           <span>Activate</span>
                         </>
                       )}
@@ -245,7 +245,7 @@ export function MediaRulesList({
                       onClick={() => handleDelete(rule)}
                       className="text-destructive focus:text-destructive"
                     >
-                      <Trash2 className="mr-2 h-4 w-4" />
+                      <Trash2 className="mr-2 size-4" />
                       <span>Delete</span>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -254,15 +254,15 @@ export function MediaRulesList({
 
               {/* Query Preview */}
               <div className="rounded-lg border border-dashed border-border/60 bg-muted/20 p-3">
-                <p className="text-caption font-mono text-muted-foreground break-all">
+                <p className="text-xs font-mono text-muted-foreground break-all">
                   {getQueryPreview(rule)}
                 </p>
               </div>
 
               {/* Metadata */}
-              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-caption text-muted-foreground">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs text-muted-foreground">
                 <span className="flex items-center gap-1.5">
-                  <Clock className="h-3.5 w-3.5 flex-shrink-0" />
+                  <Clock className="size-3.5 flex-shrink-0" />
                   <span>
                     Fetch every{" "}
                     {rule.fetch_interval_minutes >= 60
@@ -274,7 +274,7 @@ export function MediaRulesList({
                   <>
                     <span className="hidden sm:inline">•</span>
                     <span className="flex items-center gap-1.5">
-                      <Activity className="h-3.5 w-3.5 flex-shrink-0" />
+                      <Activity className="size-3.5 flex-shrink-0" />
                       <span>Last fetched {formatDistanceToNow(new Date(rule.last_fetched_at))}</span>
                     </span>
                   </>
@@ -286,7 +286,7 @@ export function MediaRulesList({
               {/* Fetch status (if error) */}
               {rule.last_fetch_status === "error" && rule.last_fetch_error && (
                 <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3">
-                  <p className="text-caption text-destructive font-medium">
+                  <p className="text-xs text-destructive font-medium">
                     Last fetch failed: {rule.last_fetch_error}
                   </p>
                 </div>

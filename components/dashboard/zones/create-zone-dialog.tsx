@@ -77,10 +77,10 @@ export function CreateZoneDialog({ clientId }: CreateZoneDialogProps) {
     <Button
       variant="outline"
       size={isCollapsed ? "icon" : "sm"}
-      className={isCollapsed ? "h-9 w-9" : "w-full justify-start gap-2"}
+      className={isCollapsed ? "size-9" : "w-full justify-start gap-2"}
     >
-      <Plus className="h-4 w-4" />
-      {!isCollapsed && <span className="text-body-sm">Create Zone</span>}
+      <Plus />
+      {!isCollapsed && <span>Create Zone</span>}
     </Button>
   );
 
@@ -100,18 +100,16 @@ export function CreateZoneDialog({ clientId }: CreateZoneDialogProps) {
           trigger
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[480px] gap-0">
-        <DialogHeader className="space-y-3">
-          <DialogTitle className="text-heading-2">Create New Zone</DialogTitle>
-          <DialogDescription className="text-body text-muted-foreground">
+      <DialogContent className="sm:max-w-[480px]">
+        <DialogHeader>
+          <DialogTitle>Create New Zone</DialogTitle>
+          <DialogDescription>
             Create a monitoring zone for social media tracking and analysis.
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-6 py-6">
+        <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="zone-name" className="text-body-sm font-medium">
-              Zone Name
-            </Label>
+            <Label htmlFor="zone-name">Zone Name</Label>
             <Input
               id="zone-name"
               placeholder="e.g., Presidential Campaign, Brand Monitoring"
@@ -119,27 +117,25 @@ export function CreateZoneDialog({ clientId }: CreateZoneDialogProps) {
               onChange={(e) => setZoneName(e.target.value)}
               onKeyDown={handleKeyDown}
               disabled={isCreating}
-              className="h-10 transition-all duration-[150ms] focus-visible:shadow-[var(--shadow-sm)] focus-visible:ring-2 focus-visible:ring-ring"
               autoFocus
             />
-            <p className="text-caption text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               Choose a clear, descriptive name for your monitoring zone
             </p>
           </div>
         </div>
-        <DialogFooter className="gap-2">
+        <DialogFooter>
           <Button
             variant="outline"
             onClick={() => setOpen(false)}
             disabled={isCreating}
-            className="transition-all duration-[150ms]"
           >
             Cancel
           </Button>
           <Button
             onClick={handleCreate}
             disabled={isCreating || !zoneName.trim()}
-            className="min-w-[120px] transition-all duration-[150ms]"
+            className="min-w-[120px]"
           >
             {isCreating ? "Creating..." : "Create Zone"}
           </Button>

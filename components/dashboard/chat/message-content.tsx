@@ -46,12 +46,12 @@ export function MessageContent({ content, role, toolInvocations }: MessageConten
           variant="ghost"
           size="icon"
           onClick={handleCopy}
-          className="h-7 w-7 flex-shrink-0 opacity-0 transition-opacity group-hover:opacity-100"
+          className="size-7 flex-shrink-0 opacity-0 transition-opacity group-hover:opacity-100"
         >
           {copied ? (
-            <Check className="h-3.5 w-3.5 text-green-600" />
+            <Check className="size-3.5 text-[var(--tactical-green)]" />
           ) : (
-            <Copy className="h-3.5 w-3.5" />
+            <Copy className="size-3.5" />
           )}
           <span className="sr-only">Copy message</span>
         </Button>
@@ -82,12 +82,12 @@ export function MessageContent({ content, role, toolInvocations }: MessageConten
           components={{
             // Headings with word break
             h1: ({ children }) => (
-              <h1 className="text-heading-2 mb-4 mt-6 first:mt-0 break-words">
+              <h1 className="scroll-m-20 text-2xl font-semibold tracking-tight mb-4 mt-6 first:mt-0 break-words">
                 {children}
               </h1>
             ),
             h2: ({ children }) => (
-              <h2 className="text-heading-3 mb-3 mt-5 first:mt-0 break-words">
+              <h2 className="scroll-m-20 text-xl font-semibold tracking-tight mb-3 mt-5 first:mt-0 break-words">
                 {children}
               </h2>
             ),
@@ -125,7 +125,7 @@ export function MessageContent({ content, role, toolInvocations }: MessageConten
                 href={href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="link-primary font-medium underline underline-offset-2 transition-colors duration-[150ms] break-all"
+                className="link-primary font-medium underline underline-offset-2 transition-colors duration-[var(--transition-fast)] break-all"
               >
                 {children}
               </a>
@@ -156,7 +156,7 @@ export function MessageContent({ content, role, toolInvocations }: MessageConten
                 return (
                   <div className="relative my-4 rounded-lg border border-border bg-muted/30 max-w-full overflow-hidden">
                     <pre className="overflow-x-auto p-4 max-w-full">
-                      <code className="text-body-sm font-mono break-all">{children}</code>
+                      <code className="text-sm font-mono break-all">{children}</code>
                     </pre>
                   </div>
                 );
@@ -164,7 +164,7 @@ export function MessageContent({ content, role, toolInvocations }: MessageConten
 
               // Inline code with word break
               return (
-                <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-body-sm break-all">
+                <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-sm break-all">
                   {children}
                 </code>
               );
@@ -189,12 +189,12 @@ export function MessageContent({ content, role, toolInvocations }: MessageConten
               <thead className="bg-muted/30">{children}</thead>
             ),
             th: ({ children }) => (
-              <th className="border-b border-border px-4 py-2 text-left text-body-sm font-semibold">
+              <th className="border-b border-border px-4 py-2 text-left text-sm font-semibold">
                 {children}
               </th>
             ),
             td: ({ children }) => (
-              <td className="border-b border-border px-4 py-2 text-body-sm">
+              <td className="border-b border-border px-4 py-2 text-sm">
                 {children}
               </td>
             ),
@@ -224,7 +224,7 @@ export function MessageContent({ content, role, toolInvocations }: MessageConten
               if (srcString.startsWith("data:image/svg")) {
                 return (
                   <div className="my-4 rounded-lg border border-border bg-muted/10 p-4 text-center">
-                    <p className="text-body-sm text-muted-foreground">
+                    <p className="text-sm text-muted-foreground">
                       Chart detected. Please use the create_visualization tool instead.
                     </p>
                   </div>
@@ -251,12 +251,12 @@ export function MessageContent({ content, role, toolInvocations }: MessageConten
         variant="ghost"
         size="icon"
         onClick={handleCopy}
-        className="h-7 w-7 flex-shrink-0 opacity-0 transition-opacity group-hover:opacity-100"
+        className="size-7 shrink-0 opacity-0 transition-opacity group-hover:opacity-100"
       >
         {copied ? (
-          <Check className="h-3.5 w-3.5 text-green-600" />
+          <Check className="size-3.5 text-[var(--tactical-green)]" />
         ) : (
-          <Copy className="h-3.5 w-3.5" />
+          <Copy className="size-3.5" />
         )}
         <span className="sr-only">Copy message</span>
       </Button>

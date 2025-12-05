@@ -167,10 +167,10 @@ export function TwitterEngagementChart({ tweetId }: TwitterEngagementChartProps)
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div className="space-y-1">
-            <Skeleton className="h-4 w-40" />
-            <Skeleton className="h-3 w-24" />
+            <Skeleton className="size-40" />
+            <Skeleton className="size-34" />
           </div>
-          <Skeleton className="h-8 w-20" />
+          <Skeleton className="size-80" />
         </div>
         <Skeleton className="h-10 w-full max-w-xs" />
         <Skeleton className="h-[220px] w-full" />
@@ -191,11 +191,11 @@ export function TwitterEngagementChart({ tweetId }: TwitterEngagementChartProps)
       <div className="flex items-center justify-center py-12">
         <div className="text-center space-y-3 max-w-sm">
           <div className="mx-auto w-12 h-12 rounded-full bg-muted flex items-center justify-center">
-            <TrendingUp className="h-6 w-6 text-muted-foreground" />
+            <TrendingUp className="size-6 text-muted-foreground" />
           </div>
           <div className="space-y-1">
-            <p className="text-body-sm font-medium">No data yet</p>
-            <p className="text-caption text-muted-foreground">
+            <p className="text-sm font-medium">No data yet</p>
+            <p className="text-xs text-muted-foreground">
               Engagement tracking will start soon
             </p>
           </div>
@@ -262,22 +262,22 @@ export function TwitterEngagementChart({ tweetId }: TwitterEngagementChartProps)
       <div className="flex items-center justify-between gap-3">
         <div className="space-y-0.5 min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <h3 className="text-body-sm font-semibold">Engagement Evolution</h3>
+            <h3 className="text-sm font-semibold">Engagement Evolution</h3>
             {trackingStatus && (
               isCold ? (
-                <Badge variant="secondary" className="gap-1 text-caption px-2 py-0.5">
-                  <Pause className="h-3 w-3" />
+                <Badge variant="secondary" className="gap-1 text-xs px-2 py-0.5">
+                  <Pause className="size-3" />
                   <span className="hidden sm:inline">Paused</span>
                 </Badge>
               ) : (
-                <Badge variant="secondary" className="gap-1 text-caption px-2 py-0.5 bg-chart-2/10 text-chart-2 border-chart-2/20">
-                  <Activity className="h-3 w-3" />
+                <Badge variant="secondary" className="gap-1 text-xs px-2 py-0.5 bg-chart-2/10 text-chart-2 border-chart-2/20">
+                  <Activity className="size-3" />
                   <span className="hidden sm:inline">Active</span>
                 </Badge>
               )
             )}
           </div>
-          <p className="text-caption text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             {data.snapshots.length} snapshot{data.snapshots.length !== 1 ? "s" : ""}
           </p>
         </div>
@@ -288,15 +288,15 @@ export function TwitterEngagementChart({ tweetId }: TwitterEngagementChartProps)
           disabled={refreshing}
           className="gap-2 h-8 px-3"
         >
-          <RefreshCw className={cn("h-3.5 w-3.5", refreshing && "animate-spin")} />
-          <span className="sr-only sm:not-sr-only text-caption">Refresh</span>
+          <RefreshCw className={cn("size-3.5", refreshing && "animate-spin")} />
+          <span className="sr-only sm:not-sr-only text-xs">Refresh</span>
         </Button>
       </div>
 
       {/* Conditional Info Message for Cold Tweets with Limited Data */}
       {isCold && hasLimitedData && (
         <div className="rounded-lg border border-muted bg-muted/20 p-3">
-          <p className="text-caption text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             Tracking paused due to low engagement activity. Use Refresh to get latest data.
           </p>
         </div>
@@ -306,12 +306,12 @@ export function TwitterEngagementChart({ tweetId }: TwitterEngagementChartProps)
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "reach" | "engagement")}>
         <TabsList className="grid w-full max-w-xs grid-cols-2">
           <TabsTrigger value="engagement" className="gap-1.5 data-[state=active]:shadow-none">
-            <TrendingUp className="h-4 w-4" />
+            <TrendingUp className="size-4" />
             <span className="hidden sm:inline">Engagement</span>
             <span className="sm:hidden">Eng.</span>
           </TabsTrigger>
           <TabsTrigger value="reach" className="gap-1.5 data-[state=active]:shadow-none">
-            <Eye className="h-4 w-4" />
+            <Eye className="size-4" />
             Reach
           </TabsTrigger>
         </TabsList>
@@ -512,25 +512,25 @@ export function TwitterEngagementChart({ tweetId }: TwitterEngagementChartProps)
           {/* Stats Summary - Compact & Colored */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-3 border-t border-border/60">
             <div className="space-y-1">
-              <p className="text-caption text-muted-foreground">Likes</p>
+              <p className="text-xs text-muted-foreground">Likes</p>
               <p className="text-body font-semibold" style={{ color: "var(--chart-1)" }}>
                 {formatCompactNumber(latestMetrics.like_count)}
               </p>
             </div>
             <div className="space-y-1">
-              <p className="text-caption text-muted-foreground">Retweets</p>
+              <p className="text-xs text-muted-foreground">Retweets</p>
               <p className="text-body font-semibold" style={{ color: "var(--chart-2)" }}>
                 {formatCompactNumber(latestMetrics.retweet_count)}
               </p>
             </div>
             <div className="space-y-1">
-              <p className="text-caption text-muted-foreground">Replies</p>
+              <p className="text-xs text-muted-foreground">Replies</p>
               <p className="text-body font-semibold" style={{ color: "var(--chart-3)" }}>
                 {formatCompactNumber(latestMetrics.reply_count)}
               </p>
             </div>
             <div className="space-y-1">
-              <p className="text-caption text-muted-foreground">Quotes</p>
+              <p className="text-xs text-muted-foreground">Quotes</p>
               <p className="text-body font-semibold" style={{ color: "var(--chart-4)" }}>
                 {formatCompactNumber(latestMetrics.quote_count)}
               </p>
@@ -609,7 +609,7 @@ export function TwitterEngagementChart({ tweetId }: TwitterEngagementChartProps)
 
           {/* Stats Summary - Compact & Colored */}
           <div className="space-y-1 pt-3 border-t border-border/60">
-            <p className="text-caption text-muted-foreground">Total Views</p>
+            <p className="text-xs text-muted-foreground">Total Views</p>
             <p className="text-body font-semibold" style={{ color: "var(--primary)" }}>
               {formatCompactNumber(latestMetrics.view_count)}
             </p>

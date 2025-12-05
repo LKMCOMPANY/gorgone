@@ -344,10 +344,10 @@ export function MediaRuleDialog({
                   className="h-10"
                 />
                 <div className="space-y-1">
-                  <p className="text-caption text-muted-foreground">
+                  <p className="text-xs text-muted-foreground">
                     💡 <strong>Best Practice:</strong> Create one rule per keyword for better results
                   </p>
-                  <p className="text-caption text-muted-foreground">
+                  <p className="text-xs text-muted-foreground">
                     Avoid multiple keywords in one rule - create separate rules instead
                   </p>
                 </div>
@@ -375,7 +375,7 @@ export function MediaRuleDialog({
                     <SelectItem value="ara">Arabic</SelectItem>
                   </SelectContent>
                 </Select>
-                <p className="text-caption text-muted-foreground">
+                <p className="text-xs text-muted-foreground">
                   Select language or "All" for multilingual monitoring
                 </p>
               </div>
@@ -405,7 +405,7 @@ export function MediaRuleDialog({
                       <Badge key={i} variant="secondary" className="gap-1">
                         {kw}
                         <X
-                          className="h-3 w-3 cursor-pointer"
+                          className="size-3 cursor-pointer"
                           onClick={() => removeTag(i, setKeywords)}
                         />
                       </Badge>
@@ -436,7 +436,7 @@ export function MediaRuleDialog({
                       <Badge key={i} variant="secondary" className="gap-1">
                         {src}
                         <X
-                          className="h-3 w-3 cursor-pointer"
+                          className="size-3 cursor-pointer"
                           onClick={() => removeTag(i, setSourceUris)}
                         />
                       </Badge>
@@ -467,7 +467,7 @@ export function MediaRuleDialog({
                       <Badge key={i} variant="destructive" className="gap-1">
                         {kw}
                         <X
-                          className="h-3 w-3 cursor-pointer"
+                          className="size-3 cursor-pointer"
                           onClick={() => removeTag(i, setIgnoreKeywords)}
                         />
                       </Badge>
@@ -536,7 +536,7 @@ export function MediaRuleDialog({
 
           {/* Fetch Configuration */}
           <div className="space-y-4 rounded-lg border border-border bg-muted/20 p-4">
-            <h4 className="text-body-sm font-medium">Fetch Configuration</h4>
+            <h4 className="text-sm font-medium">Fetch Configuration</h4>
             
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">

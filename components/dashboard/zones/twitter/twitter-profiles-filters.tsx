@@ -145,21 +145,21 @@ export function TwitterProfilesFilters({
       {/* Search Bar */}
       <div className="relative">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <Input
             type="text"
             placeholder="Search profiles by username or name..."
             value={searchTerm}
             onChange={(e) => handleSearchChange(e.target.value)}
             onFocus={() => setShowAutocomplete(true)}
-            className="pl-10 pr-10 h-11 transition-shadow duration-[150ms] focus-visible:shadow-[var(--shadow-sm)]"
+            className="pl-10 pr-10 h-11 transition-shadow duration-[var(--transition-fast)] focus-visible:shadow-[var(--shadow-sm)]"
           />
           {searchTerm && (
             <button
               onClick={handleClearSearch}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors duration-[150ms]"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors duration-[var(--transition-fast)]"
             >
-              <X className="h-4 w-4" />
+              <X className="size-4" />
             </button>
           )}
         </div>
@@ -171,27 +171,27 @@ export function TwitterProfilesFilters({
               <button
                 key={`${result.type}-${result.value}-${index}`}
                 onClick={() => handleSelectAutocomplete(result)}
-                className="w-full px-4 py-3 flex items-center gap-3 hover:bg-muted/50 transition-colors duration-[150ms] text-left"
+                className="w-full px-4 py-3 flex items-center gap-3 hover:bg-muted/50 transition-colors duration-[var(--transition-fast)] text-left"
               >
                 {result.metadata?.profile_picture_url ? (
                   <img
                     src={result.metadata.profile_picture_url}
                     alt={result.label}
-                    className="h-8 w-8 rounded-full object-cover"
+                    className="size-8 rounded-full object-cover"
                   />
                 ) : (
-                  <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                    <User className="h-4 w-4 text-primary" />
+                  <div className="size-8 rounded-full bg-primary/10 flex items-center justify-center">
+                    <User className="size-4 text-primary" />
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <p className="text-body-sm font-medium truncate">
+                    <p className="text-sm font-medium truncate">
                       {result.label}
                     </p>
                     {result.metadata?.is_verified && (
                       <svg
-                        className="h-4 w-4 text-blue-500 flex-shrink-0"
+                        className="size-4 text-blue-500 flex-shrink-0"
                         viewBox="0 0 24 24"
                         fill="currentColor"
                       >
@@ -200,7 +200,7 @@ export function TwitterProfilesFilters({
                     )}
                   </div>
                   {result.metadata?.followers_count && (
-                    <p className="text-caption text-muted-foreground">
+                    <p className="text-xs text-muted-foreground">
                       {result.metadata.followers_count.toLocaleString()} followers
                     </p>
                   )}
@@ -213,7 +213,7 @@ export function TwitterProfilesFilters({
         {/* Loading indicator */}
         {loading && (
           <div className="absolute right-12 top-1/2 -translate-y-1/2">
-            <div className="h-4 w-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+            <div className="size-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
           </div>
         )}
       </div>
@@ -227,8 +227,8 @@ export function TwitterProfilesFilters({
             handleFilterChange("sort_by", value as ProfileSortOption)
           }
         >
-          <SelectTrigger className="h-9 w-[180px] transition-shadow duration-[150ms]">
-            <TrendingUp className="h-4 w-4 mr-2" />
+          <SelectTrigger className="h-9 w-[180px] transition-shadow duration-[var(--transition-fast)]">
+            <TrendingUp className="size-4 mr-2" />
             <SelectValue placeholder="Sort by" />
           </SelectTrigger>
           <SelectContent>
@@ -246,8 +246,8 @@ export function TwitterProfilesFilters({
             handleFilterChange("profile_tag_type", value === "all" ? undefined : (value as ProfileTagType))
           }
         >
-          <SelectTrigger className="h-9 w-[160px] transition-shadow duration-[150ms]">
-            <User className="h-4 w-4 mr-2" />
+          <SelectTrigger className="h-9 w-[160px] transition-shadow duration-[var(--transition-fast)]">
+            <User className="size-4 mr-2" />
             <SelectValue placeholder="Profile type" />
           </SelectTrigger>
           <SelectContent>
@@ -268,14 +268,14 @@ export function TwitterProfilesFilters({
           size="sm"
           onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
           className={cn(
-            "gap-2 transition-all duration-[150ms]",
+            "gap-2 transition-all duration-[var(--transition-fast)]",
             activeFiltersCount > 0 && "border-primary text-primary"
           )}
         >
-          <Filter className="h-4 w-4" />
+          <Filter className="size-4" />
           Filters
           {activeFiltersCount > 0 && (
-            <Badge variant="default" className="h-5 w-5 rounded-full p-0 flex items-center justify-center">
+            <Badge variant="default" className="size-5 rounded-full p-0 flex items-center justify-center">
               {activeFiltersCount}
             </Badge>
           )}
@@ -284,13 +284,13 @@ export function TwitterProfilesFilters({
         {/* Active Search Display */}
         {filters.search && (
           <Badge variant="secondary" className="gap-2">
-            <Search className="h-3 w-3" />
+            <Search className="size-3" />
             {filters.search}
             <button
               onClick={handleClearSearch}
-              className="hover:text-foreground transition-colors duration-[150ms]"
+              className="hover:text-foreground transition-colors duration-[var(--transition-fast)]"
             >
-              <X className="h-3 w-3" />
+              <X className="size-3" />
             </button>
           </Badge>
         )}
@@ -298,13 +298,13 @@ export function TwitterProfilesFilters({
         {/* Active Profile Tag Filter */}
         {filters.profile_tag_type && (
           <Badge variant="secondary" className="gap-2 capitalize">
-            <User className="h-3 w-3" />
+            <User className="size-3" />
             {filters.profile_tag_type.replace("_", " ")}
             <button
               onClick={() => handleFilterChange("profile_tag_type", undefined)}
-              className="hover:text-foreground transition-colors duration-[150ms]"
+              className="hover:text-foreground transition-colors duration-[var(--transition-fast)]"
             >
-              <X className="h-3 w-3" />
+              <X className="size-3" />
             </button>
           </Badge>
         )}
@@ -323,7 +323,7 @@ export function TwitterProfilesFilters({
                 )
               }
               className={cn(
-                "flex items-center gap-3 p-3 rounded-lg border transition-all duration-[150ms]",
+                "flex items-center gap-3 p-3 rounded-lg border transition-all duration-[var(--transition-fast)]",
                 filters.verified_only
                   ? "border-primary bg-primary/5 text-primary"
                   : "border-border hover:border-primary/50 hover:bg-muted/30"
@@ -331,7 +331,7 @@ export function TwitterProfilesFilters({
             >
               <div
                 className={cn(
-                  "h-4 w-4 rounded border-2 flex items-center justify-center transition-all duration-[150ms]",
+                  "h-4 w-4 rounded border-2 flex items-center justify-center transition-all duration-[var(--transition-fast)]",
                   filters.verified_only
                     ? "border-primary bg-primary"
                     : "border-muted-foreground"
@@ -339,7 +339,7 @@ export function TwitterProfilesFilters({
               >
                 {filters.verified_only && (
                   <svg
-                    className="h-3 w-3 text-white"
+                    className="size-3 text-white"
                     fill="none"
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -351,7 +351,7 @@ export function TwitterProfilesFilters({
                   </svg>
                 )}
               </div>
-              <span className="text-body-sm font-medium">Verified Only</span>
+              <span className="text-sm font-medium">Verified Only</span>
             </button>
           </div>
 
@@ -359,8 +359,8 @@ export function TwitterProfilesFilters({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Minimum Followers */}
             <div className="space-y-2">
-              <label className="text-body-sm font-medium flex items-center gap-2">
-                <Users className="h-4 w-4" />
+              <label className="text-sm font-medium flex items-center gap-2">
+                <Users className="size-4" />
                 Minimum Followers
               </label>
               <Select
@@ -369,7 +369,7 @@ export function TwitterProfilesFilters({
                   handleFilterChange("min_followers", value === "0" ? undefined : parseInt(value))
                 }
               >
-                <SelectTrigger className="transition-shadow duration-[150ms]">
+                <SelectTrigger className="transition-shadow duration-[var(--transition-fast)]">
                   <SelectValue placeholder="Any" />
                 </SelectTrigger>
                 <SelectContent>
@@ -389,14 +389,14 @@ export function TwitterProfilesFilters({
 
             {/* Minimum Tweets */}
             <div className="space-y-2">
-              <label className="text-body-sm font-medium">Minimum Tweets</label>
+              <label className="text-sm font-medium">Minimum Tweets</label>
               <Select
                 value={filters.min_tweets?.toString() || "0"}
                 onValueChange={(value) =>
                   handleFilterChange("min_tweets", value === "0" ? undefined : parseInt(value))
                 }
               >
-                <SelectTrigger className="transition-shadow duration-[150ms]">
+                <SelectTrigger className="transition-shadow duration-[var(--transition-fast)]">
                   <SelectValue placeholder="Any" />
                 </SelectTrigger>
                 <SelectContent>
@@ -424,7 +424,7 @@ export function TwitterProfilesFilters({
               }
               className="w-full gap-2"
             >
-              <X className="h-4 w-4" />
+              <X className="size-4" />
               Clear filters
             </Button>
           )}

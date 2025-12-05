@@ -56,7 +56,7 @@ export function TwitterOpinionClusterList({
   if (!currentCluster) {
     return (
       <div className="flex items-center justify-center py-16 px-6">
-        <p className="text-body-sm text-muted-foreground">
+        <p className="text-sm text-muted-foreground">
           No clusters available
         </p>
       </div>
@@ -73,11 +73,11 @@ export function TwitterOpinionClusterList({
         <Button
           variant="outline"
           size="icon"
-          className="h-8 w-8"
+          className="size-8"
           onClick={handlePrevious}
           disabled={validIndex === 0}
         >
-          <ChevronLeft className="h-4 w-4" />
+          <ChevronLeft className="size-4" />
         </Button>
 
         <div className="flex items-center gap-2">
@@ -85,7 +85,7 @@ export function TwitterOpinionClusterList({
             className="w-3 h-3 rounded-full"
             style={{ backgroundColor: color }}
           />
-          <span className="text-body-sm font-medium">
+          <span className="text-sm font-medium">
             Cluster {validIndex + 1} of {sortedClusters.length}
           </span>
         </div>
@@ -93,11 +93,11 @@ export function TwitterOpinionClusterList({
         <Button
           variant="outline"
           size="icon"
-          className="h-8 w-8"
+          className="size-8"
           onClick={handleNext}
           disabled={validIndex === sortedClusters.length - 1}
         >
-          <ChevronRight className="h-4 w-4" />
+          <ChevronRight className="size-4" />
         </Button>
       </div>
 
@@ -112,7 +112,7 @@ export function TwitterOpinionClusterList({
               key={cluster.cluster_id}
               onClick={() => onSelectCluster(cluster.cluster_id)}
               className={cn(
-                'h-1.5 rounded-full transition-all duration-[250ms]',
+                'h-1.5 rounded-full transition-all duration-[var(--transition-base)]',
                 isActive ? 'flex-1' : 'w-1.5'
               )}
               style={{ 
@@ -145,12 +145,12 @@ export function TwitterOpinionClusterList({
 
               <div className="flex-1 min-w-0 space-y-2">
                 {/* Title */}
-                <h3 className="text-heading-3 font-semibold text-foreground">
+                <h3 className="text-lg font-semibold font-semibold text-foreground">
                   {currentCluster.label}
                 </h3>
 
                 {/* Stats */}
-                <div className="flex items-center gap-3 text-body-sm text-muted-foreground">
+                <div className="flex items-center gap-3 text-sm text-muted-foreground">
                   <span className="font-medium">
                     {currentCluster.tweet_count.toLocaleString()} posts
                   </span>
@@ -163,10 +163,10 @@ export function TwitterOpinionClusterList({
             {/* AI-Generated Description */}
             {currentCluster.reasoning && (
               <div className="space-y-2">
-                <h4 className="text-body-sm font-semibold text-foreground">
+                <h4 className="text-sm font-semibold text-foreground">
                   Analysis
                 </h4>
-                <p className="text-body-sm text-muted-foreground leading-relaxed">
+                <p className="text-sm text-muted-foreground leading-relaxed">
                   {currentCluster.reasoning}
                 </p>
               </div>
@@ -174,7 +174,7 @@ export function TwitterOpinionClusterList({
 
             {/* Keywords */}
             <div className="space-y-2">
-              <h4 className="text-body-sm font-semibold text-foreground">
+              <h4 className="text-sm font-semibold text-foreground">
                 Key Topics
               </h4>
               <div className="flex flex-wrap gap-1.5">
@@ -199,17 +199,17 @@ export function TwitterOpinionClusterList({
             {currentCluster.avg_sentiment !== null && (
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-body-sm font-semibold text-foreground">
+                  <h4 className="text-sm font-semibold text-foreground">
                     Sentiment
                   </h4>
-                  <span className="text-caption font-medium text-muted-foreground">
+                  <span className="text-xs font-medium text-muted-foreground">
                     {currentCluster.avg_sentiment > 0.2 ? 'Positive' : 
                      currentCluster.avg_sentiment < -0.2 ? 'Negative' : 'Neutral'}
                   </span>
                 </div>
                 <div className="relative h-2 bg-muted rounded-full overflow-hidden">
                   <div 
-                    className="absolute h-full rounded-full transition-all duration-[250ms]"
+                    className="absolute h-full rounded-full transition-all duration-[var(--transition-base)]"
                     style={{
                       width: '100%',
                       background: 'linear-gradient(to right, #ef4444, #fbbf24, #10b981)',
@@ -217,14 +217,14 @@ export function TwitterOpinionClusterList({
                     }}
                   />
                   <div
-                    className="absolute h-full w-1 bg-foreground rounded-full transition-all duration-[250ms]"
+                    className="absolute h-full w-1 bg-foreground rounded-full transition-all duration-[var(--transition-base)]"
                     style={{
                       left: `${((currentCluster.avg_sentiment + 1) / 2) * 100}%`,
                       transform: 'translateX(-50%)'
                     }}
                   />
                 </div>
-                <div className="flex items-center justify-between text-caption text-muted-foreground">
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
                   <span>Negative</span>
                   <span>Neutral</span>
                   <span>Positive</span>
@@ -236,23 +236,23 @@ export function TwitterOpinionClusterList({
             {currentCluster.coherence_score !== null && (
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-body-sm font-semibold text-foreground">
+                  <h4 className="text-sm font-semibold text-foreground">
                     Cluster Quality
                   </h4>
-                  <span className="text-body-sm font-medium">
+                  <span className="text-sm font-medium">
                     {(currentCluster.coherence_score * 100).toFixed(0)}%
                   </span>
                 </div>
                 <div className="h-2 bg-muted rounded-full overflow-hidden">
                   <div
-                    className="h-full rounded-full transition-all duration-[250ms]"
+                    className="h-full rounded-full transition-all duration-[var(--transition-base)]"
                     style={{
                       width: `${currentCluster.coherence_score * 100}%`,
                       backgroundColor: color
                     }}
                   />
                 </div>
-                <p className="text-caption text-muted-foreground">
+                <p className="text-xs text-muted-foreground">
                   Indicates how cohesive the cluster's topics are
                 </p>
               </div>
@@ -270,7 +270,7 @@ export function TwitterOpinionClusterList({
                   key={cluster.cluster_id}
                   onClick={() => onSelectCluster(cluster.cluster_id)}
                   className={cn(
-                    'p-3 rounded-lg border text-left transition-all duration-[150ms]',
+                    'p-3 rounded-lg border text-left transition-all duration-[var(--transition-fast)]',
                     isActive 
                       ? 'border-primary bg-primary/5 shadow-sm' 
                       : 'border-border hover:border-primary/50 hover:bg-muted/30'
@@ -278,14 +278,14 @@ export function TwitterOpinionClusterList({
                 >
                   <div className="flex items-center gap-2">
                     <div
-                      className="w-2 h-2 rounded-full"
+                      className="size-2 rounded-full"
                       style={{ backgroundColor: clusterColor }}
                     />
-                    <span className="text-body-sm font-medium truncate">
+                    <span className="text-sm font-medium truncate">
                       {cluster.label}
                     </span>
                   </div>
-                  <p className="text-caption text-muted-foreground mt-1">
+                  <p className="text-xs text-muted-foreground mt-1">
                     {cluster.tweet_count.toLocaleString()} posts
                   </p>
                 </button>
