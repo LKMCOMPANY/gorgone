@@ -4,6 +4,8 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { TwitterFeedFilters, type TwitterFeedFilters as Filters } from "./twitter-feed-filters";
 import { TwitterFeedCard } from "./twitter-feed-card";
 import { TwitterFeedCardSkeleton } from "./twitter-feed-card-skeleton";
+import { Loader2 } from "lucide-react";
+import type { TwitterTweetWithCluster, TwitterProfileZoneTag } from "@/types";
 
 interface FeedTweetWithTags extends TwitterTweetWithCluster {
   profile_tags?: TwitterProfileZoneTag[];
