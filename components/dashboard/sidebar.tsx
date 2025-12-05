@@ -41,6 +41,7 @@ import {
   Rss,
   Settings,
   Bot,
+  Globe,
 } from "lucide-react";
 
 interface DashboardSidebarProps {
@@ -110,6 +111,7 @@ export function DashboardSidebar({
                       <SidebarMenuItem>
                         <CollapsibleTrigger asChild>
                           <SidebarMenuButton tooltip={zone.name}>
+                            <Globe />
                             <span>{zone.name}</span>
                             <ChevronRight className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" />
                           </SidebarMenuButton>
