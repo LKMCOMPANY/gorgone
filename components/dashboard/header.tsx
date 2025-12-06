@@ -16,7 +16,7 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
   const { toggleSidebar } = useSidebar();
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-white/5 bg-background/60 backdrop-blur-xl supports-[backdrop-filter]:bg-background/40 transition-all duration-300">
+    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-md dark:bg-background/50 dark:backdrop-blur-xl dark:border-white/10 transition-all duration-300 supports-[backdrop-filter]:bg-background/60">
       <div className="relative flex h-14 items-center justify-between px-4 lg:h-16 lg:px-6">
         <div className="flex items-center gap-3">
           {/* Menu toggle */}
