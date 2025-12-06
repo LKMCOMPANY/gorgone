@@ -1,12 +1,12 @@
 "use client";
 
 import { Menu, MessageSquare } from "lucide-react";
-import NextImage from "next/image";
 import { Button } from "@/components/ui/button";
 import { useSidebar } from "@/components/ui/sidebar";
 import { useChat } from "@/components/dashboard/chat/chat-provider";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { APP_NAME } from "@/lib/constants";
+import { GorgoneEye } from "@/components/ui/gorgone-eye";
 import type { User } from "@/types";
 
 interface DashboardHeaderProps {
@@ -49,23 +49,8 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
 
         {/* Center: Logo */}
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-          <div className="relative h-4 w-auto">
-            <NextImage
-              src="/GorgoneBlack.svg"
-              alt="Gorgone"
-              height={16}
-              width={60}
-              className="object-contain dark:hidden"
-              priority
-            />
-            <NextImage
-              src="/GorgoneWhite.svg"
-              alt="Gorgone"
-              height={16}
-              width={60}
-              className="object-contain hidden dark:block"
-              priority
-            />
+          <div className="relative h-6 w-24">
+            <GorgoneEye className="h-full w-full" />
           </div>
         </div>
 
