@@ -29,62 +29,47 @@ export function Message({ from, avatar, name, children, className, ...props }: M
   return (
     <div
       className={cn(
-        "group flex w-full gap-4 py-4 md:px-2",
-        isUser ? "flex-row-reverse" : "flex-row",
+        "group flex gap-3 w-full py-2", // Reduced padding, removed flex-row-reverse logic
         className
       )}
       {...props}
     >
-      {/* Avatar */}
-      <div className={cn("flex shrink-0 flex-col items-center gap-1")}>
-        <Avatar className={cn("size-8 border shadow-sm", isUser ? "bg-muted" : "bg-primary/10")}>
-          {avatar && <AvatarImage src={avatar} alt={name || from} />}
-          <AvatarFallback className="bg-transparent">
-            {isUser ? (
-              <UserIcon className="size-4 text-muted-foreground" />
-            ) : (
-              <div className="relative size-5">
-                <Image
-                  src="/GorgoneBlack.svg"
-                  alt="Gorgone"
-                  fill
-                  className="object-contain dark:hidden"
-                />
-                <Image
-                  src="/GorgoneWhite.svg"
-                  alt="Gorgone"
-                  fill
-                  className="object-contain hidden dark:block"
-                />
-              </div>
-            )}
-          </AvatarFallback>
-        </Avatar>
-      </div>
+      {/* Avatar - Always on left */}
+      <Avatar className={cn("size-8 shrink-0", !isUser && "bg-primary/10 shadow-sm")}>
+        {avatar && <AvatarImage src={avatar} alt={name || from} />}
+        <AvatarFallback className={cn(!isUser && "bg-transparent")}>
+          {isUser ? (
+            <UserIcon className="size-4" />
+          ) : (
+            <div className="relative size-5">
+              <Image
+                src="/GorgoneBlack.svg"
+                alt="Gorgone"
+                fill
+                className="object-contain dark:hidden"
+              />
+              <Image
+                src="/GorgoneWhite.svg"
+                alt="Gorgone"
+                fill
+                className="object-contain hidden dark:block"
+              />
+            </div>
+          )}
+        </AvatarFallback>
+      </Avatar>
 
       {/* Content Wrapper */}
-      <div
-        className={cn(
-          "flex max-w-[85%] flex-col gap-2 min-w-0",
-          isUser ? "items-end" : "items-start"
-        )}
-      >
+      <div className="flex-1 min-w-0 space-y-1">
         {/* Name (optional) */}
-        {name && (
-          <span className="text-xs text-muted-foreground px-1">
-            {name}
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-semibold text-foreground">
+            {isUser ? "You" : "Gorgone AI"}
           </span>
-        )}
+        </div>
 
-        {/* Message Bubble / Text Area */}
-        <div
-          className={cn(
-            "relative w-full overflow-hidden rounded-xl px-4 py-3 shadow-sm",
-            isUser
-              ? "bg-primary text-primary-foreground"
-              : "bg-muted/30 text-foreground border border-border/50"
-          )}
-        >
+        {/* Message Content - No bubbles, clean text */}
+        <div className="text-sm leading-relaxed text-foreground/90">
           {children}
         </div>
       </div>

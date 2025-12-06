@@ -91,13 +91,13 @@ export function ChatMessages({
                 {/* Message Content (Markdown) */}
                 {message.content && (
                   <div className="relative group/content">
-                    <div className="prose dark:prose-invert prose-p:leading-relaxed prose-pre:p-0 text-sm max-w-none break-words">
+                    <div className="prose dark:prose-invert prose-p:leading-relaxed prose-pre:p-0 text-sm max-w-none break-words prose-headings:font-semibold prose-h1:text-lg prose-h2:text-base prose-h3:text-sm prose-a:text-primary hover:prose-a:underline">
                       <MemoizedReactMarkdown
                         remarkPlugins={[remarkGfm, remarkMath]}
                         components={{
                           p({ children }) {
-                            return <p className="mb-2 last:mb-0">{children}</p>;
-                          },
+                          return <p className="mb-2 last:mb-0 animate-in fade-in duration-300">{children}</p>;
+                        },
                         code({ node, inline, className, children, ...props }: any) {
                           if (children.length) {
                             if (children[0] == '▍') {
