@@ -7,5 +7,5 @@ export { Conversation, ConversationContent, ConversationEmpty } from "./conversa
 export { PromptInput } from "./prompt-input";
 export { Tool } from "./tool";
 export { Loader } from "./loader";
-export { Suggestion, Suggestions } from "./suggestion";
+export { Suggestion } from "./suggestion";
 
