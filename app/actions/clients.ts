@@ -200,26 +200,26 @@ export async function createClientUserAction(
     if (authError) throw authError;
     if (!authData.user) throw new Error("Failed to create user");
 
-    // Update profile with client_id
-    const { error: profileError } = await supabase
+    // Create or update profile with client_id
+    const { data: profileData, error: profileError } = await supabase
       .from("profiles")
-      .update({
-        client_id: clientId,
-        role,
-        organization: organization || null,
-      })
-      .eq("id", authData.user.id);
-
-    if (profileError) throw profileError;
-
-    // Get the created user with profile
-    const { data: profileData, error: fetchError } = await supabase
-      .from("profiles")
+      .upsert(
+        {
+          id: authData.user.id,
+          email: authData.user.email!,
+          client_id: clientId,
+          role,
+          organization: organization || null,
+          created_by: authData.user.id,
+        },
+        {
+          onConflict: "id",
+        }
+      )
       .select("*")
-      .eq("id", authData.user.id)
       .single();
 
-    if (fetchError) throw fetchError;
+    if (profileError) throw profileError;
 
     revalidatePath(`/dashboard/clients/${clientId}`);
     revalidatePath("/dashboard/clients");
