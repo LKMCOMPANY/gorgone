@@ -6,6 +6,7 @@
  */
 
 import { useState } from 'react'
+import Image from 'next/image'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -169,7 +170,14 @@ export function TwitterOpinionMapControls({
                 </>
               ) : (
                 <>
-                  <Sparkles className="mr-2 size-4" />
+                  <div className="relative size-4 mr-2">
+                    <Image
+                      src="/GorgoneWhite.svg"
+                      alt="Gorgone"
+                      fill
+                      className="object-contain"
+                    />
+                  </div>
                   Generate Opinion Map
                 </>
               )}
@@ -275,7 +283,20 @@ export function TwitterOpinionMapControls({
             <div className="flex items-center gap-3 p-3 rounded-lg border border-tactical-green/30 bg-tactical-green/5 animate-in fade-in-0 slide-in-from-top-2 duration-200">
               <div className="flex-shrink-0">
                 <div className="p-2 rounded-full bg-tactical-green/10">
-                  <Sparkles className="size-4 text-tactical-green" />
+                  <div className="relative size-4">
+                    <Image
+                      src="/GorgoneBlack.svg"
+                      alt="Gorgone"
+                      fill
+                      className="object-contain dark:hidden"
+                    />
+                    <Image
+                      src="/GorgoneWhite.svg"
+                      alt="Gorgone"
+                      fill
+                      className="object-contain hidden dark:block"
+                    />
+                  </div>
                 </div>
               </div>
               <div className="flex-1 space-y-0.5">

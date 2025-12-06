@@ -1,8 +1,8 @@
 # GORGONE Design System
 ## Government-Grade Monitoring Platform
 
-**Version**: 2.3
-**Last Updated**: December 5, 2024  
+**Version**: 2.4
+**Last Updated**: December 6, 2024  
 **Status**: ✅ Production Ready  
 
 > **THE definitive guide** for all design decisions in Gorgone.  
@@ -80,11 +80,6 @@ All colors use the OKLCH color space for consistent perceptual brightness:
 --chart-4: oklch(0.78 0.20 55);   /* Bright Amber */
 --chart-5: oklch(0.75 0.20 150);  /* Bright Green */
 ```
-
-**Design Rationale**:
-- **Cold, technical, precise** (not playful).
-- **High contrast** for quick data reading in dark environments.
-- **Military/Cyber aesthetic** (neon accents on dark).
 
 ---
 
@@ -603,6 +598,15 @@ Consider adding these for enhanced functionality:
 ---
 
 ## 🔄 Changelog
+
+### Version 2.4 (December 6, 2024 - UI Standardization)
+- ✅ **Official Logos** : Integration of X, TikTok, and Gorgone SVG logos in all key areas (Sidebar, Headers, Tabs).
+- ✅ **Settings Tabs Polish** : Refactored to use flexible inline layouts instead of fixed grids (fixing layout shift).
+- ✅ **Tracked Profiles Redesign** : Complete overhaul of the tabs UI with a scrollable, card-based design for better mobile UX.
+- ✅ **Dialog Standardization** : All rule creation dialogs standardized to `sm:max-w-[600px]` with `h-9` inputs.
+- ✅ **Mobile Viewport Fix** : Dynamic theme color for mobile status bar (white/black) replacing the default purple.
+- ✅ **Skeleton Updates** : All loading states (Overview, Analysis, Settings) updated to match new component structures.
+- ✅ **Iconography** : Switched Analysis icon to `Network` and added consistent Lucide icons throughout.
 
 ### Version 2.3 (December 5, 2024 - Final Polish)
 - ✅ **Light Mode Hierarchy Inversion** : Adopted Apple-style "White Background / Grey Card / White Nested" for better contrast and pop
