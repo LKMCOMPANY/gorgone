@@ -761,3 +761,17 @@
 .mapboxgl-ctrl-bottom-right {
   display: none !important;
 }
+
+/* Aurora background animation (Standard Aceternity UI) */
+@keyframes aurora {
+  from {
+    background-position: 50% 50%, 50% 50%;
+  }
+  to {
+    background-position: 350% 50%, 350% 50%;
+  }
+}
+
+.animate-aurora {
+  animation: aurora 60s linear infinite;
+}

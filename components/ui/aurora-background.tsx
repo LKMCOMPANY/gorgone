@@ -1,43 +1,54 @@
 "use client";
 
-import React from "react";
 import { cn } from "@/lib/utils";
+import React, { ReactNode } from "react";
 
-interface AuroraBackgroundProps extends React.HTMLAttributes<HTMLDivElement> {
-  children?: React.ReactNode;
+interface AuroraBackgroundProps extends React.HTMLProps<HTMLDivElement> {
+  children: ReactNode;
   showRadialGradient?: boolean;
 }
 
-export function AuroraBackground({
+export const AuroraBackground = ({
+  className,
   children,
   showRadialGradient = true,
-  className,
   ...props
-}: AuroraBackgroundProps) {
+}: AuroraBackgroundProps) => {
   return (
-    <div
-      className={cn(
-        "relative flex h-full w-full flex-col items-center justify-center bg-background text-foreground transition-bg",
-        className
-      )}
-      {...props}
-    >
-      <div className="absolute inset-0 overflow-hidden">
-        <div
-          className={cn(
-            "pointer-events-none absolute -inset-[10px] opacity-50 blur-[10px] invert-0 filter will-change-transform [--aurora-opacity:0.5] [--aurora-1:oklch(0.62_0.24_285)] [--aurora-2:oklch(0.72_0.15_220)] [--aurora-3:oklch(0.70_0.18_150)] dark:invert",
-            "bg-[radial-gradient(ellipse_at_100%_0%,var(--aurora-1)_0%,transparent_50%),radial-gradient(ellipse_at_0%_100%,var(--aurora-2)_10%,transparent_40%),radial-gradient(ellipse_at_60%_-20%,var(--aurora-3)_0%,transparent_50%),radial-gradient(ellipse_at_100%_100%,var(--aurora-1)_0%,transparent_50%)]",
-            "[background-size:200%_100%,200%_100%]",
-            "[background-position:50%_50%,50%_50%]",
-            "[animation:aurora_60s_ease_infinite]"
-          )}
-        />
-        {showRadialGradient && (
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_20%,var(--background)_90%)]" />
+    <main>
+      <div
+        className={cn(
+          "relative flex flex-col  h-[100vh] items-center justify-center bg-zinc-50 dark:bg-zinc-900  text-slate-950 transition-bg",
+          className
         )}
+        {...props}
+      >
+        <div className="absolute inset-0 overflow-hidden">
+          <div
+            //   I'm sorry but this is what peak developer performance looks like // trigger warning
+            className={cn(
+              `
+            [--white-gradient:repeating-linear-gradient(100deg,var(--background)_0%,var(--background)_7%,var(--transparent)_10%,var(--transparent)_12%,var(--background)_16%)]
+            [--dark-gradient:repeating-linear-gradient(100deg,var(--background)_0%,var(--background)_7%,var(--transparent)_10%,var(--transparent)_12%,var(--background)_16%)]
+            [--aurora:repeating-linear-gradient(100deg,oklch(0.62_0.24_285)_10%,oklch(0.72_0.15_220)_15%,oklch(0.62_0.24_285)_20%,oklch(0.70_0.18_150)_25%,oklch(0.62_0.24_285)_30%)]
+            [background-image:var(--white-gradient),var(--aurora)]
+            dark:[background-image:var(--dark-gradient),var(--aurora)]
+            [background-size:300%,_200%]
+            [background-position:50%_50%,50%_50%]
+            filter blur-[10px] invert dark:invert-0
+            after:content-[""] after:absolute after:inset-0 after:[background-image:var(--white-gradient),var(--aurora)] 
+            after:dark:[background-image:var(--dark-gradient),var(--aurora)]
+            after:[background-size:200%,_100%] 
+            after:animate-aurora after:[background-attachment:fixed] after:mix-blend-difference
+            pointer-events-none
+            absolute -inset-[10px] opacity-50`,
+              showRadialGradient &&
+                `[mask-image:radial-gradient(ellipse_at_100%_0%,black_10%,transparent_70%)]`
+            )}
+          ></div>
+        </div>
+        {children}
       </div>
-      {children}
-    </div>
+    </main>
   );
-}
-
+};

@@ -80,10 +80,12 @@ export function DashboardChat({ zones }: DashboardChatProps) {
   }
 
   return (
-    <div className="flex flex-col h-full w-full relative overflow-hidden">
+    <div className="flex flex-col h-full w-full relative overflow-hidden bg-background">
       {/* Aurora Background */}
       <div className="absolute inset-0 z-0">
-        <AuroraBackground showRadialGradient={true} className="opacity-60" />
+        <AuroraBackground showRadialGradient={true} className="opacity-60" >
+          {/* Empty children to keep background only */}
+        </AuroraBackground>
       </div>
 
       {/* Floating Zone Selector (Top Left) - Minimal & Integrated */}
