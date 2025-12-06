@@ -48,6 +48,11 @@
   --color-tactical-red: var(--tactical-red);
   --color-tactical-blue: var(--tactical-blue);
   --color-tactical-slate: var(--tactical-slate);
+  
+  /* Helper colors for Aurora Background */
+  --color-white: #ffffff;
+  --color-black: #000000;
+  --color-transparent: transparent;
 }
 
 :root {
@@ -763,6 +768,20 @@
 }
 
 /* Aurora background animation (Standard Aceternity UI) */
+@keyframes aurora {
+  from {
+    background-position: 50% 50%, 50% 50%;
+  }
+  to {
+    background-position: 350% 50%, 350% 50%;
+  }
+}
+
+.animate-aurora {
+  animation: aurora 60s linear infinite;
+}
+
+/* Aurora background animation (Aceternity UI Standard) */
 @keyframes aurora {
   from {
     background-position: 50% 50%, 50% 50%;
