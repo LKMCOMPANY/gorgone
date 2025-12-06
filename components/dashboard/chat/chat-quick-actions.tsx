@@ -14,7 +14,8 @@ import {
   Smile,
   FileText,
 } from "lucide-react";
-import { Suggestions, Suggestion } from "@/components/ai/suggestion";
+import { Button } from "@/components/ui/button";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 
 const QUICK_ACTIONS = [
   {
@@ -88,17 +89,26 @@ export function ChatQuickActions({ onSelect, show = false }: ChatQuickActionsPro
   if (!show) return null;
 
   return (
-    <Suggestions title="Quick actions">
-      {QUICK_ACTIONS.map((action) => (
-        <Suggestion
-          key={action.label}
-          onClick={() => onSelect?.(action.query)}
-          icon={<action.icon className="size-4 text-primary" />}
-        >
-          {action.label}
-        </Suggestion>
-      ))}
-    </Suggestions>
+    <div className="w-full pb-2">
+      <p className="text-xs text-muted-foreground mb-2 px-1">Quick actions</p>
+      <ScrollArea className="w-full whitespace-nowrap">
+        <div className="flex w-max gap-2 px-1">
+          {QUICK_ACTIONS.map((action) => (
+            <Button
+              key={action.label}
+              variant="outline"
+              size="sm"
+              onClick={() => onSelect?.(action.query)}
+              className="h-8 rounded-full bg-background/50 backdrop-blur-sm border-white/10 hover:bg-white/10 hover:text-accent-foreground transition-all shadow-sm"
+            >
+              <action.icon className="size-4 mr-2 text-primary" />
+              {action.label}
+            </Button>
+          ))}
+        </div>
+        <ScrollBar orientation="horizontal" />
+      </ScrollArea>
+    </div>
   );
 }
 
