@@ -511,6 +511,12 @@ function SidebarMenuButton({
   const Comp = asChild ? Slot : "button";
   const { isMobile, state } = useSidebar();
 
+  // If asChild is true (e.g. rendering a Link or DialogTrigger), we don't wrap in TooltipTrigger directly
+  // if it causes nesting issues. But for now, the issue was double button nesting.
+  // The caller (CreateZoneDialog) now wraps this in a span, so SidebarMenuButton rendering a button is fine.
+  // But if asChild is true, Comp will be the child (e.g. Link), so no double button.
+  // If asChild is false (default), Comp is "button".
+
   const button = (
     <Comp
       data-slot="sidebar-menu-button"

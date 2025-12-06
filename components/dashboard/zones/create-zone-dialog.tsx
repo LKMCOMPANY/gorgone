@@ -73,22 +73,22 @@ export function CreateZoneDialog({ clientId }: CreateZoneDialogProps) {
     }
   };
 
-  const trigger = (
-    <SidebarMenuButton tooltip="Create Zone">
-      <Plus />
-      <span>Create Zone</span>
-    </SidebarMenuButton>
-  );
-
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {/* Wrap in a span to avoid button nesting if SidebarMenuButton renders a button */}
-        <span className="w-full cursor-pointer" tabIndex={-1}>
-          {trigger}
-        </span>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[480px]">
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <DialogTrigger asChild>
+              <SidebarMenuButton>
+                <Plus />
+                <span>Create Zone</span>
+              </SidebarMenuButton>
+            </DialogTrigger>
+          </TooltipTrigger>
+          <TooltipContent side="right">Create Zone</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+      <DialogContent className="sm:max-w-[480px]" suppressHydrationWarning>
         <DialogHeader>
           <DialogTitle>Create New Zone</DialogTitle>
           <DialogDescription>

@@ -4,7 +4,7 @@ import * as React from "react";
 import { DashboardChat } from "./dashboard-chat";
 import { Sheet, SheetContent, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { MessageSquarePlus } from "lucide-react";
+import { Keyboard } from "lucide-react";
 import { usePathname } from "next/navigation";
 import type { Zone } from "@/types";
 
@@ -19,32 +19,49 @@ export function GlobalChatSheet({ zones }: GlobalChatSheetProps) {
   // Hide on the dedicated AI Monitoring page to avoid duplication
   const isMonitoringPage = pathname === "/dashboard";
 
-  // Keyboard shortcut listener (Cmd+J or Cmd+K)
+  // Keyboard shortcut listener (Cmd+J, Cmd+K, or Space)
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Cmd+J or Cmd+K to toggle chat
       if ((e.metaKey || e.ctrlKey) && (e.key === "j" || e.key === "k")) {
         e.preventDefault();
         setIsOpen((prev) => !prev);
+        return;
+      }
+
+      // Space to open chat (only if not in an input/textarea and chat is closed)
+      if (e.key === " " && !isOpen) {
+        const target = e.target as HTMLElement;
+        const isInputField = 
+          target.tagName === "INPUT" || 
+          target.tagName === "TEXTAREA" || 
+          target.isContentEditable;
+        
+        if (!isInputField) {
+          e.preventDefault();
+          setIsOpen(true);
+        }
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  }, [isOpen]);
 
   if (isMonitoringPage) return null;
 
   return (
     <>
       {/* Floating Action Button (FAB) */}
-      <div className="fixed bottom-6 right-6 z-50">
+      <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-2">
         <Button
           size="icon"
-          className="size-12 rounded-full shadow-xl bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-105 transition-all duration-300"
+          className="size-12 rounded-full shadow-xl bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-105 transition-all duration-300 group relative"
           onClick={() => setIsOpen(true)}
+          title="Open AI Assistant (⌘J or Space)"
         >
-          <MessageSquarePlus className="size-6" />
-          <span className="sr-only">Open AI Assistant</span>
+          <Keyboard className="size-6" />
+          <span className="sr-only">Open AI Assistant (Cmd+J or Space)</span>
         </Button>
       </div>
 
