@@ -11,12 +11,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Search, MoreVertical, Eye, Trash2 } from "lucide-react";
+import { Search, MoreVertical, Eye, Trash2, UserCog } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import type { ClientWithStats } from "@/types";
 import { getClientsAction, deleteClientAction } from "@/app/actions/clients";
+import { impersonateClientAction } from "@/app/actions/auth";
 import { formatDate } from "@/lib/utils";
 import { ClientsTableSkeleton } from "./clients-table-skeleton";
 
@@ -75,6 +76,22 @@ export function ClientsTable() {
       loadClients();
     } else {
       toast.error(`Failed to delete client: ${result.error}`);
+    }
+  }
+
+  async function handleImpersonate(id: string, name: string) {
+    const loadingToast = toast.loading(`Switching to ${name}...`);
+    
+    const result = await impersonateClientAction(id);
+    
+    toast.dismiss(loadingToast);
+    
+    if (result.success) {
+      toast.success(`Now viewing as ${name}`);
+      router.push("/dashboard");
+      router.refresh();
+    } else {
+      toast.error(result.error || "Failed to switch client view");
     }
   }
 
@@ -168,6 +185,12 @@ export function ClientsTable() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
+                        <DropdownMenuItem
+                          onClick={() => handleImpersonate(client.id, client.name)}
+                        >
+                          <UserCog className="mr-2 size-4" />
+                          View as Client
+                        </DropdownMenuItem>
                         <DropdownMenuItem asChild>
                           <Link
                             href={`/dashboard/clients/${client.id}`}

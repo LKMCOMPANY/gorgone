@@ -4,6 +4,7 @@
 
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getEffectiveUser } from "./impersonation";
 import type { User, Profile } from "@/types";
 
 /**
@@ -35,7 +36,7 @@ export async function getCurrentUser(): Promise<User | null> {
       return null;
     }
 
-    return {
+    const realUser: User = {
       id: profile.id,
       email: profile.email,
       role: profile.role,
@@ -43,6 +44,9 @@ export async function getCurrentUser(): Promise<User | null> {
       client_id: profile.client_id,
       created_at: profile.created_at,
     };
+
+    // Apply impersonation if active
+    return await getEffectiveUser(realUser);
   } catch (err) {
     // Log unexpected errors in production for monitoring
     if (process.env.NODE_ENV === "production") {
