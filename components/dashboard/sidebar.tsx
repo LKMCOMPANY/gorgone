@@ -129,7 +129,11 @@ export function DashboardSidebar({
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname === "/dashboard"} tooltip="Dashboard">
+                <SidebarMenuButton 
+                  asChild 
+                  isActive={pathname === "/dashboard"} 
+                  tooltip={clientId ? "IA Monitoring" : "Home"}
+                >
                   <Link href="/dashboard">
                     <div className="relative size-4 shrink-0">
                       <Image
@@ -145,7 +149,7 @@ export function DashboardSidebar({
                         className="object-contain hidden dark:block"
                       />
                     </div>
-                    <span>IA Monitoring</span>
+                    <span>{clientId ? "IA Monitoring" : "Home"}</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
