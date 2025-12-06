@@ -2,9 +2,9 @@
 
 import * as React from "react";
 import { DashboardChat } from "./dashboard-chat";
-import { Sheet, SheetContent, SheetTitle, SheetDescription } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTitle, SheetDescription, SheetClose } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Keyboard } from "lucide-react";
+import { Keyboard, X } from "lucide-react";
 import { usePathname } from "next/navigation";
 import type { Zone } from "@/types";
 
@@ -71,6 +71,17 @@ export function GlobalChatSheet({ zones }: GlobalChatSheetProps) {
           side="right" 
           className="w-full sm:max-w-xl p-0 border-l border-white/10 shadow-2xl sm:rounded-l-2xl overflow-hidden bg-background/60 backdrop-blur-xl supports-[backdrop-filter]:bg-background/40 pointer-events-auto"
         >
+          {/* Custom Close Button */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute right-4 top-4 z-50 h-8 w-8 rounded-full bg-background/20 hover:bg-background/40 backdrop-blur-md border border-white/10 text-muted-foreground hover:text-foreground transition-colors"
+            onClick={() => setIsOpen(false)}
+          >
+            <X className="h-4 w-4" />
+            <span className="sr-only">Close</span>
+          </Button>
+
           {/* Hidden Title/Description for Accessibility */}
           <div className="sr-only">
             <SheetTitle>AI Assistant</SheetTitle>
