@@ -20,10 +20,7 @@ const geistMono = Geist_Mono({
 export const metadata = baseMetadata;
 
 export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "white" },
-    { media: "(prefers-color-scheme: dark)", color: "black" },
-  ],
+  themeColor: "#000000", // Force black for PWA/Mobile status bar
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
