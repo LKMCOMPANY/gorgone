@@ -687,7 +687,7 @@ function SceneContent({
 }
 
 /**
- * Hover Tooltip - Elegant Design
+ * Hover Tooltip - Elegant Design (Glassmorphism)
  */
 function HoverTooltip({ 
   tweet 
@@ -695,51 +695,61 @@ function HoverTooltip({
   tweet: EnrichedTwitterProjection 
 }) {
   return (
-    <div className="absolute top-4 left-4 z-10 max-w-sm animate-in fade-in-0 slide-in-from-left-2 duration-200">
-      <div className="rounded-xl border border-border/60 bg-card/98 backdrop-blur-xl p-4 shadow-2xl space-y-3">
+    <div className="absolute top-4 right-4 z-20 max-w-sm animate-in fade-in-0 zoom-in-95 duration-200">
+      <div className="glass rounded-xl p-4 shadow-2xl space-y-3 border-border/60">
         {/* Author */}
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center ring-2 ring-border/50">
-            <span className="text-sm font-semibold text-primary">
+          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center ring-2 ring-border/50 shadow-inner">
+            <span className="text-sm font-bold text-primary">
               {tweet.author_name?.charAt(0).toUpperCase() || '?'}
             </span>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold truncate">{tweet.author_name}</p>
+            <p className="text-sm font-semibold truncate text-foreground">{tweet.author_name}</p>
             <p className="text-xs text-muted-foreground truncate">@{tweet.author_username}</p>
           </div>
         </div>
 
         {/* Tweet Text */}
-        <p className="text-sm leading-relaxed line-clamp-3 text-foreground/90">{tweet.text}</p>
+        <p className="text-sm leading-relaxed line-clamp-3 text-foreground/90 font-medium">
+          {tweet.text}
+        </p>
 
-        {/* Engagement Stats */}
-        <div className="flex items-center gap-4 pt-2 border-t border-border/50">
+        {/* Engagement Stats - Using Chart Colors */}
+        <div className="flex items-center gap-4 pt-3 border-t border-border/40">
           <div className="flex items-center gap-1.5">
-            <svg className="size-3.5 text-blue-500" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-            </svg>
-            <span className="text-xs font-medium">{tweet.like_count.toLocaleString()}</span>
+            <div className="p-1 rounded-full bg-chart-3/10">
+              <svg className="size-3 text-chart-3" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+              </svg>
+            </div>
+            <span className="text-xs font-bold tabular-nums text-muted-foreground">{tweet.like_count.toLocaleString()}</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <svg className="size-3.5 text-emerald-500" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M23 3a10.9 10.9 0 01-3.14 1.53 4.48 4.48 0 00-7.86 3v1A10.66 10.66 0 013 4s-4 9 5 13a11.64 11.64 0 01-7 2c9 5 20 0 20-11.5a4.5 4.5 0 00-.08-.83A7.72 7.72 0 0023 3z"/>
-            </svg>
-            <span className="text-xs font-medium">{tweet.retweet_count.toLocaleString()}</span>
+            <div className="p-1 rounded-full bg-chart-2/10">
+              <svg className="size-3 text-chart-2" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M23 3a10.9 10.9 0 01-3.14 1.53 4.48 4.48 0 00-7.86 3v1A10.66 10.66 0 013 4s-4 9 5 13a11.64 11.64 0 01-7 2c9 5 20 0 20-11.5a4.5 4.5 0 00-.08-.83A7.72 7.72 0 0023 3z"/>
+              </svg>
+            </div>
+            <span className="text-xs font-bold tabular-nums text-muted-foreground">{tweet.retweet_count.toLocaleString()}</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <svg className="size-3.5 text-purple-500" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/>
-            </svg>
-            <span className="text-xs font-medium">{tweet.reply_count.toLocaleString()}</span>
+            <div className="p-1 rounded-full bg-chart-1/10">
+              <svg className="size-3 text-chart-1" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/>
+              </svg>
+            </div>
+            <span className="text-xs font-bold tabular-nums text-muted-foreground">{tweet.reply_count.toLocaleString()}</span>
           </div>
           {tweet.view_count > 0 && (
             <div className="flex items-center gap-1.5">
-              <svg className="size-3.5 text-amber-500" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                <circle cx="12" cy="12" r="3"/>
-              </svg>
-              <span className="text-xs font-medium">{tweet.view_count.toLocaleString()}</span>
+              <div className="p-1 rounded-full bg-chart-5/10">
+                <svg className="size-3 text-chart-5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+              </div>
+              <span className="text-xs font-bold tabular-nums text-muted-foreground">{tweet.view_count.toLocaleString()}</span>
             </div>
           )}
         </div>
@@ -821,14 +831,14 @@ export function TwitterOpinionMap3D({
   return (
     <Card 
       ref={containerRef}
-      className="relative h-[600px] overflow-hidden bg-gradient-to-br from-background via-background to-muted/5 border-border shadow-xl"
+      className="relative h-[600px] overflow-hidden bg-gradient-to-br from-background via-background to-muted/5 border shadow-xs p-0 rounded-xl"
     >
       {/* Controls - Elegant Overlay */}
       <div className="absolute top-4 right-4 z-10 flex flex-col gap-2">
         <Button
           variant="secondary"
           size="icon"
-          className="h-9 w-9 bg-background/95 backdrop-blur-md border-border/60 shadow-lg hover:bg-background hover:shadow-xl hover:scale-105 transition-all duration-[var(--transition-fast)]"
+          className="h-9 w-9 bg-background/95 backdrop-blur-md border border-border/60 shadow-xs hover:bg-background hover:shadow-sm transition-all duration-[var(--transition-fast)]"
           onClick={handleReset}
           title="Fit to View"
         >
@@ -837,7 +847,12 @@ export function TwitterOpinionMap3D({
         <Button
           variant={autoRotate ? "default" : "secondary"}
           size="icon"
-          className="h-9 w-9 bg-background/95 backdrop-blur-md border-border/60 shadow-lg hover:bg-background hover:shadow-xl hover:scale-105 transition-all duration-[var(--transition-fast)]"
+          className={cn(
+            "h-9 w-9 backdrop-blur-md border border-border/60 shadow-xs transition-all duration-[var(--transition-fast)]",
+            autoRotate 
+              ? "bg-primary text-primary-foreground border-primary/50" 
+              : "bg-background/95 hover:bg-background hover:shadow-sm"
+          )}
           onClick={() => setAutoRotate(!autoRotate)}
           title="Auto-Rotation"
         >
@@ -856,7 +871,7 @@ export function TwitterOpinionMap3D({
         <Button
           variant="secondary"
           size="icon"
-          className="h-9 w-9 bg-background/95 backdrop-blur-md border-border/60 shadow-lg hover:bg-background hover:shadow-xl hover:scale-105 transition-all duration-[var(--transition-fast)]"
+          className="h-9 w-9 bg-background/95 backdrop-blur-md border border-border/60 shadow-xs hover:bg-background hover:shadow-sm transition-all duration-[var(--transition-fast)]"
           onClick={handleDownload}
           title="Export PNG"
         >
@@ -867,72 +882,70 @@ export function TwitterOpinionMap3D({
       {/* Legend Panel - Minimal & Elegant */}
       <div
         className={cn(
-          "absolute top-4 left-4 bg-background/95 backdrop-blur-xl border border-border/60 rounded-xl shadow-2xl transition-all duration-300 z-10",
-          isLegendCollapsed ? "w-11" : "w-64"
+          "absolute top-4 left-4 border border-border/60 rounded-xl shadow-md transition-all duration-300 z-10 glass",
+          isLegendCollapsed ? "w-10 h-10 flex items-center justify-center p-0 cursor-pointer hover:scale-105 active:scale-95" : "w-64"
         )}
+        onClick={isLegendCollapsed ? () => setIsLegendCollapsed(false) : undefined}
       >
-        <div className="p-3 border-b border-border/50 flex items-center justify-between gap-2">
-          {!isLegendCollapsed && (
-            <>
+        {isLegendCollapsed ? (
+          <div className="flex items-center justify-center w-full h-full text-muted-foreground hover:text-primary transition-colors">
+            <Layers className="size-5" />
+          </div>
+        ) : (
+          <>
+            <div className="p-3 border-b border-border/50 flex items-center justify-between gap-2 bg-muted/20">
               <div className="flex items-center gap-2 min-w-0 flex-1">
                 <Layers className="size-4 text-muted-foreground flex-shrink-0" />
                 <span className="font-medium text-sm truncate">Clusters</span>
               </div>
-              <Badge variant="outline" className="text-xs flex-shrink-0 border-border/60">
+              <Badge variant="outline" className="text-xs flex-shrink-0 border-border/60 bg-background/50">
                 {clusters.length}
               </Badge>
-            </>
-          )}
-          <Button
-            onClick={() => setIsLegendCollapsed(!isLegendCollapsed)}
-            variant="ghost"
-            size="icon"
-            className={cn(
-              "size-7 flex-shrink-0 transition-transform duration-300 hover:bg-muted/50",
-              isLegendCollapsed ? "rotate-0" : "rotate-180"
-            )}
-          >
-            <ChevronRight className="size-4" />
-          </Button>
-        </div>
+              <Button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsLegendCollapsed(true);
+                }}
+                variant="ghost"
+                size="icon"
+                className="size-6 flex-shrink-0 hover:bg-muted/50 -mr-1"
+              >
+                <ChevronRight className="size-4 rotate-180" />
+              </Button>
+            </div>
 
-        <div
-          className={cn(
-            "transition-all duration-300 overflow-hidden",
-            isLegendCollapsed ? "max-h-0 opacity-0" : "max-h-[400px] opacity-100"
-          )}
-        >
-          <div className="max-h-[340px] overflow-y-auto p-3 space-y-1.5">
-            {clusters.map((cluster) => {
-              const isSelected = selection.type === 'selected' && 
-                               selection.clusterId === cluster.cluster_id
-              
-              return (
-                <button
-                  key={cluster.cluster_id}
-                  className={cn(
-                    "flex items-start gap-2.5 w-full text-left hover:bg-muted/50 rounded-lg p-2.5 transition-all duration-[var(--transition-fast)]",
-                    isSelected && "bg-primary/8 ring-2 ring-primary/20 shadow-sm"
-                  )}
-                  onClick={() => onSelectCluster(cluster.cluster_id)}
-                >
-                  <div
-                    className="w-3.5 h-3.5 rounded-full flex-shrink-0 mt-0.5 ring-2 ring-background/80 shadow-md transition-all duration-[var(--transition-fast)] hover:scale-125 hover:shadow-lg"
-                    style={{ backgroundColor: getOpinionClusterColor(cluster.cluster_id) }}
-                  />
-                  <div className="flex-1 min-w-0">
-                    <div className="text-xs font-medium truncate leading-tight">
-                      {cluster.label}
+            <div className="max-h-[340px] overflow-y-auto p-2 space-y-1 scrollbar-thin">
+              {clusters.map((cluster) => {
+                const isSelected = selection.type === 'selected' && 
+                                 selection.clusterId === cluster.cluster_id
+                
+                return (
+                  <button
+                    key={cluster.cluster_id}
+                    className={cn(
+                      "flex items-start gap-2.5 w-full text-left hover:bg-muted/40 rounded-lg p-2 transition-all duration-[var(--transition-fast)] group",
+                      isSelected && "bg-primary/10 ring-1 ring-primary/20"
+                    )}
+                    onClick={() => onSelectCluster(cluster.cluster_id)}
+                  >
+                    <div
+                      className="w-3 h-3 rounded-full flex-shrink-0 mt-1 ring-2 ring-background/80 shadow-sm transition-transform duration-[var(--transition-fast)] group-hover:scale-110"
+                      style={{ backgroundColor: getOpinionClusterColor(cluster.cluster_id) }}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs font-medium truncate leading-tight group-hover:text-primary transition-colors">
+                        {cluster.label}
+                      </div>
+                      <div className="text-[10px] text-muted-foreground mt-0.5 font-mono">
+                        {cluster.tweet_count} tweets
+                      </div>
                     </div>
-                    <div className="text-xs text-muted-foreground mt-0.5">
-                      {cluster.tweet_count} tweets
-                    </div>
-                  </div>
-                </button>
-              )
-            })}
-          </div>
-        </div>
+                  </button>
+                )
+              })}
+            </div>
+          </>
+        )}
       </div>
 
       {/* Hover Tooltip */}
@@ -992,21 +1005,27 @@ export function TwitterOpinionMap3D({
       </div>
 
       {/* Info Card - Subtle & Elegant */}
-      <div className="absolute bottom-4 right-4 bg-background/85 backdrop-blur-xl border border-border/60 rounded-xl shadow-xl px-3 py-2.5 max-w-[280px] opacity-60 hover:opacity-100 transition-all duration-300">
+      <div className="absolute bottom-4 right-4 glass rounded-xl shadow-md px-3 py-2.5 max-w-[280px] transition-all duration-300 hover:scale-105">
         <div className="space-y-1.5">
-          <div className="text-xs font-semibold text-foreground mb-2">3D Opinion Map</div>
-          <div className="space-y-1 text-[10px] leading-relaxed text-muted-foreground">
-            <div className="flex items-start gap-1.5">
-              <span className="text-foreground font-medium min-w-[24px]">Size:</span>
-              <span>Tweet engagement</span>
+          <div className="text-xs font-bold text-foreground mb-2 tracking-wide">3D OPINION MAP</div>
+          <div className="space-y-1.5 text-[10px] leading-relaxed text-muted-foreground">
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 flex items-center justify-center bg-muted/30 rounded border border-border/50">
+                <div className="w-1.5 h-1.5 rounded-full bg-foreground/50"></div>
+              </div>
+              <span className="font-medium">Size: Engagement</span>
             </div>
-            <div className="flex items-start gap-1.5">
-              <span className="text-foreground font-medium min-w-[24px]">Color:</span>
-              <span>Opinion cluster</span>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 flex items-center justify-center bg-muted/30 rounded border border-border/50">
+                <div className="w-1.5 h-1.5 rounded-full bg-chart-1"></div>
+              </div>
+              <span className="font-medium">Color: Cluster</span>
             </div>
-            <div className="flex items-start gap-1.5">
-              <span className="text-foreground font-medium min-w-[24px]">Near:</span>
-              <span>Similar opinions</span>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 flex items-center justify-center bg-muted/30 rounded border border-border/50">
+                <div className="w-2 h-0.5 bg-foreground/50 rounded-full"></div>
+              </div>
+              <span className="font-medium">Near: Similarity</span>
             </div>
           </div>
         </div>

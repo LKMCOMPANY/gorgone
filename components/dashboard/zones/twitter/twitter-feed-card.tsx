@@ -267,7 +267,7 @@ export function TwitterFeedCard({
       <div className={layoutClass}>
         {/* Tweet Content */}
         <div className="p-4 min-w-0 flex-1">
-          <div className="flex gap-3 p-4 rounded-xl bg-popover border border-border/60 shadow-sm">
+          <div className="flex gap-3 p-4 rounded-xl bg-background border border-border/60 shadow-xs transition-colors duration-[var(--transition-fast)]">
             {/* Avatar */}
             <div className="shrink-0">
               <div className="size-10 rounded-full overflow-hidden bg-muted border border-border/50 shadow-sm">

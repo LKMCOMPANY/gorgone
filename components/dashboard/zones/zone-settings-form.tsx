@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Trash2, Bot } from "lucide-react";
+import Image from "next/image";
+import { Trash2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -404,10 +405,23 @@ export function ZoneSettingsForm({ zone, userRole }: ZoneSettingsFormProps) {
         <Card className="card-padding space-y-6 border-border">
           <div className="space-y-2">
             <h3 className="text-lg font-semibold flex items-center gap-2">
-              <Bot className="size-5 text-primary" />
-              Attila Automation
+              <div className="relative size-5">
+                <Image
+                  src="/AttilaBlack.svg"
+                  alt="Attila"
+                  fill
+                  className="object-contain dark:hidden"
+                />
+                <Image
+                  src="/AttilaWhite.svg"
+                  alt="Attila"
+                  fill
+                  className="object-contain hidden dark:block"
+                />
+              </div>
+              Attila Orchestrator
             </h3>
-            <p className="text-body text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               Enable AI-powered avatar response systems for this zone. This requires Manager privileges to access.
             </p>
           </div>
@@ -416,7 +430,20 @@ export function ZoneSettingsForm({ zone, userRole }: ZoneSettingsFormProps) {
             <div className="card-interactive flex items-center justify-between rounded-lg border border-border bg-muted/20 p-4 transition-all duration-200 hover:bg-muted/40">
               <div className="flex items-center gap-3">
                 <div className="flex size-10 flex-shrink-0 items-center justify-center rounded-full bg-primary/10">
-                  <Bot className="size-5 text-primary" />
+                  <div className="relative size-5">
+                    <Image
+                      src="/AttilaBlack.svg"
+                      alt="Attila"
+                      fill
+                      className="object-contain dark:hidden"
+                    />
+                    <Image
+                      src="/AttilaWhite.svg"
+                      alt="Attila"
+                      fill
+                      className="object-contain hidden dark:block"
+                    />
+                  </div>
                 </div>
                 <div className="space-y-0.5">
                   <Label

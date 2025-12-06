@@ -6,7 +6,7 @@
  */
 
 import { useState } from 'react'
-import { Card, CardContent } from '@/components/ui/card'
+import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Progress } from '@/components/ui/progress'
@@ -92,8 +92,7 @@ export function TwitterOpinionMapControls({
   const PhaseIcon = phaseInfo?.icon
 
   return (
-    <Card className="shadow-sm">
-      <CardContent>
+    <Card className="shadow-xs p-6">
         <div className="space-y-4">
           {/* Configuration */}
           <div className="flex flex-col sm:flex-row sm:items-center gap-4">
@@ -108,7 +107,7 @@ export function TwitterOpinionMapControls({
                   onValueChange={(v) => setPeriod(v as TimePeriod)}
                   disabled={isGenerating}
                 >
-                  <SelectTrigger className="w-36 h-10">
+                  <SelectTrigger className="w-36 h-9">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -133,14 +132,14 @@ export function TwitterOpinionMapControls({
                   onValueChange={(v) => setSampleSize(parseInt(v))}
                   disabled={isGenerating}
                 >
-                  <SelectTrigger className="w-36 h-10">
+                  <SelectTrigger className="w-36 h-9">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="500">500 posts</SelectItem>
                     <SelectItem value="1000">1,000 posts</SelectItem>
                     <SelectItem value="2500">2,500 posts</SelectItem>
-                    <SelectItem value="5000">5,000 posts ⭐</SelectItem>
+                    <SelectItem value="5000">5,000 posts</SelectItem>
                     <SelectItem value="7500">7,500 posts</SelectItem>
                     <SelectItem value="10000">10,000 posts (max)</SelectItem>
                   </SelectContent>
@@ -150,7 +149,7 @@ export function TwitterOpinionMapControls({
 
             {/* Sample Size Warning */}
             {sampleSize > 5000 && !isGenerating && (
-              <div className="text-xs text-amber-600 dark:text-amber-500 flex items-center gap-1.5">
+              <div className="text-xs text-tactical-amber flex items-center gap-1.5">
                 <Clock className="size-3.5" />
                 <span>Large samples may take up to 15 minutes to process</span>
               </div>
@@ -179,7 +178,7 @@ export function TwitterOpinionMapControls({
 
           {/* Enhanced Progress Display (when generating) */}
           {isGenerating && session && (
-            <div className="space-y-4 pt-2 border-t border-border animate-in fade-in-0 slide-in-from-top-2 duration-300">
+            <div className="space-y-4 pt-2 border-t border-border animate-in fade-in-0 slide-in-from-top-2 duration-200">
               {/* Phase Badge and Cancel */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -273,10 +272,10 @@ export function TwitterOpinionMapControls({
 
           {/* Completed State */}
           {session?.status === 'completed' && !isGenerating && (
-            <div className="flex items-center gap-3 p-3 rounded-lg border border-primary/30 bg-primary/5 animate-in fade-in-0 slide-in-from-top-2 duration-300">
+            <div className="flex items-center gap-3 p-3 rounded-lg border border-tactical-green/30 bg-tactical-green/5 animate-in fade-in-0 slide-in-from-top-2 duration-200">
               <div className="flex-shrink-0">
-                <div className="p-2 rounded-full bg-primary/10">
-                  <Sparkles className="size-4 text-primary" />
+                <div className="p-2 rounded-full bg-tactical-green/10">
+                  <Sparkles className="size-4 text-tactical-green" />
                 </div>
               </div>
               <div className="flex-1 space-y-0.5">
@@ -300,14 +299,14 @@ export function TwitterOpinionMapControls({
 
           {/* Failed State */}
           {session?.status === 'failed' && (
-            <div className="flex items-center gap-3 p-3 rounded-lg border border-destructive/30 bg-destructive/5 animate-in fade-in-0 slide-in-from-top-2 duration-300">
+            <div className="flex items-center gap-3 p-3 rounded-lg border border-tactical-red/30 bg-tactical-red/5 animate-in fade-in-0 slide-in-from-top-2 duration-200">
               <div className="flex-shrink-0">
-                <div className="p-2 rounded-full bg-destructive/10">
-                  <X className="size-4 text-destructive" />
+                <div className="p-2 rounded-full bg-tactical-red/10">
+                  <X className="size-4 text-tactical-red" />
                 </div>
               </div>
               <div className="flex-1 space-y-0.5">
-                <p className="text-sm font-medium text-destructive">
+                <p className="text-sm font-medium text-tactical-red">
                   Generation failed
                 </p>
                 <p className="text-xs text-muted-foreground">
@@ -317,7 +316,6 @@ export function TwitterOpinionMapControls({
             </div>
           )}
         </div>
-      </CardContent>
     </Card>
   )
 }

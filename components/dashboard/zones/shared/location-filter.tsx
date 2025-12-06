@@ -108,7 +108,7 @@ export function LocationFilter({
       <div className={cn("space-y-3", className)}>
         <div className="flex items-center gap-2">
           <MapPin className="size-4 text-muted-foreground" />
-          <Skeleton className="size-44" />
+          <Skeleton className="h-4 w-24" />
         </div>
         <Skeleton className="h-9 w-full" />
         <div className="space-y-2">
@@ -185,7 +185,7 @@ export function LocationFilter({
             placeholder="Search locations..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="h-9 pl-9 pr-9 text-sm transition-shadow duration-[var(--transition-fast)] focus-visible:shadow-[var(--shadow-sm)]"
+            className="h-9 pl-9 pr-9 text-sm transition-shadow duration-[var(--transition-fast)] focus-visible:shadow-xs"
           />
           {search && (
             <Button

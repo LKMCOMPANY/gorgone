@@ -142,37 +142,31 @@ export function ChatSidebarIntegrated({ zones }: ChatSidebarIntegratedProps) {
           style={{ width: "clamp(360px, 28vw, 480px)" }}
         >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-border px-6 py-4">
+        <div className="flex items-center justify-between border-b border-border px-4 py-3 bg-muted/10">
           <div className="flex items-center gap-3 flex-1 min-w-0">
-            <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10 shadow-sm">
-              <MessageSquare className="size-5 text-primary" />
+            <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10 shadow-sm ring-1 ring-inset ring-primary/20">
+              <MessageSquare className="size-4 text-primary" />
             </div>
-            <div className="flex-1 min-w-0 space-y-1">
-              <h2 className="scroll-m-20 text-xl font-semibold tracking-tight">AL-IA</h2>
-
-              {/* Zone Selector */}
+            <div className="flex-1 min-w-0">
+              <h2 className="text-sm font-semibold tracking-tight">AL-IA</h2>
               {zones.length > 1 ? (
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground">
-                    Analyzing:
-                  </span>
-                  <Select value={activeZone.id} onValueChange={setSelectedZoneId}>
-                    <SelectTrigger className="h-6 w-auto border-none bg-muted/50 px-2 text-xs hover:bg-muted transition-colors duration-[var(--transition-fast)]">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {zones.map((z) => (
-                        <SelectItem key={z.id} value={z.id}>
-                          {z.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                <Select value={activeZone.id} onValueChange={setSelectedZoneId}>
+                  <SelectTrigger className="h-6 w-auto border-none bg-transparent p-0 text-xs text-muted-foreground hover:text-foreground transition-colors focus:ring-0 focus:ring-offset-0 shadow-none gap-1">
+                    <span className="truncate max-w-[140px]">Zone: {activeZone.name}</span>
+                    <ChevronDown className="size-3" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {zones.map((z) => (
+                      <SelectItem key={z.id} value={z.id}>
+                        {z.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               ) : (
-                <Badge variant="secondary" className="h-6 text-xs">
-                  {activeZone.name}
-                </Badge>
+                <p className="text-xs text-muted-foreground">
+                  Zone: {activeZone.name}
+                </p>
               )}
             </div>
           </div>
@@ -187,7 +181,7 @@ export function ChatSidebarIntegrated({ zones }: ChatSidebarIntegratedProps) {
                       variant="ghost"
                       size="icon"
                       onClick={handleNewConversation}
-                      className="size-8 transition-colors duration-[var(--transition-fast)]"
+                      className="size-8 text-muted-foreground hover:text-primary transition-colors duration-[var(--transition-fast)]"
                     >
                       <RotateCcw className="size-4" />
                       <span className="sr-only">New conversation</span>
@@ -205,7 +199,7 @@ export function ChatSidebarIntegrated({ zones }: ChatSidebarIntegratedProps) {
               variant="ghost"
               size="icon"
               onClick={close}
-              className="size-8 transition-colors duration-[var(--transition-fast)]"
+              className="size-8 text-muted-foreground hover:text-destructive transition-colors duration-[var(--transition-fast)]"
             >
               <X className="size-4" />
               <span className="sr-only">Close chat</span>

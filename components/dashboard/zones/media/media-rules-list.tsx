@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Plus, MoreVertical, Pencil, Pause, Play, Trash2, Clock, Activity, Download } from "lucide-react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import type { MediaRule } from "@/types";
 
 /**
@@ -169,7 +170,7 @@ export function MediaRulesList({
   }
 
   return (
-    <Card className="card-padding">
+    <Card className="p-4">
       <div className="space-y-5">
         {/* Header with count and action */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -187,18 +188,31 @@ export function MediaRulesList({
           {rules.map((rule) => (
             <div
               key={rule.id}
-              className="card-interactive p-4 space-y-3"
+              className="rounded-xl border border-border bg-background p-4 space-y-3 transition-all duration-[var(--transition-fast)] hover:border-primary/30 hover:shadow-sm"
             >
               {/* Header: Status + Name + Actions */}
               <div className="flex items-start gap-3">
                 <Badge 
-                  variant={rule.is_active ? "default" : "secondary"}
-                  className="flex-shrink-0"
+                  variant={rule.is_active ? "outline" : "secondary"}
+                  className={cn(
+                    "flex-shrink-0 gap-1.5 pl-2",
+                    rule.is_active ? "bg-tactical-green/10 text-tactical-green border-tactical-green/20" : "text-muted-foreground"
+                  )}
                 >
-                  {rule.is_active ? "Active" : "Paused"}
+                  {rule.is_active ? (
+                    <>
+                      <Activity className="size-3" />
+                      <span>Active</span>
+                    </>
+                  ) : (
+                    <>
+                      <Pause className="size-3" />
+                      <span>Paused</span>
+                    </>
+                  )}
                 </Badge>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">
+                  <p className="text-sm font-medium truncate text-foreground">
                     {rule.name}
                   </p>
                   {rule.description && (
@@ -253,7 +267,7 @@ export function MediaRulesList({
               </div>
 
               {/* Query Preview */}
-              <div className="rounded-lg border border-dashed border-border/60 bg-muted/20 p-3">
+              <div className="rounded-lg border border-dashed border-border/60 bg-muted/30 p-3">
                 <p className="text-xs font-mono text-muted-foreground break-all">
                   {getQueryPreview(rule)}
                 </p>
@@ -272,21 +286,21 @@ export function MediaRulesList({
                 </span>
                 {rule.last_fetched_at && (
                   <>
-                    <span className="hidden sm:inline">•</span>
+                    <span className="hidden sm:inline text-border">•</span>
                     <span className="flex items-center gap-1.5">
                       <Activity className="size-3.5 flex-shrink-0" />
                       <span>Last fetched {formatDistanceToNow(new Date(rule.last_fetched_at))}</span>
                     </span>
                   </>
                 )}
-                <span className="hidden sm:inline">•</span>
-                <span>{rule.articles_collected} articles collected</span>
+                <span className="hidden sm:inline text-border">•</span>
+                <span><span className="font-mono font-medium text-foreground">{rule.articles_collected}</span> articles collected</span>
               </div>
 
               {/* Fetch status (if error) */}
               {rule.last_fetch_status === "error" && rule.last_fetch_error && (
-                <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3">
-                  <p className="text-xs text-destructive font-medium">
+                <div className="rounded-lg border border-tactical-red/30 bg-tactical-red/5 p-3">
+                  <p className="text-xs text-tactical-red font-medium">
                     Last fetch failed: {rule.last_fetch_error}
                   </p>
                 </div>

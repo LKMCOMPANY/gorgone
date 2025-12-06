@@ -8,7 +8,7 @@
 import { useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { ChevronLeft, ChevronRight, Heart, Repeat2, MessageCircle } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Heart, Repeat2, MessageCircle, Layers } from 'lucide-react'
 import { TwitterFeedCard } from '../twitter-feed-card'
 import { mapProjectionToTweet, sortByEngagement } from '@/lib/data/twitter/opinion-map/mapping'
 import type { 
@@ -95,36 +95,38 @@ export function TwitterOpinionTweetSlider({
   const tweet = mapProjectionToTweet(currentTweet)
 
   return (
-    <div className="space-y-0">
+    <div className="space-y-0 bg-muted/5 border-t border-border/60">
       {/* Navigation Header */}
-      <div className="flex items-center justify-between p-4 border-b border-border">
+      <div className="flex items-center justify-between p-4 border-b border-border/60 bg-background/50 backdrop-blur-sm">
         <Button
           variant="outline"
           size="icon"
-          className="size-8"
+          className="size-8 shadow-xs bg-background"
           onClick={handlePrevious}
           disabled={validIndex === 0}
         >
           <ChevronLeft className="size-4" />
         </Button>
 
+        <div className="flex flex-col items-center gap-1">
         <div className="flex items-center gap-2">
           <div
-            className="w-3 h-3 rounded-full"
+              className="w-2.5 h-2.5 rounded-full shadow-sm"
             style={{ backgroundColor: color }}
           />
-          <Badge variant="secondary" className="text-xs font-medium">
+            <span className="text-sm font-semibold truncate max-w-[200px]">
             {cluster.label}
-          </Badge>
-          <span className="text-sm text-muted-foreground">
-            {validIndex + 1} / {sortedTweets.length}
+            </span>
+          </div>
+          <span className="text-xs text-muted-foreground font-mono">
+            {validIndex + 1} / {sortedTweets.length} posts
           </span>
         </div>
 
         <Button
           variant="outline"
           size="icon"
-          className="size-8"
+          className="size-8 shadow-xs bg-background"
           onClick={handleNext}
           disabled={validIndex === sortedTweets.length - 1}
         >
@@ -133,28 +135,17 @@ export function TwitterOpinionTweetSlider({
       </div>
 
       {/* Progress indicators */}
-      <div className="px-4 py-3 flex items-center gap-1 border-b border-border overflow-x-auto">
-        {Array.from({ length: Math.min(sortedTweets.length, 20) }).map((_, i) => {
-          const segmentSize = Math.ceil(sortedTweets.length / 20)
-          const segmentIndex = Math.floor(validIndex / segmentSize)
-          const isActive = i === segmentIndex
-          
-          return (
+      <div className="px-4 h-1 bg-muted/20 w-full flex">
             <div
-              key={i}
-              className={cn(
-                'h-1 rounded-full transition-all duration-[var(--transition-base)]',
-                isActive ? 'w-8 bg-primary' : 'w-1 bg-muted-foreground/30'
-              )}
+          className="h-full bg-primary transition-all duration-300 ease-out"
+          style={{ width: `${((validIndex + 1) / sortedTweets.length) * 100}%` }}
             />
-          )
-        })}
       </div>
 
       {/* Tweet Display using TwitterFeedCard */}
-      <div className="p-4 space-y-4 animate-in fade-in-0 duration-300">
+      <div className="p-6 space-y-6 animate-in fade-in-0 duration-300">
         {/* Tweet Card - Constrained width */}
-        <div className="max-w-full">
+        <div className="max-w-2xl mx-auto">
           <TwitterFeedCard
             tweet={tweet}
             tags={[]} // Profile tags not available in projections
@@ -164,30 +155,33 @@ export function TwitterOpinionTweetSlider({
           />
         </div>
 
-        {/* Cluster Info */}
+        {/* Cluster Info (Nested Card Pattern) */}
         {cluster.keywords && cluster.keywords.length > 0 && (
-          <div className="p-4 rounded-lg border border-border bg-muted/30">
-            <p className="text-xs font-semibold text-foreground mb-2">
+          <div className="max-w-2xl mx-auto rounded-xl bg-background border border-border/60 shadow-xs p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <Layers className="size-4 text-muted-foreground" />
+              <p className="text-sm font-medium text-foreground">
               Cluster Keywords
             </p>
+            </div>
             <div className="flex flex-wrap gap-1.5">
               {cluster.keywords.map((keyword, i) => (
                 <Badge
                   key={i}
-                  variant="outline"
-                  className="text-xs bg-card"
+                  variant="secondary"
+                  className="text-xs bg-muted/50 text-muted-foreground border-border/50 font-mono"
                 >
-                  {keyword}
+                  #{keyword}
                 </Badge>
               ))}
             </div>
           </div>
         )}
 
-        {/* Surrounding tweets preview */}
+        {/* Surrounding tweets preview (Nested Card Pattern) */}
         {sortedTweets.length > 1 && (
-          <div className="space-y-3">
-            <h4 className="text-sm font-semibold text-foreground">
+          <div className="max-w-2xl mx-auto space-y-3">
+            <h4 className="text-sm font-semibold text-foreground pl-1">
               Other High-Engagement Posts
             </h4>
             <div className="space-y-2">
@@ -198,23 +192,23 @@ export function TwitterOpinionTweetSlider({
                   <button
                     key={proj.tweet_id}
                     onClick={() => onTweetChange(proj.tweet_id)}
-                    className="w-full text-left p-3 rounded-lg border border-border hover:border-primary/50 hover:bg-muted/30 transition-all duration-[var(--transition-fast)]"
+                    className="w-full text-left p-3 rounded-xl bg-background border border-border/60 shadow-xs hover:border-primary/30 hover:shadow-sm transition-all duration-[var(--transition-fast)] group"
                   >
-                    <p className="text-sm text-foreground line-clamp-2 break-words">
+                    <p className="text-sm text-foreground/90 line-clamp-2 break-words font-medium group-hover:text-primary transition-colors">
                       {proj.text}
                     </p>
-                    <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
-                      <span className="flex items-center gap-1">
-                        <Heart className="size-3" />
-                        {proj.like_count.toLocaleString()}
+                    <div className="flex items-center gap-4 mt-2.5 text-xs text-muted-foreground">
+                      <span className="flex items-center gap-1.5">
+                        <Heart className="size-3.5 text-chart-1" />
+                        <span className="font-mono">{proj.like_count.toLocaleString()}</span>
                       </span>
-                      <span className="flex items-center gap-1">
-                        <Repeat2 className="size-3" />
-                        {proj.retweet_count.toLocaleString()}
+                      <span className="flex items-center gap-1.5">
+                        <Repeat2 className="size-3.5 text-chart-2" />
+                        <span className="font-mono">{proj.retweet_count.toLocaleString()}</span>
                       </span>
-                      <span className="flex items-center gap-1">
-                        <MessageCircle className="size-3" />
-                        {proj.reply_count.toLocaleString()}
+                      <span className="flex items-center gap-1.5">
+                        <MessageCircle className="size-3.5 text-chart-3" />
+                        <span className="font-mono">{proj.reply_count.toLocaleString()}</span>
                       </span>
                     </div>
                   </button>

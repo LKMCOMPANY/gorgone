@@ -36,7 +36,7 @@ export function ConversationContent({ children, className }: ConversationContent
     <div
       ref={scrollRef}
       className={cn(
-        "flex-1 overflow-y-auto overflow-x-hidden space-y-6 p-6 scrollbar-thin",
+        "flex-1 overflow-y-auto overflow-x-hidden space-y-4 p-4 scrollbar-thin",
         className
       )}
     >

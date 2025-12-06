@@ -22,51 +22,46 @@ const LABEL_TYPES: Array<{
   value: TwitterProfileTagType;
   label: string;
   color: string;
-  description: string;
 }> = [
   { 
     value: "attila", 
     label: "Attila", 
-    color: "bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/20",
-    description: "High-priority targets requiring immediate attention"
+    color: "bg-tactical-red/10 text-tactical-red border-tactical-red/20",
   },
   { 
     value: "adversary", 
     label: "Adversary", 
-    color: "bg-orange-500/10 text-orange-700 dark:text-orange-400 border-orange-500/20",
-    description: "Opposition profiles or hostile actors"
+    color: "bg-tactical-amber/10 text-tactical-amber border-tactical-amber/20",
   },
   { 
     value: "surveillance", 
     label: "Surveillance", 
-    color: "bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 border-yellow-500/20",
-    description: "Profiles under active monitoring"
+    color: "bg-chart-4/10 text-chart-4 border-chart-4/20",
   },
   { 
     value: "target", 
     label: "Target", 
-    color: "bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20",
-    description: "Key profiles of strategic interest"
+    color: "bg-tactical-blue/10 text-tactical-blue border-tactical-blue/20",
   },
   { 
     value: "ally", 
     label: "Ally", 
-    color: "bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20",
-    description: "Friendly or supportive profiles"
+    color: "bg-tactical-green/10 text-tactical-green border-tactical-green/20",
   },
   { 
     value: "asset", 
     label: "Asset", 
-    color: "bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-500/20",
-    description: "Valuable resources or information sources"
+    color: "bg-chart-1/10 text-chart-1 border-chart-1/20",
   },
   { 
     value: "local_team", 
     label: "Local Team", 
-    color: "bg-cyan-500/10 text-cyan-700 dark:text-cyan-400 border-cyan-500/20",
-    description: "Internal team members or local contacts"
+    color: "bg-chart-2/10 text-chart-2 border-chart-2/20",
   },
 ];
+
+import Image from "next/image";
+import { cn } from "@/lib/utils";
 
 export function TwitterTrackedProfilesTab({ zoneId }: TwitterTrackedProfilesTabProps) {
   const [activeTab, setActiveTab] = useState<TwitterProfileTagType>("attila");
@@ -303,16 +298,33 @@ export function TwitterTrackedProfilesTab({ zoneId }: TwitterTrackedProfilesTabP
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as TwitterProfileTagType)}>
         {/* Responsive TabsList: scrollable on mobile */}
         <div className="relative mb-6">
-          <div className="overflow-x-auto overflow-y-hidden pb-3 -mb-3">
-            <TabsList className="inline-flex w-auto h-auto gap-2 bg-transparent p-0">
+          <div className="overflow-x-auto overflow-y-hidden pb-3 -mb-3 scrollbar-hide">
+            <TabsList className="inline-flex w-full min-w-full gap-2 bg-transparent p-0 justify-start lg:justify-center h-auto">
               {LABEL_TYPES.map((type) => (
                 <TabsTrigger 
                   key={type.value} 
                   value={type.value}
-                  className="flex-shrink-0 flex flex-col items-center gap-2 px-4 py-3 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-[var(--transition-fast)]"
+                  className="flex flex-col items-center gap-2 px-2 py-3 rounded-xl border border-transparent data-[state=active]:border-border data-[state=active]:bg-background data-[state=active]:shadow-sm hover:bg-muted/50 transition-all duration-[var(--transition-fast)] min-w-[90px] flex-1"
                 >
-                  <span className="text-sm font-medium whitespace-nowrap">{type.label}</span>
-                  <Badge variant="outline" className={`text-xs px-2 py-0.5 h-5 min-w-[24px] justify-center ${type.color} transition-all duration-[var(--transition-fast)]`}>
+                  {type.value === 'attila' ? (
+                    <div className="relative size-4">
+                      <Image
+                        src="/AttilaBlack.svg"
+                        alt="Attila"
+                        fill
+                        className="object-contain dark:hidden"
+                      />
+                      <Image
+                        src="/AttilaWhite.svg"
+                        alt="Attila"
+                        fill
+                        className="object-contain hidden dark:block"
+                      />
+                    </div>
+                  ) : (
+                    <span className="text-xs font-medium whitespace-nowrap">{type.label}</span>
+                  )}
+                  <Badge variant="outline" className={cn("text-[10px] px-1.5 py-0.5 h-4 min-w-[20px] justify-center transition-all duration-[var(--transition-fast)]", type.color)}>
                     {profiles[type.value].length}
                   </Badge>
                 </TabsTrigger>
@@ -325,22 +337,7 @@ export function TwitterTrackedProfilesTab({ zoneId }: TwitterTrackedProfilesTabP
 
         {LABEL_TYPES.map((type) => (
           <TabsContent key={type.value} value={type.value} className="mt-6 space-y-6">
-            <Card className="card-padding">
-              {/* Label Description */}
-              <div className="mb-6 pb-6 border-b border-border">
-                <div className="flex items-center gap-2 mb-2">
-                  <Badge className={`${type.color} border`}>
-                    {type.label}
-                  </Badge>
-                  <span className="text-xs text-muted-foreground">
-                    {profiles[type.value].length} profile(s) tracked
-                  </span>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  {type.description}
-                </p>
-              </div>
-
+            <Card className="p-6">
               {/* Add Handles Section */}
               <div className="space-y-4 mb-6">
                 {/* Tag Input */}
@@ -357,7 +354,7 @@ export function TwitterTrackedProfilesTab({ zoneId }: TwitterTrackedProfilesTabP
                       onChange={(e) => setCurrentInput(e.target.value)}
                       onKeyDown={handleInputKeyDown}
                       disabled={isSaving}
-                      className="flex-1 h-11 text-sm transition-shadow duration-[var(--transition-fast)] focus-visible:shadow-[var(--shadow-sm)]"
+                      className="flex-1 h-9 text-sm transition-shadow duration-[var(--transition-fast)] focus-visible:shadow-xs"
                     />
                     <Button
                       onClick={() => {
@@ -367,7 +364,7 @@ export function TwitterTrackedProfilesTab({ zoneId }: TwitterTrackedProfilesTabP
                         }
                       }}
                       disabled={!currentInput.trim() || isSaving}
-                      className="gap-2 h-11 sm:w-auto w-full"
+                      className="gap-2 h-9 sm:w-auto w-full"
                     >
                       {isSaving ? (
                         <Loader2 className="size-4 animate-spin" />
@@ -392,7 +389,7 @@ export function TwitterTrackedProfilesTab({ zoneId }: TwitterTrackedProfilesTabP
                     value={bulkInput}
                     onChange={(e) => setBulkInput(e.target.value)}
                     disabled={isSaving}
-                    className="min-h-[100px] font-mono text-sm resize-none transition-shadow duration-[var(--transition-fast)] focus-visible:shadow-[var(--shadow-sm)]"
+                    className="min-h-[100px] font-mono text-sm resize-none transition-shadow duration-[var(--transition-fast)] focus-visible:shadow-xs"
                   />
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <p className="text-xs text-muted-foreground">
@@ -403,7 +400,7 @@ export function TwitterTrackedProfilesTab({ zoneId }: TwitterTrackedProfilesTabP
                       disabled={!bulkInput.trim() || isSaving}
                       variant="outline"
                       size="sm"
-                      className="gap-2 w-full sm:w-auto"
+                      className="gap-2 w-full sm:w-auto h-9"
                     >
                       {isSaving ? (
                         <Loader2 className="size-4 animate-spin" />
@@ -427,7 +424,7 @@ export function TwitterTrackedProfilesTab({ zoneId }: TwitterTrackedProfilesTabP
                 {profiles[type.value].length === 0 ? (
                   <div className="rounded-lg border border-dashed border-border/60 bg-muted/20 p-8 text-center">
                     <p className="text-sm text-muted-foreground">
-                      No profiles tracked yet. Add handles above to start monitoring.
+                      No profiles tracked in this category yet
                     </p>
                   </div>
                 ) : (
@@ -436,7 +433,7 @@ export function TwitterTrackedProfilesTab({ zoneId }: TwitterTrackedProfilesTabP
                       <Badge
                         key={username}
                         variant="outline"
-                        className={`${type.color} border pl-3 pr-1.5 py-1.5 gap-2 text-sm group hover:opacity-80 transition-all duration-[var(--transition-fast)]`}
+                        className={cn("border pl-3 pr-1.5 py-1.5 gap-2 text-sm group hover:opacity-80 transition-all duration-[var(--transition-fast)]", type.color)}
                       >
                         <span className="font-medium">@{username}</span>
                         <button

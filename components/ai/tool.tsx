@@ -49,45 +49,45 @@ export function Tool({
   const isAnimated = status === "pending" || status === "in-progress";
 
   return (
-    <div className={cn("rounded-xl border border-border bg-muted/30 overflow-hidden shadow-xs", className)}>
+    <div className={cn("rounded-xl border border-border bg-muted/30 overflow-hidden shadow-xs w-full max-w-full", className)}>
       {/* Header */}
       <button
         onClick={() => hasContent && setIsOpen(!isOpen)}
         disabled={!hasContent}
         className={cn(
-          "w-full flex items-center gap-3 p-4 text-left transition-colors duration-[var(--transition-fast)]",
+          "w-full max-w-full flex items-center gap-3 p-3 text-left transition-colors duration-[var(--transition-fast)]",
           hasContent && "hover:bg-muted/50 cursor-pointer"
         )}
       >
         {/* Icon */}
-        <div className="shrink-0 flex size-8 items-center justify-center rounded-lg bg-primary/10">
-          <Wrench className="size-4 text-primary" />
+        <div className="shrink-0 flex size-7 items-center justify-center rounded-lg bg-primary/10">
+          <Wrench className="size-3.5 text-primary" />
         </div>
 
         {/* Tool Name */}
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium truncate">{name}</p>
+          <p className="text-[7px] font-mono text-muted-foreground/60 truncate uppercase tracking-widest opacity-50">{name}</p>
         </div>
 
         {/* Status Badge */}
         <Badge 
           variant="outline" 
           className={cn(
-            "shrink-0 gap-1.5 transition-colors duration-[var(--transition-fast)]",
+            "shrink-0 gap-1.5 transition-colors duration-[var(--transition-fast)] text-xs h-5 px-2",
             statusColors[status]
           )}
         >
-          <StatusIcon className={cn("size-3", isAnimated && "animate-spin")} />
-          <span>{statusLabels[status]}</span>
+          <StatusIcon className={cn("size-2.5", isAnimated && "animate-spin")} />
+          <span className="text-[10px]">{statusLabels[status]}</span>
         </Badge>
 
         {/* Expand Icon */}
         {hasContent && (
           <div className="shrink-0">
             {isOpen ? (
-              <ChevronDown className="size-4 text-muted-foreground" />
+              <ChevronDown className="size-3.5 text-muted-foreground" />
             ) : (
-              <ChevronRight className="size-4 text-muted-foreground" />
+              <ChevronRight className="size-3.5 text-muted-foreground" />
             )}
           </div>
         )}
@@ -95,8 +95,8 @@ export function Tool({
 
       {/* Content */}
       {hasContent && isOpen && (
-        <div className="border-t border-border bg-muted/20 p-4">
-          <div className="text-sm text-muted-foreground">
+        <div className="border-t border-border bg-muted/20 p-3 w-full max-w-full overflow-hidden">
+          <div className="text-xs text-muted-foreground break-words" style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
             {children}
           </div>
         </div>

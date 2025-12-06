@@ -1,6 +1,7 @@
 "use client";
 
 import { LayoutDashboard, Users, ChevronUp, ChevronRight, Plus } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -41,7 +42,7 @@ import {
   Rss,
   Settings,
   Bot,
-  Globe,
+  Eye,
 } from "lucide-react";
 
 interface DashboardSidebarProps {
@@ -72,7 +73,27 @@ export function DashboardSidebar({
     { title: "Overview", url: "overview", icon: BarChart3 },
     { title: "Feed", url: "feed", icon: Rss },
     { title: "Analysis", url: "analysis", icon: FileText },
-    { title: "Attila", url: "attila", icon: Bot, requiresAttila: true },
+    { 
+      title: "Attila", 
+      url: "attila", 
+      icon: () => (
+        <div className="relative size-4">
+          <Image
+            src="/AttilaBlack.svg"
+            alt="Attila"
+            fill
+            className="object-contain dark:hidden"
+          />
+          <Image
+            src="/AttilaWhite.svg"
+            alt="Attila"
+            fill
+            className="object-contain hidden dark:block"
+          />
+        </div>
+      ),
+      requiresAttila: true 
+    },
     { title: "Settings", url: "settings", icon: Settings, requiresPermission: true },
   ];
 
@@ -88,7 +109,20 @@ export function DashboardSidebar({
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={pathname === "/dashboard"} tooltip="Dashboard">
                   <Link href="/dashboard">
-                    <LayoutDashboard />
+                    <div className="relative size-4">
+                      <Image
+                        src="/GorgoneBlack.svg"
+                        alt="Gorgone"
+                        fill
+                        className="object-contain dark:hidden"
+                      />
+                      <Image
+                        src="/GorgoneWhite.svg"
+                        alt="Gorgone"
+                        fill
+                        className="object-contain hidden dark:block"
+                      />
+                    </div>
                     <span>Dashboard</span>
                   </Link>
                 </SidebarMenuButton>
@@ -111,12 +145,12 @@ export function DashboardSidebar({
                       <SidebarMenuItem>
                         <CollapsibleTrigger asChild>
                           <SidebarMenuButton tooltip={zone.name} suppressHydrationWarning>
-                            <Globe />
+                            <Eye />
                             <span>{zone.name}</span>
                             <ChevronRight className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" />
                           </SidebarMenuButton>
                         </CollapsibleTrigger>
-                        <CollapsibleContent>
+                        <CollapsibleContent className="overflow-hidden transition-all data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down">
                           <SidebarMenuSub>
                             {zonePages
                               .filter((page) => {

@@ -68,14 +68,14 @@ export function TwitterOpinionEvolutionChart({
   const selectedClusterId = selection.type === 'selected' ? selection.clusterId : null
 
   return (
-    <Card className="shadow-sm">
-      <CardHeader>
+    <Card className="shadow-xs">
+      <div className="p-6 space-y-6">
+        <div className="space-y-1.5">
         <CardTitle>Opinion Evolution</CardTitle>
         <CardDescription>
           Distribution of opinion clusters over time. Click on areas to explore clusters.
         </CardDescription>
-      </CardHeader>
-      <CardContent>
+        </div>
         <ChartContainer config={chartConfig} className="h-[280px] w-full">
           <AreaChart 
             data={data}
@@ -255,7 +255,7 @@ export function TwitterOpinionEvolutionChart({
             <p className="text-2xl font-bold tracking-tight">{clusters.length}</p>
           </div>
         </div>
-      </CardContent>
+      </div>
     </Card>
   )
 }

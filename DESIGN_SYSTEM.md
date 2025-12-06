@@ -1,7 +1,7 @@
 # GORGONE Design System
 ## Government-Grade Monitoring Platform
 
-**Version**: 2.2  
+**Version**: 2.3
 **Last Updated**: December 5, 2024  
 **Status**: ✅ Production Ready  
 
@@ -290,6 +290,13 @@ transition-[color,box-shadow] duration-[var(--transition-fast)]
   {/* Adds hover border + shadow */}
 </div>
 
+/* Nested card (Hierarchy depth) */
+/* Light: White card on Grey surface */
+/* Dark: Black card on Grey surface */
+<div className="bg-background rounded-xl border border-border/60 shadow-xs p-4">
+  {/* Content */}
+</div>
+
 /* Glass card (Apple-inspired) */
 <div className="card-glass p-6">
   {/* Backdrop blur + transparency */}
@@ -360,6 +367,12 @@ transition-[color,box-shadow] duration-[var(--transition-fast)]
 <Badge variant="success">Active</Badge>
 <Badge variant="warning">Alert</Badge>
 <Badge variant="info">Info</Badge>
+
+/* Entity Tag Pattern (Custom) */
+/* Use for business logic entities like 'Attila' or 'Surveillance' */
+<Badge variant="outline" className="bg-tactical-red/10 text-tactical-red border-tactical-red/20">
+  Attila
+</Badge>
 ```
 
 ### Status Indicators
@@ -391,6 +404,34 @@ transition-[color,box-shadow] duration-[var(--transition-fast)]
   <div className="stats-value">12,459</div>
   <div className="stats-change positive">+12.5%</div>
 </div>
+```
+
+### Data Lists (Key-Value Pairs)
+
+For displaying lists of properties or statistics in sidebars and cards.
+
+```tsx
+<div className="data-list">
+  <div className="data-list-item">
+    <span className="data-list-label">Status</span>
+    <span className="data-list-value">Active</span>
+  </div>
+  <div className="data-list-item">
+    <span className="data-list-label">Total Views</span>
+    <span className="data-list-value">1,234</span>
+  </div>
+</div>
+```
+
+### Progress Bars
+
+The `Progress` component supports custom indicator colors via `indicatorClassName`.
+
+```tsx
+<Progress 
+  value={50} 
+  indicatorClassName="bg-chart-1" 
+/>
 ```
 
 ### Alert Banners
@@ -561,82 +602,14 @@ Consider adding these for enhanced functionality:
 
 ---
 
----
-
-## 🤖 AI Components Architecture
-
-### Chat Interface Pattern
-
-```tsx
-import { Conversation, ConversationContent, ConversationEmpty } from "@/components/ai/conversation";
-import { Message, MessageContent } from "@/components/ai/message";
-import { Response } from "@/components/ai/response";
-import { Tool } from "@/components/ai/tool";
-import { PromptInput } from "@/components/ai/prompt-input";
-import { Suggestions, Suggestion } from "@/components/ai/suggestion";
-
-// Usage in AL-IA chatbot
-<Conversation>
-  <ConversationContent>
-    {messages.map((message) => (
-      <Message key={message.id} from={message.role}>
-        <MessageContent>
-          {/* Tool Calls */}
-          {message.toolInvocations?.map((tool) => (
-            <Tool name={tool.toolName} status={tool.state} />
-          ))}
-          
-          {/* Message Response */}
-          <Response>{message.content}</Response>
-        </MessageContent>
-      </Message>
-    ))}
-  </ConversationContent>
-  
-  <PromptInput
-    value={input}
-    onChange={setInput}
-    onSubmit={handleSubmit}
-    isLoading={isLoading}
-  />
-</Conversation>
-```
-
-### AI Component Features
-
-- ✅ **Auto-scroll** to bottom on new messages
-- ✅ **Streaming support** with proper markdown rendering
-- ✅ **Copy button** on assistant responses
-- ✅ **Tool execution** display with status (pending/complete/error)
-- ✅ **Auto-resize** textarea (40-200px)
-- ✅ **Keyboard shortcuts** (Enter to send, Shift+Enter for newline)
-- ✅ **Loading states** with elegant spinners
-- ✅ **Quick actions** as suggestion pills
-
----
-
-## 📖 Resources
-
-**Official Documentation**:
-- [shadcn UI](https://ui.shadcn.com) - Core components
-- [shadcn AI Elements](https://www.shadcn.io/ai) - AI chat components
-- [Tailwind CSS](https://tailwindcss.com) - Utility classes
-- [OKLCH Color Tool](https://oklch.com) - Color picker
-
-**Internal Docs**:
-- `context.md` - Project architecture overview
-- `DATABASE_SCHEMA.md` - Database structure
-- `TWITTER_INTEGRATION.md` - Twitter module
-- `TIKTOK_INTEGRATION.md` - TikTok module
-
----
-
 ## 🔄 Changelog
 
 ### Version 2.3 (December 5, 2024 - Final Polish)
 - ✅ **Light Mode Hierarchy Inversion** : Adopted Apple-style "White Background / Grey Card / White Nested" for better contrast and pop
 - ✅ **Refined Variables** : `--card` is now off-white in light mode, `--popover` is pure white
 - ✅ **Feed Card Polish** : Nested tweet card uses `bg-popover` to stand out from the grey feed card
+- ✅ **Progress Component** : Added `indicatorClassName` prop for custom coloring (e.g., chart colors).
+- ✅ **Entity Tag Pattern** : Documented badge pattern with `bg-color/10 text-color border-color/20`.
 
 ### Version 2.2 (December 5, 2024 - Evening Session)
 - ✅ **Tactical Color Palette Exposed to Tailwind** : `bg-tactical-green`, `text-tactical-amber` now native utilities
@@ -668,4 +641,3 @@ import { Suggestions, Suggestion } from "@/components/ai/suggestion";
 - Typography scale
 - Spacing system
 - Animation framework
-

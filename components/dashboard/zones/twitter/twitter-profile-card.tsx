@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ExternalLink, MapPin, Calendar, BarChart3, TrendingUp, Activity, FileText } from "lucide-react";
+import { ExternalLink, MapPin, Calendar, BarChart3, TrendingUp, Activity, FileText, Building2, Landmark } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -16,15 +16,43 @@ interface TwitterProfileCardProps {
   zoneId: string;
 }
 
-// Tag colors mapping
+// Tag colors mapping using Design System variables
 const TAG_COLORS: Record<string, { bg: string; text: string; border: string }> = {
-  attila: { bg: "bg-red-500/10", text: "text-red-700 dark:text-red-400", border: "border-red-500/20" },
-  adversary: { bg: "bg-orange-500/10", text: "text-orange-700 dark:text-orange-400", border: "border-orange-500/20" },
-  surveillance: { bg: "bg-yellow-500/10", text: "text-yellow-700 dark:text-yellow-400", border: "border-yellow-500/20" },
-  target: { bg: "bg-blue-500/10", text: "text-blue-700 dark:text-blue-400", border: "border-blue-500/20" },
-  ally: { bg: "bg-green-500/10", text: "text-green-700 dark:text-green-400", border: "border-green-500/20" },
-  asset: { bg: "bg-purple-500/10", text: "text-purple-700 dark:text-purple-400", border: "border-purple-500/20" },
-  local_team: { bg: "bg-cyan-500/10", text: "text-cyan-700 dark:text-cyan-400", border: "border-cyan-500/20" },
+  attila: { 
+    bg: "bg-tactical-red/10", 
+    text: "text-tactical-red", 
+    border: "border-tactical-red/20" 
+  },
+  adversary: { 
+    bg: "bg-tactical-amber/10", 
+    text: "text-tactical-amber", 
+    border: "border-tactical-amber/20" 
+  },
+  surveillance: { 
+    bg: "bg-chart-4/10", 
+    text: "text-chart-4", 
+    border: "border-chart-4/20" 
+  },
+  target: { 
+    bg: "bg-tactical-blue/10", 
+    text: "text-tactical-blue", 
+    border: "border-tactical-blue/20" 
+  },
+  ally: { 
+    bg: "bg-tactical-green/10", 
+    text: "text-tactical-green", 
+    border: "border-tactical-green/20" 
+  },
+  asset: { 
+    bg: "bg-chart-1/10", 
+    text: "text-chart-1", 
+    border: "border-chart-1/20" 
+  },
+  local_team: { 
+    bg: "bg-chart-2/10", 
+    text: "text-chart-2", 
+    border: "border-chart-2/20" 
+  },
 };
 
 // Format large numbers
@@ -78,9 +106,76 @@ export function TwitterProfileCard({ profile, zoneId }: TwitterProfileCardProps)
 
   return (
     <Card className="glass-card overflow-hidden transition-all duration-[var(--transition-base)] hover:border-primary/30 hover:shadow-lg">
-      {/* Header with Tags - Only show if tags exist */}
+      {/* Card Header - Actions */}
+      <div className="flex items-center justify-between px-4 py-3 border-b border-border/60 bg-muted/20">
+        <div className="flex items-center gap-2">
+          {/* View Posts Button */}
+          <Button
+            asChild
+            variant="ghost"
+            size="sm"
+            className="h-7 text-xs gap-1.5 text-muted-foreground hover:text-primary hover:bg-primary/10"
+          >
+            <Link
+              href={`/dashboard/zones/${zoneId}/feed?source=twitter&view=feed&search=${profile.username}&searchType=user`}
+            >
+              <FileText className="size-3.5" />
+              <span className="hidden sm:inline">View Posts</span>
+              <span className="sm:hidden">Posts</span>
+            </Link>
+          </Button>
+
+          {/* External Link */}
+          {twitterUrl && (
+            <Button
+              asChild
+              variant="ghost"
+              size="sm"
+              className="h-7 text-xs gap-1.5 text-muted-foreground hover:text-primary hover:bg-primary/10"
+            >
+              <a
+                href={twitterUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <ExternalLink className="size-3.5" />
+                <span className="hidden sm:inline">View on X</span>
+                <span className="sm:hidden">X</span>
+              </a>
+            </Button>
+          )}
+        </div>
+
+        {/* Verified Type Badge (Business/Gov) - Moved to Header Right */}
+        {verifiedType && (
+          <Badge
+            variant="secondary"
+            className={cn(
+              "text-xs font-medium gap-1.5 pl-2 h-7",
+              verifiedType === "Government" && "bg-tactical-blue/10 text-tactical-blue border-tactical-blue/20",
+              verifiedType === "Business" && "bg-chart-1/10 text-chart-1 border-chart-1/20"
+            )}
+          >
+            {verifiedType === "Government" ? (
+              <>
+                <Landmark className="size-3.5" />
+                Government
+              </>
+            ) : verifiedType === "Business" ? (
+              <>
+                <Building2 className="size-3.5" />
+                Business
+              </>
+            ) : (
+              verifiedType
+            )}
+          </Badge>
+        )}
+      </div>
+
+      {/* Tags - Sub-header if tags exist */}
       {profile.tags && profile.tags.length > 0 && (
-        <div className="px-4 sm:px-6 py-3 border-b border-border/60 bg-muted/20">
+        <div className="px-4 sm:px-6 py-2 border-b border-border/60 bg-muted/10">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-xs text-muted-foreground font-medium">Tags:</span>
             {profile.tags.map((tag) => {
@@ -131,14 +226,14 @@ export function TwitterProfileCard({ profile, zoneId }: TwitterProfileCardProps)
             {/* Profile Info */}
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
-                <h3 className="text-body font-bold truncate">
+                <h3 className="text-base font-bold truncate">
                   {profile.name}
                 </h3>
                 
                 {/* Verified Badge */}
                 {(profile.is_verified || profile.is_blue_verified) && (
                   <svg
-                    className="size-4 text-blue-500 flex-shrink-0"
+                    className="size-4 text-chart-2 flex-shrink-0"
                     viewBox="0 0 24 24"
                     fill="currentColor"
                   >
@@ -147,24 +242,13 @@ export function TwitterProfileCard({ profile, zoneId }: TwitterProfileCardProps)
                 )}
 
                 {/* Verified Type Badge (Government/Business) */}
-                {verifiedType && (
-                  <Badge
-                    variant="secondary"
-                    className={cn(
-                      "text-xs font-medium",
-                      verifiedType === "Government" && "bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20",
-                      verifiedType === "Business" && "bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-500/20"
-                    )}
-                  >
-                    {verifiedType === "Government" ? "🏛️ Gov" : verifiedType === "Business" ? "🏢 Business" : verifiedType}
-                  </Badge>
-                )}
+                {/* MOVED TO HEADER */}
 
                 {/* Suspicious Activity Warning */}
                 {hasSuspiciousActivity && (
                   <Badge
                     variant="outline"
-                    className="text-xs font-medium bg-orange-500/10 text-orange-700 dark:text-orange-400 border-orange-500/20"
+                    className="text-xs font-medium bg-tactical-amber/10 text-tactical-amber border-tactical-amber/20"
                     title={`${fastFollowersCount} fast followers detected`}
                   >
                     ⚠️ Bot Risk
@@ -176,65 +260,30 @@ export function TwitterProfileCard({ profile, zoneId }: TwitterProfileCardProps)
                 @{profile.username}
               </p>
 
-              {/* Action Buttons */}
-              <div className="flex items-center gap-2 mt-2">
-                {/* View Posts Button */}
-                <Button
-                  asChild
-                  variant="default"
-                  size="sm"
-                >
-                  <Link
-                    href={`/dashboard/zones/${zoneId}/feed?source=twitter&view=feed&search=${profile.username}&searchType=user`}
-                  >
-                    <FileText className="size-3.5" />
-                    <span className="hidden sm:inline">View Posts</span>
-                    <span className="sm:hidden">Posts</span>
-                  </Link>
-                </Button>
-
-                {/* External Link */}
-                {twitterUrl && (
-                  <Button
-                    asChild
-                    variant="outline"
-                    size="sm"
-                  >
-                    <a
-                      href={twitterUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <span className="hidden sm:inline">View on X</span>
-                      <span className="sm:hidden">X</span>
-                      <ExternalLink className="size-3" />
-                    </a>
-                  </Button>
-                )}
-              </div>
+              {/* Action Buttons - MOVED TO HEADER */}
             </div>
           </div>
 
           {/* Bio */}
           {profile.description && (
             <div className="space-y-1">
-              <p className="text-sm">{profile.description}</p>
+              <p className="text-sm leading-relaxed">{profile.description}</p>
             </div>
           )}
 
           {/* Bio URLs */}
           {bioUrls && bioUrls.length > 0 && (
-            <div className="space-y-1.5">
+            <div className="flex flex-wrap gap-x-4 gap-y-1">
               {bioUrls.map((link, index) => (
                 <a
                   key={`bio-link-${index}`}
                   href={link.expanded_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group inline-flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors duration-[var(--transition-fast)]"
+                  className="group inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:text-primary/80 transition-colors duration-[var(--transition-fast)]"
                 >
                   <svg 
-                    className="size-4 flex-shrink-0" 
+                    className="size-3.5 flex-shrink-0" 
                     fill="none" 
                     strokeLinecap="round" 
                     strokeLinejoin="round" 
@@ -244,8 +293,8 @@ export function TwitterProfileCard({ profile, zoneId }: TwitterProfileCardProps)
                   >
                     <path d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
                   </svg>
-                  <span className="truncate group-hover:underline">{link.display_url}</span>
-                  <ExternalLink className="size-3 flex-shrink-0 opacity-60 group-hover:opacity-100 transition-opacity duration-[var(--transition-fast)]" />
+                  <span className="truncate max-w-[200px] group-hover:underline decoration-primary/30 underline-offset-4">{link.display_url}</span>
+                  <ExternalLink className="size-3 flex-shrink-0 opacity-0 -ml-1 group-hover:opacity-100 group-hover:ml-0 transition-all duration-[var(--transition-fast)]" />
                 </a>
               ))}
             </div>
@@ -253,16 +302,16 @@ export function TwitterProfileCard({ profile, zoneId }: TwitterProfileCardProps)
 
           {/* Censorship Alert */}
           {withheldInCountries && withheldInCountries.length > 0 && (
-            <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-3">
+            <div className="rounded-lg border border-tactical-red/30 bg-tactical-red/10 p-3">
               <div className="flex items-start gap-2">
-                <svg className="size-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="size-5 text-tactical-red flex-shrink-0 mt-0.5" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
                   <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                 </svg>
                 <div className="flex-1">
-                  <p className="text-sm font-semibold text-red-700 dark:text-red-400">
+                  <p className="text-sm font-semibold text-tactical-red">
                     Content Censored
                   </p>
-                  <p className="text-xs text-red-600 dark:text-red-400">
+                  <p className="text-xs text-tactical-red/80">
                     Restricted in: {withheldInCountries.join(", ")}
                   </p>
                 </div>
@@ -290,27 +339,27 @@ export function TwitterProfileCard({ profile, zoneId }: TwitterProfileCardProps)
 
           {/* Key Metrics - Compact & Elegant */}
           <div className="grid grid-cols-2 gap-3">
-            <div className="rounded-lg border border-border bg-muted/30 p-3 transition-colors duration-[var(--transition-fast)] hover:bg-muted/40">
-              <p className="text-xs text-muted-foreground font-medium">Followers</p>
-              <p className="text-lg font-semibold font-bold mt-1">
+              <div className="rounded-lg bg-background border border-border/60 shadow-xs p-3 transition-colors duration-[var(--transition-fast)] hover:border-primary/30">
+                <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Followers</p>
+                <p className="text-lg font-bold mt-1 font-mono tabular-nums">
                 {formatNumber(profile.followers_count)}
               </p>
             </div>
-            <div className="rounded-lg border border-border bg-muted/30 p-3 transition-colors duration-[var(--transition-fast)] hover:bg-muted/40">
-              <p className="text-xs text-muted-foreground font-medium">Following</p>
-              <p className="text-lg font-semibold font-bold mt-1">
+              <div className="rounded-lg bg-background border border-border/60 shadow-xs p-3 transition-colors duration-[var(--transition-fast)] hover:border-primary/30">
+                <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Following</p>
+                <p className="text-lg font-bold mt-1 font-mono tabular-nums">
                 {formatNumber(profile.following_count)}
               </p>
             </div>
-            <div className="rounded-lg border border-border bg-muted/30 p-3 transition-colors duration-[var(--transition-fast)] hover:bg-muted/40">
-              <p className="text-xs text-muted-foreground font-medium">Total Tweets</p>
-              <p className="text-lg font-semibold font-bold mt-1">
+              <div className="rounded-lg bg-background border border-border/60 shadow-xs p-3 transition-colors duration-[var(--transition-fast)] hover:border-primary/30">
+                <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Total Tweets</p>
+                <p className="text-lg font-bold mt-1 font-mono tabular-nums">
                 {formatNumber(profile.tweets_count)}
               </p>
             </div>
-            <div className="rounded-lg border border-border bg-muted/30 p-3 transition-colors duration-[var(--transition-fast)] hover:bg-muted/40">
-              <p className="text-xs text-muted-foreground font-medium">Likes</p>
-              <p className="text-lg font-semibold font-bold mt-1">
+              <div className="rounded-lg bg-background border border-border/60 shadow-xs p-3 transition-colors duration-[var(--transition-fast)] hover:border-primary/30">
+                <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Likes</p>
+                <p className="text-lg font-bold mt-1 font-mono tabular-nums">
                 {formatNumber(profile.favourites_count)}
               </p>
             </div>
@@ -346,6 +395,7 @@ export function TwitterProfileCard({ profile, zoneId }: TwitterProfileCardProps)
 
             {/* Overview Tab */}
             <TabsContent value="overview" className="mt-0 space-y-2 animate-in fade-in-0 duration-200">
+              <div className="data-list">
               <StatRow
                 label="Tweets in Zone"
                 value={formatNumber(profile.tweet_count)}
@@ -360,7 +410,7 @@ export function TwitterProfileCard({ profile, zoneId }: TwitterProfileCardProps)
                 label="Avg Engagement"
                 value={profile.avg_engagement_per_tweet.toFixed(1)}
               />
-              <div className="pt-2 pb-2 border-t border-border/30" />
+                <div className="my-2 h-px bg-border/50" />
               <StatRow
                 label="Total Likes"
                 value={formatNumber(profile.total_likes)}
@@ -381,6 +431,7 @@ export function TwitterProfileCard({ profile, zoneId }: TwitterProfileCardProps)
                 label="Total Views"
                 value={formatNumber(profile.total_views)}
               />
+              </div>
             </TabsContent>
 
             {/* Engagement Tab */}
@@ -390,25 +441,25 @@ export function TwitterProfileCard({ profile, zoneId }: TwitterProfileCardProps)
                   label="Likes"
                   value={profile.total_likes}
                   max={profile.total_engagement}
-                  color="bg-pink-500"
+                  color="bg-chart-1"
                 />
                 <ProgressBar
                   label="Retweets"
                   value={profile.total_retweets}
                   max={profile.total_engagement}
-                  color="bg-green-500"
+                  color="bg-chart-2"
                 />
                 <ProgressBar
                   label="Replies"
                   value={profile.total_replies}
                   max={profile.total_engagement}
-                  color="bg-blue-500"
+                  color="bg-chart-3"
                 />
                 <ProgressBar
                   label="Quotes"
                   value={profile.total_quotes}
                   max={profile.total_engagement}
-                  color="bg-purple-500"
+                  color="bg-chart-4"
                 />
               </div>
 
@@ -426,7 +477,7 @@ export function TwitterProfileCard({ profile, zoneId }: TwitterProfileCardProps)
 
             {/* Ratios Tab */}
             <TabsContent value="ratios" className="mt-0 space-y-4 animate-in fade-in-0 duration-200">
-              <div className="space-y-2">
+              <div className="data-list">
                 <StatRow
                   label="Original Posts"
                   value={`${formatNumber(profile.original_posts)} (${formatPercentage(profile.original_ratio)})`}
@@ -446,21 +497,21 @@ export function TwitterProfileCard({ profile, zoneId }: TwitterProfileCardProps)
                   label="Original Ratio"
                   value={profile.original_ratio * 100}
                   max={100}
-                  color="bg-blue-500"
+                  color="bg-chart-2"
                   showPercentage
                 />
                 <ProgressBar
                   label="Reply Ratio"
                   value={profile.reply_ratio * 100}
                   max={100}
-                  color="bg-green-500"
+                  color="bg-chart-5"
                   showPercentage
                 />
                 <ProgressBar
                   label="Retweet Ratio"
                   value={profile.retweet_ratio * 100}
                   max={100}
-                  color="bg-purple-500"
+                  color="bg-chart-1"
                   showPercentage
                 />
               </div>
@@ -483,10 +534,12 @@ function StatRow({
   highlight?: boolean;
 }) {
   return (
-    <div className="flex items-center justify-between py-2.5 border-b border-border/30 last:border-0 transition-colors duration-[var(--transition-fast)] hover:bg-muted/20 px-2 -mx-2 rounded">
-      <span className="text-sm text-muted-foreground">{label}</span>
+    <div className="data-list-item group">
+      <span className="data-list-label group-hover:text-foreground transition-colors duration-[var(--transition-fast)]">
+        {label}
+      </span>
       <span className={cn(
-        "text-sm font-semibold tabular-nums",
+        "data-list-value font-mono",
         highlight && "text-primary"
       )}>
         {value}
@@ -494,6 +547,8 @@ function StatRow({
     </div>
   );
 }
+
+import { Progress } from "@/components/ui/progress";
 
 // Helper component for progress bars
 function ProgressBar({
@@ -518,15 +573,7 @@ function ProgressBar({
         <span className="text-muted-foreground font-medium">{label}</span>
         <span className="font-semibold tabular-nums">{displayValue}</span>
       </div>
-      <div className="h-2 rounded-full bg-muted/50 overflow-hidden">
-        <div
-          className={cn(
-            "h-full transition-all duration-500 ease-out",
-            color
-          )}
-          style={{ width: `${Math.min(percentage, 100)}%` }}
-        />
-      </div>
+      <Progress value={percentage} indicatorClassName={color} className="bg-muted/50" />
     </div>
   );
 }

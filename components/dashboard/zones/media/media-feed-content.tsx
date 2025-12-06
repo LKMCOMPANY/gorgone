@@ -24,6 +24,8 @@ import { RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { MediaArticle } from "@/types";
 
+import { EmptyState } from "../empty-state";
+
 interface MediaFeedContentProps {
   zoneId: string;
 }
@@ -168,7 +170,7 @@ export function MediaFeedContent({ zoneId }: MediaFeedContentProps) {
             </svg>
           </div>
           <div className="space-y-2">
-            <p className="text-body font-semibold text-destructive">Failed to load articles</p>
+            <p className="text-base font-semibold text-destructive">Failed to load articles</p>
             <p className="text-sm text-muted-foreground">{error}</p>
           </div>
           <Button onClick={handleRefresh} variant="outline" className="gap-2">
@@ -216,29 +218,12 @@ export function MediaFeedContent({ zoneId }: MediaFeedContentProps) {
       {/* Articles List */}
       <div className="space-y-4">
         {articles.length === 0 && !loading ? (
-          <div className="rounded-lg border border-dashed border-border/60 bg-muted/20 p-16 text-center">
-            <div className="mx-auto max-w-sm space-y-4">
-              <div className="mx-auto flex size-16 items-center justify-center rounded-full bg-primary/10">
-                <svg
-                  className="w-8 h-8 text-primary"
-                  fill="none"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/>
-                </svg>
-              </div>
-              <div className="space-y-2">
-                <p className="text-body font-semibold">No articles found</p>
-                <p className="text-sm text-muted-foreground">
-                  Articles will appear here once your monitoring rules start collecting data. Try adjusting your filters or create a new rule.
-                </p>
-              </div>
-            </div>
-          </div>
+          <EmptyState
+            icon="info"
+            title="No articles found"
+            description="Articles will appear here once your monitoring rules start collecting data. Try adjusting your filters or create a new rule."
+            className="animate-in fade-in-0 duration-300"
+          />
         ) : (
           <>
             {/* Articles Grid */}

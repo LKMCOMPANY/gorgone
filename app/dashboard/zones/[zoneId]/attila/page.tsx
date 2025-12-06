@@ -1,4 +1,5 @@
 import { notFound, redirect } from "next/navigation";
+import Image from "next/image";
 import { getCurrentUser } from "@/lib/auth/utils";
 import { canManageZones } from "@/lib/auth/permissions";
 import { getZoneById } from "@/lib/data/zones";
@@ -49,10 +50,25 @@ export default async function AttilaPage({ params }: AttilaPageProps) {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="space-y-1.5">
-          <h1 className="scroll-m-20 text-3xl font-semibold tracking-tight flex items-center gap-3">
-            <Bot className="size-8 text-primary" />
-            Attila Automation
-          </h1>
+          <div className="flex items-center gap-3">
+            <div className="relative size-8">
+              <Image
+                src="/AttilaBlack.svg"
+                alt="Attila"
+                fill
+                className="object-contain dark:hidden"
+              />
+              <Image
+                src="/AttilaWhite.svg"
+                alt="Attila"
+                fill
+                className="object-contain hidden dark:block"
+              />
+            </div>
+            <h1 className="scroll-m-20 text-3xl font-semibold tracking-tight">
+              ATTILA Orchestrator
+            </h1>
+          </div>
           <p className="text-sm text-muted-foreground">
             Manage automated AI response operations and monitor activity
           </p>
@@ -62,28 +78,22 @@ export default async function AttilaPage({ params }: AttilaPageProps) {
 
       {/* Tabs */}
       <Tabs defaultValue="operations" className="space-y-6">
-        <div className="border-b">
-          <TabsList className="bg-transparent p-0 h-auto space-x-6">
-            <TabsTrigger 
-              value="operations" 
-              className="rounded-none border-b-2 border-transparent px-0 py-2.5 data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none font-medium text-muted-foreground data-[state=active]:text-foreground transition-all duration-[var(--transition-fast)]"
-            >
-              <div className="flex items-center gap-2">
-                <Bot className="size-4" />
-                <span>Operations</span>
-              </div>
-            </TabsTrigger>
-            <TabsTrigger 
-              value="monitoring" 
-              className="rounded-none border-b-2 border-transparent px-0 py-2.5 data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none font-medium text-muted-foreground data-[state=active]:text-foreground transition-all duration-[var(--transition-fast)]"
-            >
-              <div className="flex items-center gap-2">
-                <Activity className="size-4" />
-                <span>Live Monitoring</span>
-              </div>
-            </TabsTrigger>
-          </TabsList>
-        </div>
+        <TabsList className="grid w-full max-w-md grid-cols-2 h-9">
+          <TabsTrigger 
+            value="operations" 
+            className="gap-2 data-[state=active]:shadow-none h-7 text-xs"
+          >
+            <Bot className="size-3.5" />
+            <span>Operations</span>
+          </TabsTrigger>
+          <TabsTrigger 
+            value="monitoring" 
+            className="gap-2 data-[state=active]:shadow-none h-7 text-xs"
+          >
+            <Activity className="size-3.5" />
+            <span>Live Monitoring</span>
+          </TabsTrigger>
+        </TabsList>
 
         <TabsContent value="operations" className="outline-none">
            <AttilaOperationsList 

@@ -27,7 +27,7 @@ export function AttilaOperationsList({
           <AlertCircle className="size-8 text-muted-foreground" />
         </div>
         <h3 className="text-lg font-semibold mb-2">No Operations Yet</h3>
-        <p className="text-body text-muted-foreground max-w-md">
+        <p className="text-sm text-muted-foreground max-w-md">
           Create your first Attila automation operation to start monitoring and responding to events in this zone.
         </p>
       </Card>

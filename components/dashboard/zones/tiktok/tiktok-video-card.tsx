@@ -1,13 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import Link from "next/link";
-import { ExternalLink, Play, Music } from "lucide-react";
+import { ExternalLink, Play, Music, Video, RefreshCw, User, Activity, Snowflake } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import { TikTokEngagementChart } from "./tiktok-engagement-chart";
+
+import { Button } from "@/components/ui/button";
 
 interface TikTokVideoWithProfile {
   id: string;
@@ -79,9 +81,28 @@ export function TikTokVideoCard({
   chartPosition = "side" 
 }: TikTokVideoCardProps) {
   const [imageError, setImageError] = useState(false);
+  const [refreshFn, setRefreshFn] = useState<(() => Promise<void>) | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [trackingIsCold, setTrackingIsCold] = useState<boolean | null>(null);
   
   const relativeTime = getRelativeTime(video.tiktok_created_at);
   const tiktokUrl = video.share_url || `https://www.tiktok.com/@${video.author?.username}/video/${video.video_id}`;
+
+  const handleTrackingStatusUpdate = useCallback((isCold: boolean) => {
+    setTrackingIsCold(isCold);
+  }, []);
+
+  const handleRefreshReady = useCallback((fn: () => Promise<void>) => {
+    setRefreshFn(() => fn);
+  }, []);
+
+  const handleRefreshClick = async () => {
+    if (refreshFn) {
+      setIsRefreshing(true);
+      await refreshFn();
+      setIsRefreshing(false);
+    }
+  };
 
   // Determine layout class based on chart position (SAME AS TWITTER)
   const layoutClass = !showEngagementChart 
@@ -91,62 +112,35 @@ export function TikTokVideoCard({
     : "grid grid-cols-1 lg:grid-cols-2";
 
   return (
-    <Card className="max-w-full glass-card overflow-hidden transition-all duration-[var(--transition-base)] hover:border-primary/30 hover:shadow-lg">
-      {/* Content Area - Responsive Layout (SAME AS TWITTER) */}
-      <div className={layoutClass}>
-        {/* Video Content */}
-        <div className="min-w-0 p-4 sm:p-6 space-y-4">
-          {/* Compact Header - Meta + Author in one section (SAME AS TWITTER) */}
-          <div className="space-y-3">
-            {/* Meta Info Row */}
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2 flex-wrap min-w-0">
-                {/* Video Badge */}
-                <Badge variant="secondary" className="text-xs font-medium">
+    <Card className="max-w-full card-interactive glass overflow-hidden shadow-sm p-0">
+      {/* Card Header - Metadata & Context */}
+      <div className="flex items-center justify-between px-4 py-2.5 border-b border-border/50 bg-muted/10">
+        {/* Left: Video Context */}
+        <div className="flex items-center gap-2.5">
+          {/* Type Badge */}
+          <Badge
+            variant="outline"
+            className="text-[10px] h-5 px-2 font-medium gap-1.5"
+          >
+            <Video className="size-2.5" />
                   Video
                 </Badge>
 
-                {/* Relative Time */}
-                <span className="text-xs text-muted-foreground">
+          {/* Separator */}
+          <div className="h-3 w-px bg-border/50" />
+
+          {/* Time */}
+          <span className="text-xs text-muted-foreground font-medium">
                   {relativeTime}
                 </span>
 
-                {/* Profile Tags - Compact */}
-                {tags.length > 0 && tags.length <= 2 && (
-                  <>
-                    {tags.map((tag) => {
-                      const colors = TAG_COLORS[tag.tag_type] || TAG_COLORS.target;
-                      return (
-                        <Badge
-                          key={tag.tag_type}
-                          variant="outline"
-                          className={cn(
-                            "text-xs capitalize border hidden sm:inline-flex transition-colors duration-[var(--transition-fast)]",
-                            colors.bg,
-                            colors.text,
-                            colors.border
-                          )}
-                        >
-                          {tag.tag_type.replace("_", " ")}
-                        </Badge>
-                      );
-                    })}
-                  </>
-                )}
-                {tags.length > 2 && (
-                  <Badge variant="secondary" className="text-xs hidden sm:inline-flex">
-                    +{tags.length} tags
-                  </Badge>
-                )}
-              </div>
-
-              {/* External Link - Compact */}
+          {/* External Link */}
               {tiktokUrl && (
                 <a
                   href={tiktokUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex-shrink-0 p-1.5 rounded-lg hover:bg-muted/50 text-muted-foreground hover:text-primary transition-all duration-[var(--transition-fast)]"
+              className="text-muted-foreground hover:text-primary transition-colors"
                   title="View on TikTok"
                 >
                   <ExternalLink className="size-3.5" />
@@ -154,127 +148,158 @@ export function TikTokVideoCard({
               )}
             </div>
 
-            {/* Author Info - Inline (SAME AS TWITTER) */}
-            <div className="flex items-start gap-3">
-              {/* Profile Picture */}
-              <div className="flex-shrink-0">
+        {/* Right: App Context */}
+        <div className="flex items-center gap-2">
+          {/* Refresh Button */}
+          {showEngagementChart && (
+            <Button
+              size="icon-sm"
+              variant="ghost"
+              onClick={handleRefreshClick}
+              disabled={isRefreshing}
+              className="text-muted-foreground hover:text-foreground"
+              title="Refresh metrics"
+            >
+              <RefreshCw className={cn("size-4", isRefreshing && "animate-spin")} />
+            </Button>
+          )}
+
+          {/* View Profile Button */}
+          <Button
+            asChild
+            variant="ghost"
+            size="sm"
+            className="h-6 px-2 text-xs gap-1.5"
+          >
+            <Link
+              href={`/dashboard/zones/${zoneId}/feed?source=tiktok&view=profiles&search=${video.author?.username}`}
+            >
+              <User className="size-3.5" />
+              <span className="hidden sm:inline">Profile</span>
+            </Link>
+          </Button>
+
+          {/* Tracking Status Badge */}
+          {trackingIsCold !== null && (
+            <Badge 
+              variant={trackingIsCold ? "outline" : "outline-success"}
+              className="gap-1 text-[10px] h-5 px-1.5"
+            >
+              {trackingIsCold ? (
+                <>
+                  <Snowflake className="size-2.5" />
+                  <span className="hidden sm:inline">Cold</span>
+                </>
+              ) : (
+                <>
+                  <Activity className="size-2.5" />
+                  <span className="hidden sm:inline">Active</span>
+                </>
+              )}
+            </Badge>
+          )}
+        </div>
+      </div>
+
+      {/* Content Area - Responsive Layout */}
+      <div className={layoutClass}>
+        {/* Video Content */}
+        <div className="p-4 min-w-0 flex-1">
+          <div className="flex gap-3 p-4 rounded-xl bg-background border border-border/60 shadow-xs transition-colors duration-[var(--transition-fast)]">
+            {/* Avatar */}
+            <div className="shrink-0">
+              <div className="size-10 rounded-full overflow-hidden bg-muted border border-border/50 shadow-sm">
                 {video.author?.avatar_thumb && !imageError ? (
                   <img
                     src={video.author.avatar_thumb}
                     alt={video.author.nickname}
+                    className="size-full object-cover"
                     onError={() => setImageError(true)}
-                    className="size-10 rounded-full object-cover ring-2 ring-border/50"
                   />
                 ) : (
-                  <div className="size-10 rounded-full bg-primary/10 flex items-center justify-center ring-2 ring-border/50">
-                    <span className="text-sm font-semibold text-primary">
-                      {video.author?.nickname?.charAt(0).toUpperCase() || "?"}
+                  <div className="size-full flex items-center justify-center bg-muted text-muted-foreground">
+                    <span className="text-xs font-bold">
+                      {video.author?.nickname?.charAt(0).toUpperCase()}
                     </span>
                   </div>
                 )}
               </div>
+              </div>
 
-              {/* Author Details */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-1.5">
-                  <span className="text-sm font-semibold truncate">
+            {/* Content */}
+            <div className="flex-1 min-w-0 space-y-1">
+              {/* Header: Name, Handle (TikTok Native) */}
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-1.5 min-w-0 overflow-hidden">
+                  <span className="font-bold text-[15px] truncate text-foreground">
                     {video.author?.nickname || "Unknown"}
                   </span>
-                  
-                  {/* Verified Badge - TikTok Blue */}
                   {video.author?.is_verified && (
-                    <svg
-                      className="size-3.5 text-[#20D5EC] flex-shrink-0"
-                      viewBox="0 0 24 24"
-                      fill="currentColor"
-                    >
+                    <svg className="size-3.5 text-[#20D5EC] flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
                       <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   )}
-
-                  <span className="text-xs text-muted-foreground">•</span>
-                  <span className="text-xs text-muted-foreground truncate">
-                    @{video.author?.username || "unknown"}
+                  <span className="text-[15px] text-muted-foreground truncate">
+                    @{video.author?.username}
                   </span>
-                </div>
-              </div>
-            </div>
           </div>
 
-          {/* Mobile Tags - Show all tags on mobile (SAME AS TWITTER) */}
+                {/* Tags */}
           {tags.length > 0 && (
-            <div className="flex sm:hidden items-center gap-1.5 flex-wrap -mt-1">
-              {tags.map((tag) => {
-                const colors = TAG_COLORS[tag.tag_type] || TAG_COLORS.target;
-                return (
+                  <div className="flex shrink-0 gap-1">
+                    {tags.slice(0, 1).map((tag) => (
                   <Badge
                     key={tag.tag_type}
                     variant="outline"
-                    className={cn(
-                      "text-xs capitalize border transition-colors duration-[var(--transition-fast)]",
-                      colors.bg,
-                      colors.text,
-                      colors.border
-                    )}
+                        className="h-5 px-1.5 text-[10px] font-normal border-border bg-background"
                   >
                     {tag.tag_type.replace("_", " ")}
                   </Badge>
-                );
-              })}
+                    ))}
             </div>
           )}
+              </div>
 
-          {/* Description */}
-          {video.description && (
-            <p className="text-body whitespace-pre-wrap break-words">
+              {/* Video Description */}
+              <div className="text-[15px] leading-normal text-foreground whitespace-pre-wrap break-words pt-0.5">
               {video.description}
-            </p>
-          )}
+              </div>
 
-          {/* Video Thumbnail with Play Button (SAME STYLE AS TWITTER MEDIA) */}
+              {/* Video Player / Thumbnail */}
           {video.cover_url && (
-            <div className="rounded-lg overflow-hidden border border-border">
-              <div className="relative aspect-video bg-muted">
+                <div className="pt-2">
+                  <div className="rounded-xl overflow-hidden border border-border/60 bg-black max-w-[240px] mx-auto sm:mx-0">
+                    <div className="relative aspect-[9/16] group cursor-pointer">
                 <img
                   src={video.cover_url}
-                  alt="Video thumbnail"
-                  className="w-full h-full object-cover"
+                        alt="Video content"
+                        className="size-full object-cover"
                 />
-                {/* Video overlay */}
-                <div className="absolute inset-0 bg-black/20 flex items-center justify-center group-hover:bg-black/30 transition-colors duration-[var(--transition-fast)]">
-                  <div className="size-14 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center">
-                    <Play className="size-6 text-white fill-white" />
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/30 transition-colors">
+                        <div className="size-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-sm border border-white/30 transition-transform duration-200 group-hover:scale-110">
+                          <Play className="size-5 text-white fill-white ml-0.5" />
                   </div>
                 </div>
-                {/* Duration badge */}
+                      {/* Duration Badge */}
                 {video.duration && (
-                  <div className="absolute bottom-2 left-2 px-2 py-1 bg-black/80 backdrop-blur-sm rounded text-white text-xs font-medium">
+                        <div className="absolute bottom-2 right-2 px-1.5 py-0.5 rounded bg-black/60 backdrop-blur-md text-[10px] font-medium text-white tabular-nums">
                     {formatDuration(video.duration)}
                   </div>
                 )}
+                    </div>
               </div>
             </div>
           )}
 
-          {/* Music Info (SAME STYLE AS QUOTED TWEET) */}
+              {/* Music Info */}
           {video.music_title && (
-            <div className="rounded-lg border border-border bg-muted/20 overflow-hidden hover:bg-muted/30 transition-colors duration-[var(--transition-fast)]">
-              <div className="p-3 sm:p-4 space-y-2.5">
-                <div className="flex items-center gap-2">
-                  <Music className="size-4 text-muted-foreground flex-shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{video.music_title}</p>
-                    {video.music_author && (
-                      <p className="text-xs text-muted-foreground truncate">
-                        {video.music_author}
-                      </p>
-                    )}
-                  </div>
+                <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground hover:text-primary transition-colors cursor-pointer w-fit">
+                  <Music className="size-3" />
+                  <span className="truncate max-w-[200px]">{video.music_title} - {video.music_author}</span>
                 </div>
-              </div>
+              )}
             </div>
-          )}
-
+          </div>
         </div>
 
         {/* Engagement Chart - Position adaptative (EXACT SAME AS TWITTER) */}
@@ -295,6 +320,8 @@ export function TikTokVideoCard({
                   share_count: video.share_count,
                   collect_count: video.collect_count,
                 }}
+                onTrackingStatusUpdate={handleTrackingStatusUpdate}
+                onRefreshReady={handleRefreshReady}
               />
             </div>
           </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { RefreshCw, TrendingUp, Eye, Pause, Activity } from "lucide-react";
+import { RefreshCw, TrendingUp, Eye, Pause, Activity, Clock, Info } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -55,9 +55,11 @@ interface TikTokEngagementChartProps {
     share_count: number;
     collect_count: number;
   };
+  onTrackingStatusUpdate?: (isCold: boolean) => void;
+  onRefreshReady?: (refreshFn: () => Promise<void>) => void;
 }
 
-// Chart configs (SAME AS TWITTER)
+// Chart configurations using Shadcn theming
 const reachChartConfig = {
   play_count: {
     label: "Views",
@@ -92,7 +94,7 @@ function formatTimestamp(timestamp: string): string {
   return `${hours}:${minutes}`;
 }
 
-export function TikTokEngagementChart({ videoId, currentStats }: TikTokEngagementChartProps) {
+export function TikTokEngagementChart({ videoId, currentStats, onTrackingStatusUpdate, onRefreshReady }: TikTokEngagementChartProps) {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [data, setData] = useState<EngagementHistoryData | null>(null);
@@ -107,6 +109,11 @@ export function TikTokEngagementChart({ videoId, currentStats }: TikTokEngagemen
 
       if (result.success) {
         setData(result);
+        
+        // Notify parent of tracking status
+        if (onTrackingStatusUpdate && result.tracking_status) {
+          onTrackingStatusUpdate(result.tracking_status.tier === "cold");
+        }
       } else {
         toast.error("Failed to load engagement data");
       }
@@ -116,7 +123,7 @@ export function TikTokEngagementChart({ videoId, currentStats }: TikTokEngagemen
     } finally {
       setLoading(false);
     }
-  }, [videoId]);
+  }, [videoId, onTrackingStatusUpdate]);
 
   // Refresh data without full reload (SAME AS TWITTER)
   const refreshData = useCallback(async () => {
@@ -165,6 +172,14 @@ export function TikTokEngagementChart({ videoId, currentStats }: TikTokEngagemen
   useEffect(() => {
     fetchEngagementHistory();
   }, [fetchEngagementHistory]);
+
+  // Expose refresh function to parent (once only, on mount)
+  useEffect(() => {
+    if (onRefreshReady) {
+      onRefreshReady(handleRefresh);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [onRefreshReady]); // Intentionally omit handleRefresh to avoid infinite loop
 
   // Loading skeleton (SAME AS TWITTER)
   if (loading) {
@@ -236,81 +251,83 @@ export function TikTokEngagementChart({ videoId, currentStats }: TikTokEngagemen
   const trackingStatus = data.tracking_status;
   const isCold = trackingStatus?.tier === "cold";
   const hasLimitedData = data.snapshots.length < 3;
+  
+  // Initial state: 0 snapshots (only initial data) OR only 1 total data point
+  // This forces the Big Numbers view until we have at least 1 historical snapshot
+  const isInitialState = data.snapshots.length === 0 || allDataPoints.length <= 1;
 
   return (
-    <div className="space-y-4">
-      {/* Header (SAME AS TWITTER) */}
-      <div className="flex items-center justify-between gap-3">
-        <div className="space-y-0.5 min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <h3 className="text-sm font-semibold">Engagement Evolution</h3>
-            {trackingStatus && (
-              isCold ? (
-                <Badge variant="secondary" className="gap-1 text-xs px-2 py-0.5">
-                  <Pause className="size-3" />
-                  <span className="hidden sm:inline">Paused</span>
-                </Badge>
-              ) : (
-                <Badge variant="secondary" className="gap-1 text-xs px-2 py-0.5 bg-chart-2/10 text-chart-2 border-chart-2/20">
-                  <Activity className="size-3" />
-                  <span className="hidden sm:inline">Active</span>
-                </Badge>
-              )
-            )}
-          </div>
-          <p className="text-xs text-muted-foreground">
-            {data.snapshots.length} snapshot{data.snapshots.length !== 1 ? "s" : ""}
-          </p>
-        </div>
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={handleRefresh}
-          disabled={refreshing}
-          className="gap-2 h-8 px-3"
-        >
-          <RefreshCw className={cn("size-3.5", refreshing && "animate-spin")} />
-          <span className="sr-only sm:not-sr-only text-xs">Refresh</span>
-        </Button>
-      </div>
-
-      {/* Conditional Info Message (SAME AS TWITTER) */}
-      {isCold && hasLimitedData && (
-        <div className="rounded-lg border border-muted bg-muted/20 p-3">
-          <p className="text-xs text-muted-foreground">
-            Tracking paused due to low engagement activity. Use Refresh to get latest data.
-          </p>
-        </div>
-      )}
-
-      {/* Tabs (SAME AS TWITTER) */}
+    <div className="flex flex-col h-full space-y-4">
+      {/* Tabs with charts - flex-1 to take available space */}
+      <div className="flex-1">
+      {/* Tabs */}
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "reach" | "engagement")}>
-        <TabsList className="grid w-full max-w-xs grid-cols-2">
-          <TabsTrigger value="engagement" className="gap-1.5 data-[state=active]:shadow-none">
-            <TrendingUp className="size-4" />
+        <TabsList className="grid w-full grid-cols-2 h-9">
+          <TabsTrigger value="engagement" className="gap-1.5 data-[state=active]:shadow-none h-7 text-xs">
+            <TrendingUp className="size-3.5" />
             <span className="hidden sm:inline">Engagement</span>
             <span className="sm:hidden">Eng.</span>
           </TabsTrigger>
-          <TabsTrigger value="reach" className="gap-1.5 data-[state=active]:shadow-none">
-            <Eye className="size-4" />
+          <TabsTrigger value="reach" className="gap-1.5 data-[state=active]:shadow-none h-7 text-xs">
+            <Eye className="size-3.5" />
             Reach
           </TabsTrigger>
         </TabsList>
 
-        {/* Engagement Tab (4 METRICS - ADAPTED FOR TIKTOK) */}
         <TabsContent value="engagement" className="space-y-3 mt-4 w-full">
+          {isInitialState ? (
+            // Initial State View - Big Numbers instead of Chart
+            <div className="h-[220px] w-full flex flex-col items-center justify-center gap-6 panel-hud bg-muted/10 border-dashed">
+              <div className="grid grid-cols-4 gap-8 text-center">
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Likes</p>
+                  <p className="text-3xl font-bold tabular-nums text-foreground" style={{ color: "var(--chart-1)" }}>
+                    {formatCompactNumber(latestMetrics.digg_count)}
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Comments</p>
+                  <p className="text-3xl font-bold tabular-nums text-foreground" style={{ color: "var(--chart-2)" }}>
+                    {formatCompactNumber(latestMetrics.comment_count)}
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Shares</p>
+                  <p className="text-3xl font-bold tabular-nums text-foreground" style={{ color: "var(--chart-3)" }}>
+                    {formatCompactNumber(latestMetrics.share_count)}
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Saves</p>
+                  <p className="text-3xl font-bold tabular-nums text-foreground" style={{ color: "var(--chart-4)" }}>
+                    {formatCompactNumber(latestMetrics.collect_count)}
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-2 text-muted-foreground/80 mt-2">
+                <Clock className="size-3.5 shrink-0" />
+                <p className="text-xs leading-tight">
+                  Metrics will update hourly to build the trend curve.
+                </p>
+              </div>
+            </div>
+          ) : (
+            <>
+              {/* Chart with smooth data transitions */}
           <ChartContainer config={engagementChartConfig} className="h-[220px] w-full">
             <LineChart 
               data={chartData} 
               margin={{ left: 0, right: 12, top: 12, bottom: 12 }}
               accessibilityLayer
             >
-              <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
               <XAxis
                 dataKey="time"
                 tickLine={false}
                 axisLine={false}
                 tickMargin={8}
+                    tick={{ fill: "var(--muted-foreground)", fontSize: 12 }}
               />
               <YAxis
                 tickLine={false}
@@ -318,10 +335,11 @@ export function TikTokEngagementChart({ videoId, currentStats }: TikTokEngagemen
                 tickMargin={8}
                 tickFormatter={formatCompactNumber}
                 width={40}
+                    tick={{ fill: "var(--muted-foreground)", fontSize: 12 }}
               />
-              <ChartTooltip content={<ChartTooltipContent />} />
+                  <ChartTooltip content={<ChartTooltipContent className="w-40 bg-background/95 backdrop-blur-sm border-border shadow-lg" />} />
               
-              {/* Likes Line */}
+                  {/* Single continuous line per metric */}
               <Line
                 dataKey="digg_count"
                 type="monotone"
@@ -369,9 +387,13 @@ export function TikTokEngagementChart({ videoId, currentStats }: TikTokEngagemen
                 type="monotone"
                 stroke="var(--color-comment_count)"
                 strokeWidth={2}
+                isAnimationActive={true}
+                animationDuration={1000}
+                animationEasing="ease-out"
                 dot={(props: any) => {
                   const { cx, cy, payload, index } = props;
-                  const key = `comments-${index}`;
+                  const key = `comments-${index}-${payload.timestamp || payload.snapshot_at}-${payload.type}`;
+                  
                   if (payload.type === "prediction") {
                     return (
                       <circle
@@ -394,7 +416,7 @@ export function TikTokEngagementChart({ videoId, currentStats }: TikTokEngagemen
                         cy={cy}
                         r={5}
                         fill="var(--color-comment_count)"
-                        stroke="hsl(var(--background))"
+                        stroke="var(--background)"
                         strokeWidth={2}
                       />
                     );
@@ -411,9 +433,13 @@ export function TikTokEngagementChart({ videoId, currentStats }: TikTokEngagemen
                 type="monotone"
                 stroke="var(--color-share_count)"
                 strokeWidth={2}
+                isAnimationActive={true}
+                animationDuration={1000}
+                animationEasing="ease-out"
                 dot={(props: any) => {
                   const { cx, cy, payload, index } = props;
-                  const key = `shares-${index}`;
+                  const key = `shares-${index}-${payload.timestamp || payload.snapshot_at}-${payload.type}`;
+                  
                   if (payload.type === "prediction") {
                     return (
                       <circle
@@ -436,7 +462,7 @@ export function TikTokEngagementChart({ videoId, currentStats }: TikTokEngagemen
                         cy={cy}
                         r={5}
                         fill="var(--color-share_count)"
-                        stroke="hsl(var(--background))"
+                        stroke="var(--background)"
                         strokeWidth={2}
                       />
                     );
@@ -453,9 +479,13 @@ export function TikTokEngagementChart({ videoId, currentStats }: TikTokEngagemen
                 type="monotone"
                 stroke="var(--color-collect_count)"
                 strokeWidth={2}
+                isAnimationActive={true}
+                animationDuration={1000}
+                animationEasing="ease-out"
                 dot={(props: any) => {
                   const { cx, cy, payload, index } = props;
-                  const key = `saves-${index}`;
+                  const key = `saves-${index}-${payload.timestamp || payload.snapshot_at}-${payload.type}`;
+                  
                   if (payload.type === "prediction") {
                     return (
                       <circle
@@ -478,7 +508,7 @@ export function TikTokEngagementChart({ videoId, currentStats }: TikTokEngagemen
                         cy={cy}
                         r={5}
                         fill="var(--color-collect_count)"
-                        stroke="hsl(var(--background))"
+                        stroke="var(--background)"
                         strokeWidth={2}
                       />
                     );
@@ -495,58 +525,67 @@ export function TikTokEngagementChart({ videoId, currentStats }: TikTokEngagemen
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-3 border-t border-border/60">
             <div className="space-y-1">
               <p className="text-xs text-muted-foreground">Likes</p>
-              <p className="text-body font-semibold" style={{ color: "var(--chart-1)" }}>
+              <p className="text-sm font-semibold" style={{ color: "var(--chart-1)" }}>
                 {formatCompactNumber(latestMetrics.digg_count)}
               </p>
             </div>
             <div className="space-y-1">
               <p className="text-xs text-muted-foreground">Comments</p>
-              <p className="text-body font-semibold" style={{ color: "var(--chart-2)" }}>
+              <p className="text-sm font-semibold" style={{ color: "var(--chart-2)" }}>
                 {formatCompactNumber(latestMetrics.comment_count)}
               </p>
             </div>
             <div className="space-y-1">
               <p className="text-xs text-muted-foreground">Shares</p>
-              <p className="text-body font-semibold" style={{ color: "var(--chart-3)" }}>
+              <p className="text-sm font-semibold" style={{ color: "var(--chart-3)" }}>
                 {formatCompactNumber(latestMetrics.share_count)}
               </p>
             </div>
             <div className="space-y-1">
               <p className="text-xs text-muted-foreground">Saves</p>
-              <p className="text-body font-semibold" style={{ color: "var(--chart-4)" }}>
+              <p className="text-sm font-semibold" style={{ color: "var(--chart-4)" }}>
                 {formatCompactNumber(latestMetrics.collect_count)}
               </p>
             </div>
           </div>
-
-          {/* Meta Info */}
-          <div className="flex items-center justify-between text-xs text-muted-foreground pt-2">
-            <span>
-              {data.snapshots.length} update{data.snapshots.length !== 1 ? "s" : ""} • Last: {trackingStatus?.last_updated_at ? formatDistanceToNow(new Date(trackingStatus.last_updated_at), { addSuffix: true }) : "Never"}
-            </span>
-            {data.predictions && (
-              <span className="flex items-center gap-1">
-                <TrendingUp className="size-3" />
-                {(data.predictions.confidence * 100).toFixed(0)}% confidence
-              </span>
-            )}
-          </div>
+            </>
+          )}
         </TabsContent>
 
         {/* Reach Tab (VIEWS) */}
         <TabsContent value="reach" className="space-y-3 mt-4 w-full">
+          {isInitialState ? (
+            // Initial State View for Reach
+            <div className="h-[220px] w-full flex flex-col items-center justify-center gap-6 panel-hud bg-muted/10 border-dashed">
+              <div className="text-center space-y-1">
+                <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Total Views</p>
+                <p className="text-4xl font-bold tabular-nums text-foreground" style={{ color: "var(--primary)" }}>
+                  {formatCompactNumber(latestMetrics.play_count)}
+                </p>
+              </div>
+              
+              <div className="flex items-center gap-2 text-muted-foreground/80">
+                <Clock className="size-3.5 shrink-0" />
+                <p className="text-xs">
+                  Recent video. Metrics update hourly.
+                </p>
+              </div>
+            </div>
+          ) : (
+            // Standard Chart View with smooth transitions
           <ChartContainer config={reachChartConfig} className="h-[220px] w-full">
             <LineChart 
               data={chartData} 
               margin={{ left: 0, right: 12, top: 12, bottom: 12 }}
               accessibilityLayer
             >
-              <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
               <XAxis
                 dataKey="time"
                 tickLine={false}
                 axisLine={false}
                 tickMargin={8}
+                  tick={{ fill: "var(--muted-foreground)", fontSize: 12 }}
               />
               <YAxis
                 tickLine={false}
@@ -554,17 +593,23 @@ export function TikTokEngagementChart({ videoId, currentStats }: TikTokEngagemen
                 tickMargin={8}
                 tickFormatter={formatCompactNumber}
                 width={40}
+                  tick={{ fill: "var(--muted-foreground)", fontSize: 12 }}
               />
-              <ChartTooltip content={<ChartTooltipContent />} />
+                <ChartTooltip content={<ChartTooltipContent className="w-40 bg-background/95 backdrop-blur-sm border-border shadow-lg" />} />
               
+                {/* Single continuous line */}
               <Line
                 dataKey="play_count"
                 type="monotone"
                 stroke="var(--color-play_count)"
                 strokeWidth={2}
+                  isAnimationActive={true}
+                  animationDuration={1000}
+                  animationEasing="ease-out"
                 dot={(props: any) => {
                   const { cx, cy, payload, index } = props;
-                  const key = `views-${index}`;
+                    const key = `views-${index}-${payload.timestamp || payload.snapshot_at}-${payload.type}`;
+                    
                   if (payload.type === "prediction") {
                     return (
                       <circle
@@ -587,7 +632,7 @@ export function TikTokEngagementChart({ videoId, currentStats }: TikTokEngagemen
                         cy={cy}
                         r={5}
                         fill="var(--color-play_count)"
-                        stroke="hsl(var(--background))"
+                          stroke="var(--background)"
                         strokeWidth={2}
                       />
                     );
@@ -599,31 +644,32 @@ export function TikTokEngagementChart({ videoId, currentStats }: TikTokEngagemen
               />
             </LineChart>
           </ChartContainer>
+          )}
 
-          {/* Stats Summary - Reach Tab (EXACT SAME AS TWITTER) */}
+          {/* Stats Summary - Hide in initial state */}
+          {!isInitialState && (
           <div className="grid grid-cols-1 gap-4 pt-3 border-t border-border/60">
             <div className="space-y-1">
               <p className="text-xs text-muted-foreground">Views</p>
-              <p className="text-body font-semibold" style={{ color: "var(--primary)" }}>
+                <p className="text-sm font-semibold" style={{ color: "var(--primary)" }}>
                 {formatCompactNumber(latestMetrics.play_count)}
               </p>
             </div>
           </div>
-
-          {/* Meta Info */}
-          <div className="flex items-center justify-between text-xs text-muted-foreground pt-2">
-            <span>
-              Tracking {isCold ? "stopped" : "active"} • {trackingStatus?.update_count || 0} update{trackingStatus?.update_count !== 1 ? "s" : ""} recorded
-            </span>
-            {data.predictions && (
-              <span className="flex items-center gap-1">
-                <TrendingUp className="size-3" />
-                Predictions available
-              </span>
             )}
-          </div>
         </TabsContent>
       </Tabs>
+      </div>
+
+      {/* Info Message - Pinned to bottom with mt-auto */}
+      {isCold && hasLimitedData && (
+        <div className="flex items-center gap-3 px-4 py-2 rounded-lg bg-tactical-amber/5 border border-tactical-amber/20 mt-auto">
+          <Info className="size-4 text-tactical-amber shrink-0" />
+          <p className="text-xs text-muted-foreground leading-tight">
+            Tracking paused due to low activity. <button onClick={handleRefresh} className="text-foreground underline hover:text-primary">Refresh</button> to resume.
+          </p>
+        </div>
+      )}
     </div>
   );
 }

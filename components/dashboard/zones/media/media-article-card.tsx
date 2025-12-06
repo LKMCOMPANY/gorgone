@@ -16,7 +16,7 @@
 "use client";
 
 import { useState } from "react";
-import { ExternalLink, ChevronDown, ChevronUp, MapPin, Tag, User, Calendar, ShieldCheck } from "lucide-react";
+import { ExternalLink, ChevronDown, ChevronUp, MapPin, Tag, User, Calendar, ShieldCheck, FileText } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -30,7 +30,7 @@ interface MediaArticleCardProps {
 }
 
 /**
- * Get sentiment badge configuration with theme-aware colors
+ * Get sentiment badge configuration with Design System colors
  */
 function getSentimentBadge(sentiment: number | null): {
   label: string;
@@ -51,7 +51,7 @@ function getSentimentBadge(sentiment: number | null): {
     return {
       label: "Positive",
       score: scoreText,
-      className: "bg-primary/10 text-primary border-primary/20",
+      className: "bg-tactical-green/10 text-tactical-green border-tactical-green/20",
     };
   }
 
@@ -59,7 +59,7 @@ function getSentimentBadge(sentiment: number | null): {
     return {
       label: "Negative",
       score: scoreText,
-      className: "bg-destructive/10 text-destructive border-destructive/20",
+      className: "bg-tactical-red/10 text-tactical-red border-tactical-red/20",
     };
   }
 
@@ -142,11 +142,88 @@ export function MediaArticleCard({ article }: MediaArticleCardProps) {
   const isVerified = isVerifiedSource(article.source_uri);
 
   return (
-    <Card className="p-0 glass-card overflow-hidden group transition-all duration-[var(--transition-base)] hover:shadow-lg">
+    <Card className="p-0 card-interactive glass overflow-hidden shadow-sm">
+      {/* Card Header - Metadata & Context */}
+      <div className="flex items-center justify-between px-4 py-2.5 border-b border-border/50 bg-muted/10">
+        {/* Left: Article Context */}
+        <div className="flex items-center gap-2.5 min-w-0 overflow-hidden">
+          {/* Type Badge */}
+          <Badge
+            variant="outline"
+            className="text-[10px] h-5 px-2 font-medium gap-1.5 flex-shrink-0"
+          >
+            <FileText className="size-2.5" />
+            Article
+          </Badge>
+
+          {/* Source */}
+          <span className="text-xs font-medium text-foreground truncate">
+            {article.source_title}
+          </span>
+
+          {/* Location */}
+          {(city || country) && (
+            <>
+              <span className="text-muted-foreground flex-shrink-0">•</span>
+              <span className="text-xs text-muted-foreground truncate">
+                {city && country ? `${city}, ${country}` : city || country}
+              </span>
+            </>
+          )}
+
+          {/* Language Badge */}
+          <Badge variant="outline" className="text-xs flex-shrink-0">
+            {article.lang.toUpperCase()}
+          </Badge>
+
+          {/* Separator */}
+          <div className="h-3 w-px bg-border/50 flex-shrink-0" />
+
+          {/* Time */}
+          <span className="text-xs text-muted-foreground font-medium flex-shrink-0">
+            {relativeTime}
+          </span>
+        </div>
+
+        {/* Right: Badges & Actions */}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {/* External Link */}
+          {article.url && (
+            <a
+              href={article.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-muted-foreground hover:text-primary transition-colors"
+              title="Read article"
+            >
+              <ExternalLink className="size-3.5" />
+            </a>
+          )}
+
+          {/* Verified Badge */}
+          {isVerified && (
+            <Badge className="gap-1 text-[10px] h-5 px-1.5 bg-tactical-green/10 text-tactical-green border-tactical-green/20">
+              <ShieldCheck className="size-2.5" />
+              <span className="hidden sm:inline">Verified</span>
+            </Badge>
+          )}
+
+          {/* Sentiment Badge */}
+          <Badge 
+            className={cn(
+              "text-[10px] h-5 px-2 font-medium",
+              sentimentBadge.className
+            )}
+          >
+            {sentimentBadge.label}
+          </Badge>
+        </div>
+      </div>
+
       {/* Compact View (always visible) */}
       <button
         onClick={() => setExpanded(!expanded)}
-        className="w-full text-left transition-colors duration-[var(--transition-fast)] hover:bg-muted/30"
+        className="w-full text-left transition-colors duration-[var(--transition-fast)] hover:bg-muted/20"
       >
         <div className="flex flex-col sm:flex-row">
           {/* Article Image */}
@@ -164,51 +241,8 @@ export function MediaArticleCard({ article }: MediaArticleCardProps) {
 
           {/* Article Content */}
           <div className="flex-1 p-4 sm:p-5 space-y-3">
-            {/* Header: Source + Language + Sentiment */}
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex items-center gap-2 flex-wrap min-w-0">
-                {/* Source with verified badge */}
-                <div className="flex items-center gap-1.5 min-w-0">
-                  <span className="text-sm font-medium text-foreground truncate">
-                    {article.source_title}
-                  </span>
-                  {isVerified && (
-                    <ShieldCheck 
-                      className="size-4 text-primary flex-shrink-0" 
-                      aria-label="Verified media source"
-                    />
-                  )}
-                </div>
-                
-                {/* Location */}
-                {(city || country) && (
-                  <>
-                    <span className="text-muted-foreground flex-shrink-0">•</span>
-                    <span className="text-xs text-muted-foreground flex-shrink-0">
-                      {city && country ? `${city}, ${country}` : city || country}
-                    </span>
-                  </>
-                )}
-                
-                {/* Language Badge */}
-                <Badge variant="outline" className="text-xs flex-shrink-0">
-                  {article.lang.toUpperCase()}
-                </Badge>
-              </div>
-
-              {/* Sentiment Badge */}
-              <Badge 
-                className={cn(
-                  "flex-shrink-0 transition-all duration-[var(--transition-fast)]",
-                  sentimentBadge.className
-                )}
-              >
-                {sentimentBadge.label}
-              </Badge>
-            </div>
-
             {/* Article Title */}
-            <h3 className="text-body font-semibold leading-snug line-clamp-2 group-hover:text-primary transition-colors duration-[var(--transition-fast)]">
+            <h3 className="text-base font-semibold leading-snug line-clamp-2 group-hover:text-primary transition-colors duration-[var(--transition-fast)]">
               {article.title}
             </h3>
 
@@ -217,15 +251,10 @@ export function MediaArticleCard({ article }: MediaArticleCardProps) {
               {truncateText(article.body, 200)}
             </p>
 
-            {/* Footer: Time + Expand Button */}
+            {/* Footer: Social Shares + Expand Button */}
             <div className="flex items-center justify-between gap-4 pt-2">
+              {hasSocialShares ? (
               <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
-                <span className="flex-shrink-0">{relativeTime}</span>
-                
-                {hasSocialShares && (
-                  <>
-                    <span className="flex-shrink-0">•</span>
-                    <div className="flex items-center gap-3 flex-shrink-0">
                       {article.shares_facebook > 0 && (
                         <span className="flex items-center gap-1.5 transition-colors duration-[var(--transition-fast)] hover:text-foreground">
                           <svg className="size-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -243,9 +272,9 @@ export function MediaArticleCard({ article }: MediaArticleCardProps) {
                         </span>
                       )}
                     </div>
-                  </>
+              ) : (
+                <div></div>
                 )}
-              </div>
 
               {/* Expand Indicator */}
               <div className="flex items-center gap-2">
@@ -265,7 +294,7 @@ export function MediaArticleCard({ article }: MediaArticleCardProps) {
 
       {/* Expanded Details (shown on click) */}
       {expanded && (
-        <div className="border-t border-border bg-muted/20 p-4 sm:p-5 space-y-4 animate-in fade-in-0 slide-in-from-top-2 duration-300">
+        <div className="border-t border-border/60 bg-muted/5 p-4 sm:p-5 space-y-4 animate-in fade-in-0 slide-in-from-top-2 duration-200">
           {/* Full Date & Relevance */}
           <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6">
             <div className="flex items-center gap-2 text-sm">
@@ -368,7 +397,7 @@ export function MediaArticleCard({ article }: MediaArticleCardProps) {
 
           {/* Sentiment Score Details */}
           {article.sentiment !== null && (
-            <div className="rounded-lg border border-border bg-muted/20 p-4">
+            <div className="rounded-lg bg-background border border-border/60 shadow-xs p-4">
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
                   <p className="text-sm font-medium">Sentiment Analysis</p>
@@ -377,7 +406,7 @@ export function MediaArticleCard({ article }: MediaArticleCardProps) {
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="text-lg font-semibold font-mono">{sentimentBadge.score}</p>
+                  <p className="text-lg font-bold font-mono tabular-nums">{sentimentBadge.score}</p>
                   <p className="text-xs text-muted-foreground">Score (-1 to 1)</p>
                 </div>
               </div>
@@ -386,7 +415,7 @@ export function MediaArticleCard({ article }: MediaArticleCardProps) {
                 <div
                   className={cn(
                     "h-full transition-all duration-[var(--transition-base)]",
-                    article.sentiment > 0 ? "bg-primary" : "bg-destructive"
+                    article.sentiment > 0 ? "bg-tactical-green" : "bg-tactical-red"
                   )}
                   style={{
                     width: `${Math.abs(article.sentiment) * 100}%`,
@@ -398,11 +427,11 @@ export function MediaArticleCard({ article }: MediaArticleCardProps) {
           )}
 
           {/* Source Details */}
-          <div className="rounded-lg border border-border bg-muted/20 p-4 space-y-2">
+          <div className="rounded-lg bg-background border border-border/60 shadow-xs p-4 space-y-2">
             <div className="flex items-center justify-between">
               <p className="text-sm font-medium">Source Information</p>
               {isVerified && (
-                <Badge className="bg-primary/10 text-primary border-primary/20 gap-1.5">
+                <Badge className="bg-tactical-green/10 text-tactical-green border-tactical-green/20 gap-1.5">
                   <ShieldCheck className="size-3.5" />
                   <span>Verified Source</span>
                 </Badge>
@@ -438,30 +467,11 @@ export function MediaArticleCard({ article }: MediaArticleCardProps) {
                 <span>Read Full Article</span>
               </a>
             </Button>
-            {article.event_uri && (
-              <Button
-                variant="outline"
-                size="sm"
-                asChild
-                className="gap-2 w-full sm:w-auto"
-              >
-                <a
-                  href={`https://eventregistry.org/event/${article.event_uri}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <svg className="size-4" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
-                    <path d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                  </svg>
-                  <span>View Event</span>
-                </a>
-              </Button>
-            )}
           </div>
 
           {/* Metadata Footer */}
           <div className="flex items-center gap-2 pt-2 border-t border-border/50 text-xs text-muted-foreground">
-            <span>Article ID:</span>
+            <span>ID:</span>
             <code className="font-mono text-xs bg-muted/50 px-2 py-0.5 rounded">
               {article.article_uri}
             </code>

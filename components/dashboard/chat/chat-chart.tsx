@@ -47,62 +47,86 @@ export function ChatChart({ type, title, data, config }: ChatChartProps) {
   };
 
   return (
-    <div className="my-4 rounded-lg border border-border bg-card p-4 max-w-full overflow-hidden">
-      <h4 className="text-body font-semibold mb-4 break-words">{title}</h4>
+    <div className="my-3 rounded-xl border border-border/60 bg-background shadow-xs p-3 max-w-full overflow-hidden">
+      <h4 className="text-sm font-semibold mb-3 break-words uppercase tracking-wider text-muted-foreground">{title}</h4>
       
       {type === "line" && (
-        <ChartContainer config={config} className="h-[200px] w-full max-w-full">
+        <ChartContainer config={config} className="h-[180px] w-full max-w-full">
           <LineChart {...commonProps}>
-            <CartesianGrid {...commonGridProps} />
-            <XAxis dataKey="timestamp" {...commonAxisProps} />
+            <CartesianGrid {...commonGridProps} vertical={false} />
+            <XAxis 
+              dataKey="timestamp" 
+              {...commonAxisProps}
+              tick={{ fill: "var(--muted-foreground)", fontSize: 10 }}
+              tickMargin={6}
+            />
             <YAxis
               {...commonAxisProps}
+              tick={{ fill: "var(--muted-foreground)", fontSize: 10 }}
               tickFormatter={(value) => value.toLocaleString()}
+              tickMargin={6}
+              width={35}
             />
-            <ChartTooltip content={<ChartTooltipContent />} />
+            <ChartTooltip content={<ChartTooltipContent className="text-xs" />} />
             <Line
               type="monotone"
               dataKey="value"
-              stroke="var(--primary)"
+              stroke="var(--chart-1)"
               strokeWidth={2}
-              dot={{ fill: "var(--primary)", r: 3 }}
-              activeDot={{ r: 5, fill: "var(--primary)" }}
+              dot={{ fill: "var(--chart-1)", r: 3 }}
+              activeDot={{ r: 5, fill: "var(--chart-1)" }}
             />
           </LineChart>
         </ChartContainer>
       )}
 
       {type === "bar" && (
-        <ChartContainer config={config} className="h-[200px] w-full max-w-full">
+        <ChartContainer config={config} className="h-[180px] w-full max-w-full">
           <BarChart {...commonProps}>
-            <CartesianGrid {...commonGridProps} />
-            <XAxis dataKey="timestamp" {...commonAxisProps} />
+            <CartesianGrid {...commonGridProps} vertical={false} />
+            <XAxis 
+              dataKey="timestamp" 
+              {...commonAxisProps}
+              tick={{ fill: "var(--muted-foreground)", fontSize: 10 }}
+              tickMargin={6}
+            />
             <YAxis
               {...commonAxisProps}
+              tick={{ fill: "var(--muted-foreground)", fontSize: 10 }}
               tickFormatter={(value) => value.toLocaleString()}
+              tickMargin={6}
+              width={35}
             />
-            <ChartTooltip content={<ChartTooltipContent />} />
-            <Bar dataKey="value" fill="var(--primary)" radius={[4, 4, 0, 0]} />
+            <ChartTooltip content={<ChartTooltipContent className="text-xs" />} />
+            <Bar dataKey="value" fill="var(--chart-1)" radius={[4, 4, 0, 0]} />
           </BarChart>
         </ChartContainer>
       )}
 
       {type === "area" && (
-        <ChartContainer config={config} className="h-[200px] w-full max-w-full">
+        <ChartContainer config={config} className="h-[180px] w-full max-w-full">
           <AreaChart {...commonProps}>
-            <CartesianGrid {...commonGridProps} />
-            <XAxis dataKey="timestamp" {...commonAxisProps} />
+            <CartesianGrid {...commonGridProps} vertical={false} />
+            <XAxis 
+              dataKey="timestamp" 
+              {...commonAxisProps}
+              tick={{ fill: "var(--muted-foreground)", fontSize: 10 }}
+              tickMargin={6}
+            />
             <YAxis
               {...commonAxisProps}
+              tick={{ fill: "var(--muted-foreground)", fontSize: 10 }}
               tickFormatter={(value) => value.toLocaleString()}
+              tickMargin={6}
+              width={35}
             />
-            <ChartTooltip content={<ChartTooltipContent />} />
+            <ChartTooltip content={<ChartTooltipContent className="text-xs" />} />
             <Area
               type="monotone"
               dataKey="value"
-              fill="var(--primary)"
+              fill="var(--chart-1)"
               fillOpacity={0.2}
-              stroke="var(--primary)"
+              stroke="var(--chart-1)"
               strokeWidth={2}
             />
           </AreaChart>

@@ -47,15 +47,15 @@ const TypeIcon = ({ type }: { type: AttilaOperationType }) => {
 
 const TypeBadge = ({ type }: { type: AttilaOperationType }) => {
   const colors = {
-    sniper: "bg-red-500/10 text-red-500 hover:bg-red-500/20 border-red-500/20",
-    sentinel: "bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 border-blue-500/20",
-    influence: "bg-purple-500/10 text-purple-500 hover:bg-purple-500/20 border-purple-500/20",
+    sniper: "bg-tactical-red/10 text-tactical-red hover:bg-tactical-red/20 border-tactical-red/20",
+    sentinel: "bg-tactical-blue/10 text-tactical-blue hover:bg-tactical-blue/20 border-tactical-blue/20",
+    influence: "bg-chart-1/10 text-chart-1 hover:bg-chart-1/20 border-chart-1/20",
   };
 
   return (
     <Badge 
       variant="outline" 
-      className={cn("gap-1.5 capitalize", colors[type])}
+      className={cn("gap-1.5 capitalize text-xs", colors[type])}
     >
       <TypeIcon type={type} />
       {type}
@@ -110,9 +110,9 @@ export function OperationCard({ operation, zoneId }: OperationCardProps) {
   const isActive = status === "active";
 
   return (
-    <Card className="group relative overflow-hidden border-border transition-all duration-300 hover:shadow-md">
+    <Card className="group relative overflow-hidden border-border transition-all duration-300 hover:shadow-sm glass-card">
       {isActive && (
-        <div className="absolute top-0 left-0 h-1 w-full bg-primary animate-pulse" />
+        <div className="absolute top-0 left-0 h-1 w-full bg-tactical-green animate-pulse" />
       )}
       
       <div className="p-5 space-y-4">
@@ -121,20 +121,24 @@ export function OperationCard({ operation, zoneId }: OperationCardProps) {
             <h3 className="text-lg font-semibold truncate pr-4">
               {operation.name}
             </h3>
-            <p className="text-xs text-muted-foreground">
-              Created {new Date(operation.created_at).toLocaleDateString()}
+            <p className="text-xs text-muted-foreground" suppressHydrationWarning>
+              Created {new Date(operation.created_at).toLocaleDateString('en-US', { 
+                month: 'short',
+                day: 'numeric', 
+                year: 'numeric'
+              })}
             </p>
           </div>
           <TypeBadge type={operation.type} />
         </div>
 
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <div className={cn("size-2 rounded-full", isActive ? "bg-green-500" : "bg-slate-500")} />
-          <span className="capitalize">{status}</span>
+          <div className={cn("size-2 rounded-full", isActive ? "bg-tactical-green" : "bg-muted-foreground")} />
+          <span className="capitalize font-medium">{status}</span>
         </div>
       </div>
 
-      <div className="bg-muted/20 p-3 flex items-center justify-between border-t border-border">
+      <div className="bg-background border-t border-border/60 shadow-xs p-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <TooltipProvider>
             <Tooltip>
@@ -167,8 +171,8 @@ export function OperationCard({ operation, zoneId }: OperationCardProps) {
                   className={cn(
                     "size-8", 
                     isActive 
-                      ? "text-orange-500 hover:text-orange-600 hover:bg-orange-500/10" 
-                      : "text-green-500 hover:text-green-600 hover:bg-green-500/10"
+                      ? "text-tactical-amber hover:text-tactical-amber/80 hover:bg-tactical-amber/10" 
+                      : "text-tactical-green hover:text-tactical-green/80 hover:bg-tactical-green/10"
                   )}
                 >
                   {isActive ? <Pause className="size-4" /> : <Play className="size-4" />}
@@ -188,7 +192,7 @@ export function OperationCard({ operation, zoneId }: OperationCardProps) {
                   size="icon"
                   onClick={handleDelete}
                   disabled={isLoading}
-                  className="size-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                  className="size-8 text-muted-foreground hover:text-tactical-red hover:bg-tactical-red/10"
                 >
                   <Trash2 className="size-4" />
                 </Button>

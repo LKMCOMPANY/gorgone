@@ -120,7 +120,7 @@ export function TikTokProfilesFilters({ zoneId, filters, onFiltersChange }: TikT
   ].filter(Boolean).length;
 
   return (
-    <Card className="card-padding">
+    <Card className="p-4">
       <div className="space-y-4">
         {/* Search + Sort */}
         <div className="flex flex-col sm:flex-row gap-3">
@@ -141,7 +141,7 @@ export function TikTokProfilesFilters({ zoneId, filters, onFiltersChange }: TikT
               }}
               onFocus={() => autocompleteResults.length > 0 && setShowAutocomplete(true)}
               onBlur={() => setTimeout(() => setShowAutocomplete(false), 200)}
-              className="pl-9 pr-9"
+              className="pl-9 pr-9 h-9"
             />
             {searchTerm && (
               <button

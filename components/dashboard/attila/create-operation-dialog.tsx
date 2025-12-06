@@ -115,19 +115,20 @@ export function CreateOperationDialog({ zoneId }: CreateOperationDialogProps) {
 
           <div className="grid gap-6 py-6">
             <div className="space-y-2">
-              <Label htmlFor="name">Operation Name</Label>
+              <Label htmlFor="name" className="text-sm font-medium">Operation Name</Label>
               <Input
                 id="name"
                 placeholder="e.g., Election Counter-Narrative Alpha"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 disabled={isLoading}
+                className="h-9"
               />
             </div>
 
             <div className="space-y-3">
-              <Label>Operation Type</Label>
-              <div className="grid gap-4 sm:grid-cols-3">
+              <Label className="text-sm font-medium">Operation Type</Label>
+              <div className="grid gap-3 sm:grid-cols-3">
                 {OPERATION_TYPES.map((type) => {
                   const Icon = type.icon;
                   const isSelected = selectedType === type.id;
@@ -135,16 +136,16 @@ export function CreateOperationDialog({ zoneId }: CreateOperationDialogProps) {
                     <div
                       key={type.id}
                       className={cn(
-                        "cursor-pointer rounded-lg border p-4 hover:bg-muted/50 transition-all duration-200",
+                        "cursor-pointer rounded-xl border p-4 hover:bg-muted/30 transition-all duration-[var(--transition-fast)]",
                         isSelected
-                          ? "border-primary bg-primary/5 ring-1 ring-primary"
-                          : "border-border"
+                          ? "border-primary bg-primary/5 ring-2 ring-primary/20 shadow-sm"
+                          : "border-border/60 shadow-xs"
                       )}
                       onClick={() => setSelectedType(type.id)}
                     >
-                      <Icon className={cn("size-6 mb-3", isSelected ? "text-primary" : "text-muted-foreground")} />
-                      <h3 className="font-medium text-sm mb-1">{type.title}</h3>
-                      <p className="text-xs text-muted-foreground line-clamp-3">
+                      <Icon className={cn("size-6 mb-2", isSelected ? "text-primary" : "text-muted-foreground")} />
+                      <h3 className="font-semibold text-sm mb-1">{type.title}</h3>
+                      <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">
                         {type.description}
                       </p>
                     </div>

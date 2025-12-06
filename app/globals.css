@@ -418,6 +418,23 @@
     @apply text-[var(--tactical-red)];
   }
 
+  /* Data List (Key-Value Pairs) */
+  .data-list {
+    @apply flex flex-col gap-1;
+  }
+
+  .data-list-item {
+    @apply flex items-center justify-between py-2 px-3 rounded-md transition-colors duration-200 hover:bg-muted/50;
+  }
+
+  .data-list-label {
+    @apply text-sm text-muted-foreground font-medium;
+  }
+
+  .data-list-value {
+    @apply text-sm font-semibold text-foreground tabular-nums;
+  }
+
   /* ============ ALERT BANNERS
    * ============================================ */
   

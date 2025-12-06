@@ -6,6 +6,8 @@ import { ArrowRight, MessageSquare, CornerDownRight } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
+import { EmptyState } from "../zones/empty-state";
+
 interface AttilaMonitoringFeedProps {
   activity: AttilaThread[];
   zoneId: string;
@@ -14,15 +16,12 @@ interface AttilaMonitoringFeedProps {
 export function AttilaMonitoringFeed({ activity, zoneId }: AttilaMonitoringFeedProps) {
   if (activity.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-24 text-center border border-dashed rounded-xl bg-muted/5">
-        <div className="rounded-full bg-muted/30 p-4 mb-4">
-          <MessageSquare className="size-8 text-muted-foreground" />
-        </div>
-        <h3 className="text-lg font-semibold mb-2">No Activity Recorded</h3>
-        <p className="text-body text-muted-foreground max-w-md mx-auto">
-          Once your Attila avatars start responding to posts, the conversations will appear here in real-time.
-        </p>
-      </div>
+      <EmptyState
+        icon="info"
+        title="No Activity Recorded"
+        description="Once your Attila avatars start responding to posts, the conversations will appear here in real-time."
+        className="py-24"
+      />
     );
   }
 

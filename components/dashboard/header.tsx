@@ -1,6 +1,7 @@
 "use client";
 
 import { Menu, MessageSquare } from "lucide-react";
+import NextImage from "next/image";
 import { Button } from "@/components/ui/button";
 import { useSidebar } from "@/components/ui/sidebar";
 import { useChat } from "@/components/dashboard/chat/chat-provider";
@@ -27,7 +28,7 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 shadow-xs backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="flex h-14 items-center justify-between px-4 lg:h-16 lg:px-6">
+      <div className="relative flex h-14 items-center justify-between px-4 lg:h-16 lg:px-6">
         <div className="flex items-center gap-3">
           {/* Menu toggle */}
           <Button
@@ -44,6 +45,28 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
           <h2 className="text-lg font-bold tracking-tight sm:text-xl">
             {APP_NAME}
           </h2>
+        </div>
+
+        {/* Center: Logo */}
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+          <div className="relative h-4 w-auto">
+            <NextImage
+              src="/GorgoneBlack.svg"
+              alt="Gorgone"
+              height={16}
+              width={60}
+              className="object-contain dark:hidden"
+              priority
+            />
+            <NextImage
+              src="/GorgoneWhite.svg"
+              alt="Gorgone"
+              height={16}
+              width={60}
+              className="object-contain hidden dark:block"
+              priority
+            />
+          </div>
         </div>
 
         <div className="flex items-center gap-2">

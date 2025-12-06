@@ -23,51 +23,47 @@ const LABEL_TYPES: Array<{
   value: TikTokProfileTagType;
   label: string;
   color: string;
-  description: string;
 }> = [
   { 
     value: "attila", 
     label: "Attila", 
-    color: "bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/20",
-    description: "High-priority targets requiring immediate attention"
+    color: "bg-tactical-red/10 text-tactical-red border-tactical-red/20",
   },
   { 
     value: "adversary", 
     label: "Adversary", 
-    color: "bg-orange-500/10 text-orange-700 dark:text-orange-400 border-orange-500/20",
-    description: "Opposition profiles or hostile actors"
+    color: "bg-tactical-amber/10 text-tactical-amber border-tactical-amber/20",
   },
   { 
     value: "surveillance", 
     label: "Surveillance", 
-    color: "bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 border-yellow-500/20",
-    description: "Profiles under active monitoring"
+    color: "bg-chart-4/10 text-chart-4 border-chart-4/20",
   },
   { 
     value: "target", 
     label: "Target", 
-    color: "bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20",
-    description: "Key profiles of strategic interest"
+    color: "bg-tactical-blue/10 text-tactical-blue border-tactical-blue/20",
   },
   { 
     value: "ally", 
     label: "Ally", 
-    color: "bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20",
-    description: "Friendly or supportive profiles"
+    color: "bg-tactical-green/10 text-tactical-green border-tactical-green/20",
   },
   { 
     value: "asset", 
     label: "Asset", 
-    color: "bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-500/20",
-    description: "Valuable resources or information sources"
+    color: "bg-chart-1/10 text-chart-1 border-chart-1/20",
   },
   { 
     value: "local_team", 
     label: "Local Team", 
-    color: "bg-cyan-500/10 text-cyan-700 dark:text-cyan-400 border-cyan-500/20",
-    description: "Internal team members or local contacts"
+    color: "bg-chart-2/10 text-chart-2 border-chart-2/20",
   },
 ];
+
+import Image from "next/image";
+
+import { cn } from "@/lib/utils";
 
 export function TikTokTrackedProfilesTab({ zoneId }: TikTokTrackedProfilesTabProps) {
   const [activeTab, setActiveTab] = useState<TikTokProfileTagType>("attila");
@@ -252,31 +248,42 @@ export function TikTokTrackedProfilesTab({ zoneId }: TikTokTrackedProfilesTabPro
       </div>
 
       {/* Label Tabs */}
-      <Card className="card-padding">
+      <Card className="p-6">
         <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as TikTokProfileTagType)}>
-          <TabsList className="w-full grid grid-cols-7 h-auto">
+          <TabsList className="w-full grid grid-cols-7 h-auto bg-transparent p-0 gap-2">
             {LABEL_TYPES.map((labelType) => (
               <TabsTrigger
                 key={labelType.value}
                 value={labelType.value}
-                className="text-xs sm:text-sm data-[state=active]:shadow-sm"
+                className="flex flex-col items-center gap-2 py-3 h-auto rounded-lg border border-transparent data-[state=active]:border-border data-[state=active]:shadow-sm hover:bg-muted/50 transition-all duration-[var(--transition-fast)]"
               >
-                <span className="hidden sm:inline">{labelType.label}</span>
-                <span className="sm:hidden">{labelType.label.substring(0, 3)}</span>
+                {labelType.value === 'attila' ? (
+                  <div className="relative size-4">
+                    <Image
+                      src="/AttilaBlack.svg"
+                      alt="Attila"
+                      fill
+                      className="object-contain dark:hidden"
+                    />
+                    <Image
+                      src="/AttilaWhite.svg"
+                      alt="Attila"
+                      fill
+                      className="object-contain hidden dark:block"
+                    />
+                  </div>
+                ) : (
+                  <span className="text-sm font-medium truncate w-full text-center">{labelType.label}</span>
+                )}
+                <Badge variant="outline" className={cn("text-xs px-2 py-0.5 h-5 min-w-[24px] justify-center", labelType.color)}>
+                  {profiles[labelType.value].length}
+                </Badge>
               </TabsTrigger>
             ))}
           </TabsList>
 
           {LABEL_TYPES.map((labelType) => (
             <TabsContent key={labelType.value} value={labelType.value} className="space-y-6 mt-6">
-              {/* Label Description */}
-              <div className={`rounded-lg border p-4 ${labelType.color}`}>
-                <h4 className="text-sm font-semibold mb-1">{labelType.label}</h4>
-                <p className="text-xs opacity-80">
-                  {labelType.description}
-                </p>
-              </div>
-
               {/* Add Profile Form */}
               <div className="space-y-3">
                 <Label htmlFor="add-profile" className="text-sm font-medium">
@@ -295,12 +302,13 @@ export function TikTokTrackedProfilesTab({ zoneId }: TikTokTrackedProfilesTabPro
                       }
                     }}
                     disabled={isSaving}
-                    className="flex-1"
+                    className="flex-1 h-9 shadow-xs"
                   />
                   <Button
                     onClick={() => addProfile(currentInput, activeTab)}
                     disabled={!currentInput.trim() || isSaving}
                     size="sm"
+                    className="h-9 px-4"
                   >
                     {isSaving ? <Loader2 className="size-4 animate-spin" /> : "Add"}
                   </Button>

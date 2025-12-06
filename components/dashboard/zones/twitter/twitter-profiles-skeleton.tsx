@@ -16,7 +16,7 @@ export function TwitterProfilesSkeleton() {
             <div className="px-4 sm:px-6 py-3 border-b border-border/60 bg-muted/20">
               <div className="flex items-center gap-2 flex-wrap">
                 <Skeleton className="h-5 w-12" />
-                <Skeleton className="size-50" />
+                <Skeleton className="h-5 w-24" />
               </div>
             </div>
           )}
@@ -33,10 +33,10 @@ export function TwitterProfilesSkeleton() {
                     <Skeleton className="h-5 w-32" />
                     <Skeleton className="size-4 rounded-full" />
                   </div>
-                  <Skeleton className="size-44" />
+                  <Skeleton className="h-4 w-48" />
                   <div className="flex gap-2">
-                    <Skeleton className="size-84" />
-                    <Skeleton className="size-80" />
+                    <Skeleton className="h-8 w-24" />
+                    <Skeleton className="h-8 w-24" />
                   </div>
                 </div>
               </div>
@@ -44,16 +44,16 @@ export function TwitterProfilesSkeleton() {
               {/* Bio */}
               <div className="space-y-2">
                 <Skeleton className="h-4 w-full" />
-                <Skeleton className="size-4/5" />
+                <Skeleton className="h-4 w-4/5" />
               </div>
 
               {/* Bio URL */}
-              <Skeleton className="size-48" />
+              <Skeleton className="h-4 w-32" />
 
               {/* Meta Info */}
               <div className="space-y-2">
                 <Skeleton className="h-4 w-56" />
-                <Skeleton className="size-44" />
+                <Skeleton className="h-4 w-40" />
               </div>
 
               {/* Key Metrics Grid */}
@@ -64,7 +64,7 @@ export function TwitterProfilesSkeleton() {
                     className="rounded-lg border border-border bg-muted/30 p-3 space-y-2"
                   >
                     <Skeleton className="h-3 w-16" />
-                    <Skeleton className="size-60" />
+                    <Skeleton className="h-6 w-20" />
                   </div>
                 ))}
               </div>
@@ -84,7 +84,7 @@ export function TwitterProfilesSkeleton() {
                 {Array.from({ length: 8 }).map((_, k) => (
                   <div key={k} className="flex items-center justify-between py-2 border-b border-border/30">
                     <Skeleton className="h-4 w-32" />
-                    <Skeleton className="size-40" />
+                    <Skeleton className="h-4 w-12" />
                   </div>
                 ))}
               </div>

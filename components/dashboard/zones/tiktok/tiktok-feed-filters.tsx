@@ -181,7 +181,7 @@ export function TikTokFeedFilters({
   const activeFiltersCount = getActiveFiltersCount();
 
   return (
-    <Card className="card-padding space-y-4">
+    <Card className="p-4 space-y-4">
       {/* Search Bar */}
       <div className="relative">
         <div className="relative">
@@ -201,7 +201,7 @@ export function TikTokFeedFilters({
                 setShowAutocomplete(false);
               }
             }}
-            className="pl-10 pr-10 h-11 transition-shadow duration-[var(--transition-fast)] focus-visible:shadow-[var(--shadow-sm)]"
+            className="pl-10 pr-10 h-9 transition-shadow duration-[var(--transition-fast)] focus-visible:shadow-xs"
           />
           {searchTerm && (
             <button
@@ -402,7 +402,7 @@ export function TikTokFeedFilters({
               >
                 {filters.verified_only && (
                   <svg
-                    className="size-3 text-white"
+                    className="size-3 text-primary-foreground"
                     fill="none"
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -441,7 +441,7 @@ export function TikTokFeedFilters({
               >
                 {filters.active_tracking_only && (
                   <svg
-                    className="size-3 text-white"
+                    className="size-3 text-primary-foreground"
                     fill="none"
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -479,9 +479,9 @@ export function TikTokFeedFilters({
           </div>
 
           {/* Engagement Filters */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="flex flex-col sm:flex-row gap-4 w-full">
             {/* Minimum Views */}
-            <div className="space-y-2">
+            <div className="flex-1 space-y-2">
               <label className="text-sm font-medium">Minimum Views</label>
               <Select
                 value={filters.min_views?.toString() || "0"}
@@ -489,7 +489,7 @@ export function TikTokFeedFilters({
                   handleFilterChange("min_views", value === "0" ? undefined : parseInt(value))
                 }
               >
-                <SelectTrigger className="transition-shadow duration-[var(--transition-fast)]">
+                <SelectTrigger className="w-full transition-shadow duration-[var(--transition-fast)]">
                   <SelectValue placeholder="Any" />
                 </SelectTrigger>
                 <SelectContent>
@@ -506,7 +506,7 @@ export function TikTokFeedFilters({
             </div>
 
             {/* Minimum Likes */}
-            <div className="space-y-2">
+            <div className="flex-1 space-y-2">
               <label className="text-sm font-medium">Minimum Likes</label>
               <Select
                 value={filters.min_likes?.toString() || "0"}
@@ -514,7 +514,7 @@ export function TikTokFeedFilters({
                   handleFilterChange("min_likes", value === "0" ? undefined : parseInt(value))
                 }
               >
-                <SelectTrigger className="transition-shadow duration-[var(--transition-fast)]">
+                <SelectTrigger className="w-full transition-shadow duration-[var(--transition-fast)]">
                   <SelectValue placeholder="Any" />
                 </SelectTrigger>
                 <SelectContent>
@@ -529,7 +529,7 @@ export function TikTokFeedFilters({
             </div>
 
             {/* Minimum Comments */}
-            <div className="space-y-2">
+            <div className="flex-1 space-y-2">
               <label className="text-sm font-medium">Minimum Comments</label>
               <Select
                 value={filters.min_comments?.toString() || "0"}
@@ -537,7 +537,7 @@ export function TikTokFeedFilters({
                   handleFilterChange("min_comments", value === "0" ? undefined : parseInt(value))
                 }
               >
-                <SelectTrigger className="transition-shadow duration-[var(--transition-fast)]">
+                <SelectTrigger className="w-full transition-shadow duration-[var(--transition-fast)]">
                   <SelectValue placeholder="Any" />
                 </SelectTrigger>
                 <SelectContent>

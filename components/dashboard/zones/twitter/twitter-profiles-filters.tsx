@@ -141,7 +141,7 @@ export function TwitterProfilesFilters({
   const activeFiltersCount = getActiveFiltersCount();
 
   return (
-    <Card className="card-padding space-y-4">
+    <Card className="p-4 space-y-4">
       {/* Search Bar */}
       <div className="relative">
         <div className="relative">
@@ -152,7 +152,7 @@ export function TwitterProfilesFilters({
             value={searchTerm}
             onChange={(e) => handleSearchChange(e.target.value)}
             onFocus={() => setShowAutocomplete(true)}
-            className="pl-10 pr-10 h-11 transition-shadow duration-[var(--transition-fast)] focus-visible:shadow-[var(--shadow-sm)]"
+            className="pl-10 pr-10 h-9 transition-shadow duration-[var(--transition-fast)] focus-visible:shadow-xs"
           />
           {searchTerm && (
             <button
@@ -191,7 +191,7 @@ export function TwitterProfilesFilters({
                     </p>
                     {result.metadata?.is_verified && (
                       <svg
-                        className="size-4 text-blue-500 flex-shrink-0"
+                        className="size-4 text-chart-2 flex-shrink-0"
                         viewBox="0 0 24 24"
                         fill="currentColor"
                       >
@@ -339,7 +339,7 @@ export function TwitterProfilesFilters({
               >
                 {filters.verified_only && (
                   <svg
-                    className="size-3 text-white"
+                    className="size-3 text-primary-foreground"
                     fill="none"
                     strokeLinecap="round"
                     strokeLinejoin="round"

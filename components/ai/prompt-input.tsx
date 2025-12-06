@@ -65,18 +65,18 @@ export function PromptInput({
         placeholder={placeholder}
         disabled={isLoading || disabled}
         maxLength={maxLength}
-        rows={1}
+        rows={2}
         className={cn(
-          "min-h-[40px] max-h-[200px] resize-none",
-          "transition-shadow duration-[var(--transition-fast)]",
-          "focus-visible:shadow-sm"
+          "min-h-[56px] max-h-[200px] resize-none shadow-xs bg-background",
+          "transition-all duration-[var(--transition-fast)]",
+          "focus-visible:shadow-sm focus-visible:ring-2 focus-visible:ring-primary/20"
         )}
       />
       <Button
         type="submit"
         size="icon"
         disabled={!value.trim() || isLoading || disabled}
-        className="size-10 shrink-0"
+        className="size-9 shrink-0 shadow-sm transition-all duration-[var(--transition-fast)]"
       >
         {isLoading ? (
           <Loader2 className="size-4 animate-spin" />

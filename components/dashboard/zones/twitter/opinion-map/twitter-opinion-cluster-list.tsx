@@ -127,7 +127,7 @@ export function TwitterOpinionClusterList({
       {/* Cluster Card */}
       <div className="p-4 space-y-4 animate-in fade-in-0 duration-300">
           {/* Main Card */}
-          <Card className="p-6 space-y-4 border-border shadow-sm">
+          <Card className="p-6 space-y-4 bg-background border border-border/60 shadow-xs">
             {/* Header */}
             <div className="flex items-start gap-4">
               <div
@@ -145,17 +145,17 @@ export function TwitterOpinionClusterList({
 
               <div className="flex-1 min-w-0 space-y-2">
                 {/* Title */}
-                <h3 className="text-lg font-semibold font-semibold text-foreground">
+                <h3 className="text-lg font-bold font-mono tracking-tight text-foreground">
                   {currentCluster.label}
                 </h3>
 
                 {/* Stats */}
                 <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                  <span className="font-medium">
+                  <span className="font-medium tabular-nums">
                     {currentCluster.tweet_count.toLocaleString()} posts
                   </span>
                   <span>•</span>
-                  <span>{percentage}% of total</span>
+                  <span className="tabular-nums">{percentage}% of total</span>
                 </div>
               </div>
             </div>
@@ -163,7 +163,7 @@ export function TwitterOpinionClusterList({
             {/* AI-Generated Description */}
             {currentCluster.reasoning && (
               <div className="space-y-2">
-                <h4 className="text-sm font-semibold text-foreground">
+                <h4 className="text-sm font-semibold text-foreground uppercase tracking-wider">
                   Analysis
                 </h4>
                 <p className="text-sm text-muted-foreground leading-relaxed">
@@ -174,7 +174,7 @@ export function TwitterOpinionClusterList({
 
             {/* Keywords */}
             <div className="space-y-2">
-              <h4 className="text-sm font-semibold text-foreground">
+              <h4 className="text-sm font-semibold text-foreground uppercase tracking-wider">
                 Key Topics
               </h4>
               <div className="flex flex-wrap gap-1.5">
@@ -199,10 +199,10 @@ export function TwitterOpinionClusterList({
             {currentCluster.avg_sentiment !== null && (
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-sm font-semibold text-foreground">
+                  <h4 className="text-sm font-semibold text-foreground uppercase tracking-wider">
                     Sentiment
                   </h4>
-                  <span className="text-xs font-medium text-muted-foreground">
+                  <span className="text-xs font-bold text-muted-foreground uppercase">
                     {currentCluster.avg_sentiment > 0.2 ? 'Positive' : 
                      currentCluster.avg_sentiment < -0.2 ? 'Negative' : 'Neutral'}
                   </span>
@@ -236,10 +236,10 @@ export function TwitterOpinionClusterList({
             {currentCluster.coherence_score !== null && (
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-sm font-semibold text-foreground">
+                  <h4 className="text-sm font-semibold text-foreground uppercase tracking-wider">
                     Cluster Quality
                   </h4>
-                  <span className="text-sm font-medium">
+                  <span className="text-sm font-bold font-mono tabular-nums">
                     {(currentCluster.coherence_score * 100).toFixed(0)}%
                   </span>
                 </div>
@@ -258,40 +258,6 @@ export function TwitterOpinionClusterList({
               </div>
             )}
           </Card>
-
-          {/* Quick Navigation Grid */}
-          <div className="grid grid-cols-2 gap-2">
-            {sortedClusters.slice(0, 6).map((cluster, i) => {
-              const isActive = cluster.cluster_id === currentCluster.cluster_id
-              const clusterColor = getOpinionClusterColor(cluster.cluster_id)
-              
-              return (
-                <button
-                  key={cluster.cluster_id}
-                  onClick={() => onSelectCluster(cluster.cluster_id)}
-                  className={cn(
-                    'p-3 rounded-lg border text-left transition-all duration-[var(--transition-fast)]',
-                    isActive 
-                      ? 'border-primary bg-primary/5 shadow-sm' 
-                      : 'border-border hover:border-primary/50 hover:bg-muted/30'
-                  )}
-                >
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="size-2 rounded-full"
-                      style={{ backgroundColor: clusterColor }}
-                    />
-                    <span className="text-sm font-medium truncate">
-                      {cluster.label}
-                    </span>
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {cluster.tweet_count.toLocaleString()} posts
-                  </p>
-                </button>
-              )
-            })}
-          </div>
       </div>
     </div>
   )

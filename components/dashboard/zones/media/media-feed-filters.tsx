@@ -192,7 +192,7 @@ export function MediaFeedFilters({
   const activeFiltersCount = getActiveFiltersCount();
 
   return (
-    <Card className="card-padding space-y-4">
+    <Card className="p-4 space-y-4">
       {/* Search Bar */}
       <div className="relative">
         <div className="relative">
@@ -212,7 +212,7 @@ export function MediaFeedFilters({
                 setShowAutocomplete(false);
               }
             }}
-            className="pl-10 pr-10 h-11 transition-shadow duration-[var(--transition-fast)] focus-visible:shadow-[var(--shadow-sm)]"
+            className="pl-10 pr-10 h-9 transition-shadow duration-[var(--transition-fast)] focus-visible:shadow-xs"
           />
           {searchTerm && (
             <button
@@ -305,7 +305,7 @@ export function MediaFeedFilters({
           >
             {filters.verifiedOnly && (
               <svg
-                className="size-3 text-white"
+                className="size-3 text-primary-foreground"
                 fill="none"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -392,7 +392,7 @@ export function MediaFeedFilters({
                 type="date"
                 value={filters.startDate}
                 onChange={(e) => handleFilterChange("startDate", e.target.value)}
-                className="h-10 transition-shadow duration-[var(--transition-fast)] focus-visible:shadow-[var(--shadow-sm)]"
+                className="h-9 transition-shadow duration-[var(--transition-fast)] focus-visible:shadow-xs"
               />
             </div>
             <div className="space-y-2">
@@ -404,7 +404,7 @@ export function MediaFeedFilters({
                 type="date"
                 value={filters.endDate}
                 onChange={(e) => handleFilterChange("endDate", e.target.value)}
-                className="h-10 transition-shadow duration-[var(--transition-fast)] focus-visible:shadow-[var(--shadow-sm)]"
+                className="h-9 transition-shadow duration-[var(--transition-fast)] focus-visible:shadow-xs"
               />
             </div>
           </div>
@@ -427,8 +427,8 @@ export function MediaFeedFilters({
           </div>
 
           {/* Sentiment Range */}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
+          <div className="flex flex-col sm:flex-row gap-4 w-full">
+            <div className="flex-1 space-y-2">
               <Label htmlFor="min-sentiment" className="text-sm font-medium">
                 Min Sentiment
               </Label>
@@ -440,7 +440,7 @@ export function MediaFeedFilters({
               >
                 <SelectTrigger
                   id="min-sentiment"
-                  className="h-10 transition-shadow duration-[var(--transition-fast)] focus-visible:shadow-[var(--shadow-sm)]"
+                  className="w-full transition-shadow duration-[var(--transition-fast)] focus-visible:shadow-xs"
                 >
                   <SelectValue placeholder="Any" />
                 </SelectTrigger>
@@ -453,7 +453,7 @@ export function MediaFeedFilters({
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-2">
+            <div className="flex-1 space-y-2">
               <Label htmlFor="max-sentiment" className="text-sm font-medium">
                 Max Sentiment
               </Label>
@@ -465,7 +465,7 @@ export function MediaFeedFilters({
               >
                 <SelectTrigger
                   id="max-sentiment"
-                  className="h-10 transition-shadow duration-[var(--transition-fast)] focus-visible:shadow-[var(--shadow-sm)]"
+                  className="w-full transition-shadow duration-[var(--transition-fast)] focus-visible:shadow-xs"
                 >
                   <SelectValue placeholder="Any" />
                 </SelectTrigger>

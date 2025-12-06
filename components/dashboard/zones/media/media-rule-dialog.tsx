@@ -303,18 +303,18 @@ export function MediaRuleDialog({
           {/* Basic Info */}
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="rule-name">Rule Name *</Label>
+              <Label htmlFor="rule-name" className="text-sm font-medium">Rule Name *</Label>
               <Input
                 id="rule-name"
                 placeholder="e.g., Climate News Monitoring"
                 value={ruleName}
                 onChange={(e) => setRuleName(e.target.value)}
-                className="h-10"
+                className="h-9"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="rule-description">Description</Label>
+              <Label htmlFor="rule-description" className="text-sm font-medium">Description</Label>
               <Textarea
                 id="rule-description"
                 placeholder="Optional description of what this rule monitors"
@@ -327,21 +327,21 @@ export function MediaRuleDialog({
 
           {/* Query Configuration */}
           <Tabs value={mode} onValueChange={(v) => setMode(v as "simple" | "advanced")}>
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="simple">Simple</TabsTrigger>
-              <TabsTrigger value="advanced">Advanced</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 h-9">
+              <TabsTrigger value="simple" className="text-xs font-medium h-7">Simple</TabsTrigger>
+              <TabsTrigger value="advanced" className="text-xs font-medium h-7">Advanced</TabsTrigger>
             </TabsList>
 
             {/* Simple Mode */}
             <TabsContent value="simple" className="space-y-4 mt-4">
               <div className="space-y-2">
-                <Label htmlFor="keyword">Keyword or Phrase *</Label>
+                <Label htmlFor="keyword" className="text-sm font-medium">Keyword or Phrase *</Label>
                 <Input
                   id="keyword"
                   placeholder='e.g., "International Holding Company" or "Climate Change"'
                   value={keyword}
                   onChange={(e) => setKeyword(e.target.value)}
-                  className="h-10"
+                  className="h-9"
                 />
                 <div className="space-y-1">
                   <p className="text-xs text-muted-foreground">
@@ -354,12 +354,12 @@ export function MediaRuleDialog({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="simple-lang">Language</Label>
+                <Label htmlFor="simple-lang" className="text-sm font-medium">Language</Label>
                 <Select
                   value={languages[0] || "all"}
                   onValueChange={(v) => setLanguages(v === "all" ? [] : [v])}
                 >
-                  <SelectTrigger className="h-10">
+                  <SelectTrigger className="h-9">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -385,11 +385,11 @@ export function MediaRuleDialog({
             <TabsContent value="advanced" className="space-y-4 mt-4">
               {/* Keywords */}
               <div className="space-y-2">
-                <Label>Keywords</Label>
+                <Label className="text-sm font-medium">Keywords</Label>
                 <div className="flex gap-2">
                   <Input
                     placeholder="Add keyword and press Enter"
-                    className="h-10"
+                    className="h-9"
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
                         e.preventDefault();
@@ -416,11 +416,11 @@ export function MediaRuleDialog({
 
               {/* Sources */}
               <div className="space-y-2">
-                <Label>Source URIs</Label>
+                <Label className="text-sm font-medium">Source URIs</Label>
                 <div className="flex gap-2">
                   <Input
                     placeholder="e.g., bbc.com (press Enter)"
-                    className="h-10"
+                    className="h-9"
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
                         e.preventDefault();
@@ -447,11 +447,11 @@ export function MediaRuleDialog({
 
               {/* Ignore Keywords */}
               <div className="space-y-2">
-                <Label>Exclude Keywords</Label>
+                <Label className="text-sm font-medium">Exclude Keywords</Label>
                 <div className="flex gap-2">
                   <Input
                     placeholder="Keywords to exclude (press Enter)"
-                    className="h-10"
+                    className="h-9"
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
                         e.preventDefault();
@@ -479,7 +479,7 @@ export function MediaRuleDialog({
               {/* Sentiment Range */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="min-sentiment">Min Sentiment</Label>
+                  <Label htmlFor="min-sentiment" className="text-sm font-medium">Min Sentiment</Label>
                   <Input
                     id="min-sentiment"
                     type="number"
@@ -489,11 +489,11 @@ export function MediaRuleDialog({
                     placeholder="-1 to 1"
                     value={minSentiment ?? ""}
                     onChange={(e) => setMinSentiment(e.target.value ? parseFloat(e.target.value) : null)}
-                    className="h-10"
+                    className="h-9"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="max-sentiment">Max Sentiment</Label>
+                  <Label htmlFor="max-sentiment" className="text-sm font-medium">Max Sentiment</Label>
                   <Input
                     id="max-sentiment"
                     type="number"
@@ -503,7 +503,7 @@ export function MediaRuleDialog({
                     placeholder="-1 to 1"
                     value={maxSentiment ?? ""}
                     onChange={(e) => setMaxSentiment(e.target.value ? parseFloat(e.target.value) : null)}
-                    className="h-10"
+                    className="h-9"
                   />
                 </div>
               </div>
@@ -511,23 +511,23 @@ export function MediaRuleDialog({
               {/* Date Range */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="adv-date-start">Start Date</Label>
+                  <Label htmlFor="adv-date-start" className="text-sm font-medium">Start Date</Label>
                   <Input
                     id="adv-date-start"
                     type="date"
                     value={dateStart}
                     onChange={(e) => setDateStart(e.target.value)}
-                    className="h-10"
+                    className="h-9"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="adv-date-end">End Date</Label>
+                  <Label htmlFor="adv-date-end" className="text-sm font-medium">End Date</Label>
                   <Input
                     id="adv-date-end"
                     type="date"
                     value={dateEnd}
                     onChange={(e) => setDateEnd(e.target.value)}
-                    className="h-10"
+                    className="h-9"
                   />
                 </div>
               </div>
@@ -540,7 +540,7 @@ export function MediaRuleDialog({
             
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="interval">Fetch Interval (min)</Label>
+                <Label htmlFor="interval" className="text-sm font-medium">Fetch Interval (min)</Label>
                 <Input
                   id="interval"
                   type="number"
@@ -548,11 +548,11 @@ export function MediaRuleDialog({
                   max="1440"
                   value={fetchInterval}
                   onChange={(e) => setFetchInterval(parseInt(e.target.value) || 60)}
-                  className="h-10"
+                  className="h-9"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="articles-count">Articles per Fetch</Label>
+                <Label htmlFor="articles-count" className="text-sm font-medium">Articles per Fetch</Label>
                 <Input
                   id="articles-count"
                   type="number"
@@ -560,15 +560,15 @@ export function MediaRuleDialog({
                   max="100"
                   value={articlesPerFetch}
                   onChange={(e) => setArticlesPerFetch(parseInt(e.target.value) || 100)}
-                  className="h-10"
+                  className="h-9"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="sort-by">Sort By</Label>
+              <Label htmlFor="sort-by" className="text-sm font-medium">Sort By</Label>
               <Select value={sortBy} onValueChange={(v: any) => setSortBy(v)}>
-                <SelectTrigger className="h-10">
+                <SelectTrigger className="h-9">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>

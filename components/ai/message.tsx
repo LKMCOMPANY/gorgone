@@ -24,7 +24,7 @@ export function Message({ from, children, className }: MessageProps) {
   }
 
   return (
-    <div className={cn("group flex gap-3 max-w-full", className)}>
+    <div className={cn("group flex gap-3 w-full", className)} style={{ maxWidth: '100%' }}>
       {/* Avatar */}
       <Avatar className={cn("size-8 shrink-0", !isUser && "bg-primary/10 shadow-sm")}>
         <AvatarFallback className={cn(!isUser && "bg-transparent")}>
@@ -37,7 +37,7 @@ export function Message({ from, children, className }: MessageProps) {
       </Avatar>
 
       {/* Content */}
-      <div className="flex-1 min-w-0 max-w-full overflow-hidden">
+      <div className="flex-1 min-w-0" style={{ maxWidth: '100%', overflow: 'hidden' }}>
         {children}
       </div>
     </div>
@@ -51,7 +51,10 @@ interface MessageContentProps {
 
 export function MessageContent({ children, className }: MessageContentProps) {
   return (
-    <div className={cn("space-y-3", className)}>
+    <div 
+      className={cn("space-y-3 w-full max-w-full overflow-hidden break-words", className)}
+      style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}
+    >
       {children}
     </div>
   );
