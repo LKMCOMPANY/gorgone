@@ -1,76 +1,102 @@
 "use client";
 
 import * as React from "react";
-import { User as UserIcon } from "lucide-react";
+import { User as UserIcon, Bot } from "lucide-react";
 import Image from "next/image";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 
-interface MessageProps {
+interface MessageProps extends React.HTMLAttributes<HTMLDivElement> {
   from: "user" | "assistant" | "system";
-  children: React.ReactNode;
-  className?: string;
+  avatar?: string;
+  name?: string;
 }
 
-export function Message({ from, children, className }: MessageProps) {
+export function Message({ from, avatar, name, children, className, ...props }: MessageProps) {
   const isUser = from === "user";
   const isSystem = from === "system";
 
   if (isSystem) {
     return (
-      <div className={cn("my-4 text-center text-sm text-muted-foreground", className)}>
-        {children}
+      <div className={cn("flex w-full justify-center py-4", className)} {...props}>
+        <div className="rounded-lg bg-muted/50 px-3 py-1 text-xs text-muted-foreground">
+          {children}
+        </div>
       </div>
     );
   }
 
   return (
-    <div className={cn("group flex gap-3 w-full", className)} style={{ maxWidth: '100%' }}>
+    <div
+      className={cn(
+        "group flex w-full gap-4 py-4 md:px-2",
+        isUser ? "flex-row-reverse" : "flex-row",
+        className
+      )}
+      {...props}
+    >
       {/* Avatar */}
-      <Avatar className={cn("size-8 shrink-0", !isUser && "bg-primary/10 shadow-sm")}>
-        <AvatarFallback className={cn(!isUser && "bg-transparent")}>
-          {isUser ? (
-            <UserIcon className="size-4" />
-          ) : (
-            <div className="relative size-5">
-              <Image
-                src="/GorgoneBlack.svg"
-                alt="Gorgone"
-                fill
-                className="object-contain dark:hidden"
-              />
-              <Image
-                src="/GorgoneWhite.svg"
-                alt="Gorgone"
-                fill
-                className="object-contain hidden dark:block"
-              />
-            </div>
-          )}
-        </AvatarFallback>
-      </Avatar>
+      <div className={cn("flex shrink-0 flex-col items-center gap-1")}>
+        <Avatar className={cn("size-8 border shadow-sm", isUser ? "bg-muted" : "bg-primary/10")}>
+          {avatar && <AvatarImage src={avatar} alt={name || from} />}
+          <AvatarFallback className="bg-transparent">
+            {isUser ? (
+              <UserIcon className="size-4 text-muted-foreground" />
+            ) : (
+              <div className="relative size-5">
+                <Image
+                  src="/GorgoneBlack.svg"
+                  alt="Gorgone"
+                  fill
+                  className="object-contain dark:hidden"
+                />
+                <Image
+                  src="/GorgoneWhite.svg"
+                  alt="Gorgone"
+                  fill
+                  className="object-contain hidden dark:block"
+                />
+              </div>
+            )}
+          </AvatarFallback>
+        </Avatar>
+      </div>
 
-      {/* Content */}
-      <div className="flex-1 min-w-0" style={{ maxWidth: '100%', overflow: 'hidden' }}>
-        {children}
+      {/* Content Wrapper */}
+      <div
+        className={cn(
+          "flex max-w-[85%] flex-col gap-2 min-w-0",
+          isUser ? "items-end" : "items-start"
+        )}
+      >
+        {/* Name (optional) */}
+        {name && (
+          <span className="text-xs text-muted-foreground px-1">
+            {name}
+          </span>
+        )}
+
+        {/* Message Bubble / Text Area */}
+        <div
+          className={cn(
+            "relative w-full overflow-hidden rounded-xl px-4 py-3 shadow-sm",
+            isUser
+              ? "bg-primary text-primary-foreground"
+              : "bg-muted/30 text-foreground border border-border/50"
+          )}
+        >
+          {children}
+        </div>
       </div>
     </div>
   );
 }
 
-interface MessageContentProps {
-  children: React.ReactNode;
-  className?: string;
-}
-
-export function MessageContent({ children, className }: MessageContentProps) {
+export function MessageContent({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <div 
-      className={cn("space-y-3 w-full max-w-full overflow-hidden break-words", className)}
-      style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}
-    >
-      {children}
-    </div>
+    <div
+      className={cn("prose break-words dark:prose-invert prose-p:leading-relaxed prose-pre:p-0 text-sm w-full max-w-none", className)}
+      {...props}
+    />
   );
 }
-
