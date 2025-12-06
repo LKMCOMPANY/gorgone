@@ -3,15 +3,13 @@
 import * as React from "react";
 import { ConversationContent } from "@/components/ai/conversation";
 import { Message, MessageContent } from "@/components/ai/message";
+import { Response } from "@/components/ai/response";
 import { Tool } from "@/components/ai/tool";
 import { Loader } from "@/components/ai/loader";
 import { Actions, ActionButton } from "@/components/ai/actions";
 import { ChatChart } from "./chat-chart";
-import { MemoizedReactMarkdown } from "@/components/ai/markdown";
 import type { Message as AIMessage } from "ai";
 import { Copy, RefreshCw } from "lucide-react";
-import remarkGfm from "remark-gfm";
-import remarkMath from "remark-math";
 
 interface ChatMessagesProps {
   messages: AIMessage[];
@@ -88,72 +86,32 @@ export function ChatMessages({
                   );
                 })}
 
-                {/* Message Content (Markdown) */}
+                {/* Message Content */}
                 {message.content && (
-                  <div className="relative group/content">
-                    <div className="prose dark:prose-invert prose-p:leading-relaxed prose-pre:p-0 text-sm max-w-none break-words prose-headings:font-semibold prose-h1:text-lg prose-h2:text-base prose-h3:text-sm prose-a:text-primary hover:prose-a:underline">
-                      <MemoizedReactMarkdown
-                        remarkPlugins={[remarkGfm, remarkMath]}
-                        components={{
-                          p({ children }) {
-                          return <p className="mb-2 last:mb-0 animate-in fade-in duration-300">{children}</p>;
-                        },
-                        code({ node, inline, className, children, ...props }: any) {
-                          if (children.length) {
-                            if (children[0] == '▍') {
-                              return (
-                                <span className="mt-1 animate-pulse cursor-default">▍</span>
-                              )
-                            }
-                    
-                            children[0] = (children[0] as string).replace('`▍`', '▍')
-                          }
-
-                          const match = /language-(\w+)/.exec(className || "");
-
-                          if (inline) {
-                            return (
-                              <code className="bg-muted px-1 py-0.5 rounded text-xs font-mono" {...props}>
-                                {children}
-                              </code>
-                            );
-                          }
-
-                          return (
-                            <div className="my-4 rounded-md bg-muted/50 p-4 overflow-x-auto">
-                              <code className={className} {...props}>
-                                {children}
-                              </code>
-                            </div>
-                          );
-                        },
-                      }}
-                    >
+                  <>
+                    <Response showCopy={false}>
                       {message.content}
-                    </MemoizedReactMarkdown>
-                    </div>
+                    </Response>
                     
                     {message.role === "assistant" && !isLoading && (
-                      <div className="mt-2 flex justify-start opacity-0 group-hover/content:opacity-100 transition-opacity">
-                        <Actions>
+                      <Actions>
+                        <ActionButton 
+                          label="Copy" 
+                          tooltip="Copy to clipboard"
+                          icon={<Copy className="size-3.5" />}
+                          onClick={() => handleCopy(message.content)} 
+                        />
+                        {isLast && reload && (
                           <ActionButton 
-                            label="Copy" 
-                            tooltip="Copy to clipboard"
-                            icon={<Copy className="size-3.5" />}
-                            onClick={() => handleCopy(message.content)} 
+                            label="Regenerate" 
+                            tooltip="Regenerate response"
+                            icon={<RefreshCw className="size-3.5" />} 
+                            onClick={reload} 
                           />
-                          {isLast && reload && (
-                            <ActionButton 
-                              label="Regenerate" 
-                              tooltip="Regenerate response"
-                              icon={<RefreshCw className="size-3.5" />} 
-                              onClick={reload} 
-                            />
-                          )}
-                        </Actions>
-                      </div>
+                        )}
+                      </Actions>
                     )}
-                  </div>
+                  </>
                 )}
               </MessageContent>
             </Message>
