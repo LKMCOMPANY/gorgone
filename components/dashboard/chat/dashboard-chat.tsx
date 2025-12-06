@@ -82,16 +82,19 @@ export function DashboardChat({ zones }: DashboardChatProps) {
   return (
     <div className="flex flex-col h-full w-full relative bg-background overflow-hidden">
       {/* Background Grid Pattern */}
-      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
-        <InteractiveGridPattern 
-          className="w-full h-full opacity-[0.3] dark:opacity-[0.4]"
-          width={40}
-          height={40}
-          squares={[40, 40]} 
-          squaresClassName="hover:fill-primary/20 dark:hover:fill-primary/20"
-        />
-        {/* Gradient Mask for subtle fade */}
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background/80" />
+      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden [perspective:1000px]">
+        <div className="absolute inset-0 [transform:rotateX(60deg)_translateY(-20%)_scale(2.5)] origin-top">
+          <InteractiveGridPattern 
+            className="w-full h-full opacity-[0.3] dark:opacity-[0.4]"
+            width={40}
+            height={40}
+            squares={[60, 60]} // Increased grid density for 3D effect
+            squaresClassName="hover:fill-primary/30 dark:hover:fill-primary/30"
+          />
+        </div>
+        
+        {/* Gradient Mask for subtle fade - Stronger at top/bottom for depth */}
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background" />
       </div>
 
       {/* Floating Zone Selector (Top Left) - Minimal & Integrated */}
