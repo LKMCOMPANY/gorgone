@@ -18,7 +18,7 @@ import { cn } from "@/lib/utils";
 import type { Zone } from "@/types";
 import { Conversation, ConversationEmpty } from "@/components/ai/conversation";
 import { Suggestion } from "@/components/ai/suggestion";
-import { InteractiveGridPattern } from "@/components/ui/interactive-grid-pattern";
+import { AuroraBackground } from "@/components/ui/aurora-background";
 
 interface DashboardChatProps {
   zones: Zone[];
@@ -80,18 +80,10 @@ export function DashboardChat({ zones }: DashboardChatProps) {
   }
 
   return (
-    <div className="flex flex-col h-full w-full relative bg-background overflow-hidden">
-      {/* Background Grid Pattern */}
-      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
-        <InteractiveGridPattern 
-          className="w-full h-full opacity-[0.3] dark:opacity-[0.4]"
-          width={40}
-          height={40}
-          squares={[40, 40]} 
-          squaresClassName="hover:fill-primary/20 dark:hover:fill-primary/20"
-        />
-        {/* Gradient Mask for subtle fade */}
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background/80" />
+    <div className="flex flex-col h-full w-full relative overflow-hidden">
+      {/* Aurora Background */}
+      <div className="absolute inset-0 z-0">
+        <AuroraBackground showRadialGradient={true} className="opacity-60" />
       </div>
 
       {/* Floating Zone Selector (Top Left) - Minimal & Integrated */}
