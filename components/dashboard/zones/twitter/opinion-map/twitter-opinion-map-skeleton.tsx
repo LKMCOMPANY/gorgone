@@ -64,15 +64,15 @@ export function TwitterOpinionMapSkeleton() {
               {/* Stats grid */}
               <div className="grid grid-cols-3 gap-4 pt-4 border-t border-border">
                 <div className="space-y-2">
-                  <Skeleton className="size-30" />
+                  <Skeleton className="h-4 w-24" />
                   <Skeleton className="h-5 w-16" />
                 </div>
                 <div className="space-y-2">
-                  <Skeleton className="size-34" />
-                  <Skeleton className="size-50" />
+                  <Skeleton className="h-4 w-28" />
+                  <Skeleton className="h-5 w-40" />
                 </div>
                 <div className="space-y-2">
-                  <Skeleton className="size-38" />
+                  <Skeleton className="h-4 w-32" />
                   <Skeleton className="h-5 w-12" />
                 </div>
               </div>
@@ -107,7 +107,7 @@ export function TwitterOpinionMapSkeleton() {
                   <Skeleton className="w-3.5 h-3.5 rounded-full flex-shrink-0 mt-0.5" />
                   <div className="flex-1 space-y-2 min-w-0">
                     <Skeleton className="h-4 w-full" />
-                    <Skeleton className="size-30" />
+                    <Skeleton className="h-3 w-24" />
                   </div>
                 </div>
               ))}

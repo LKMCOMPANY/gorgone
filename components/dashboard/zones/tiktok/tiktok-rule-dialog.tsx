@@ -160,7 +160,7 @@ export function TikTokRuleDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{editingRule ? "Edit" : "Create"} TikTok Rule</DialogTitle>
           <DialogDescription>
@@ -174,7 +174,7 @@ export function TikTokRuleDialog({
             <Label htmlFor="rule-name">Rule Name *</Label>
             <Input
               id="rule-name"
-              placeholder="e.g., Patrick Muyaya Posts"
+              placeholder="e.g., Elon Musk Posts"
               value={ruleName}
               onChange={(e) => setRuleName(e.target.value)}
               disabled={loading}
@@ -189,7 +189,7 @@ export function TikTokRuleDialog({
               onValueChange={(value) => setRuleType(value as RuleType)}
               disabled={loading}
             >
-              <SelectTrigger id="rule-type">
+              <SelectTrigger id="rule-type" className="h-9">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -215,8 +215,8 @@ export function TikTokRuleDialog({
                 id="query"
                 placeholder={
                   ruleType === "combined"
-                    ? "#france government policy"
-                    : "Patrick Muyaya"
+                    ? "#tesla stock analysis"
+                    : "Elon Musk"
                 }
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
@@ -233,7 +233,7 @@ export function TikTokRuleDialog({
               <Label htmlFor="hashtag">Hashtag *</Label>
               <Input
                 id="hashtag"
-                placeholder="france (without #)"
+                placeholder="tesla (without #)"
                 value={hashtag}
                 onChange={(e) => setHashtag(e.target.value)}
                 disabled={loading}
@@ -249,7 +249,7 @@ export function TikTokRuleDialog({
               <Label htmlFor="username">Username *</Label>
               <Input
                 id="username"
-                placeholder="patrickmuyaya01 (without @)"
+                placeholder="elonmusk (without @)"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 disabled={loading}
@@ -264,7 +264,7 @@ export function TikTokRuleDialog({
           <div className="space-y-2">
             <Label htmlFor="country">Country Filter (Optional)</Label>
             <Select value={country || "none"} onValueChange={(value) => setCountry(value === "none" ? "" : value)} disabled={loading}>
-              <SelectTrigger id="country">
+              <SelectTrigger id="country" className="h-9">
                 <SelectValue placeholder="Any country" />
               </SelectTrigger>
               <SelectContent>
@@ -291,13 +291,13 @@ export function TikTokRuleDialog({
               onValueChange={(value) => setIntervalMinutes(Number(value) as 60 | 180 | 360)}
               disabled={loading}
             >
-              <SelectTrigger id="interval">
+              <SelectTrigger id="interval" className="h-9">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="60">⚡ Every 1 hour (High Priority)</SelectItem>
-                <SelectItem value="180">⚙️ Every 3 hours (Normal)</SelectItem>
-                <SelectItem value="360">🕐 Every 6 hours (Low Priority)</SelectItem>
+                <SelectItem value="60">Every 1 hour (High Priority)</SelectItem>
+                <SelectItem value="180">Every 3 hours (Normal)</SelectItem>
+                <SelectItem value="360">Every 6 hours (Low Priority)</SelectItem>
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground">

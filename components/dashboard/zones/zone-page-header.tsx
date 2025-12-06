@@ -79,9 +79,12 @@ export function ZonePageHeader({
               <TabsTrigger
                 key={source}
                 value={source}
-                title={dataSourceLabels[source as keyof typeof dataSourceLabels] || source}
+                className="gap-2 px-4"
               >
                 {dataSourceIcons[source as keyof typeof dataSourceIcons]}
+                <span className="hidden sm:inline">
+                  {dataSourceLabels[source as keyof typeof dataSourceLabels] || source}
+                </span>
               </TabsTrigger>
             ))}
           </TabsList>

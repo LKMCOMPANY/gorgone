@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useSidebar } from "@/components/ui/sidebar";
+import { useSidebar, SidebarMenuButton } from "@/components/ui/sidebar";
 import {
   Dialog,
   DialogContent,
@@ -31,12 +31,12 @@ interface CreateZoneDialogProps {
 
 export function CreateZoneDialog({ clientId }: CreateZoneDialogProps) {
   const router = useRouter();
-  const { state } = useSidebar();
+  // const { state } = useSidebar(); // SidebarMenuButton handles state internally
   const [open, setOpen] = useState(false);
   const [zoneName, setZoneName] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   
-  const isCollapsed = state === "collapsed";
+  // const isCollapsed = state === "collapsed";
 
   const handleCreate = async () => {
     if (!zoneName.trim()) {
@@ -74,31 +74,16 @@ export function CreateZoneDialog({ clientId }: CreateZoneDialogProps) {
   };
 
   const trigger = (
-    <Button
-      variant="outline"
-      size={isCollapsed ? "icon" : "sm"}
-      className={isCollapsed ? "size-9" : "w-full justify-start gap-2"}
-    >
+    <SidebarMenuButton tooltip="Create Zone">
       <Plus />
-      {!isCollapsed && <span>Create Zone</span>}
-    </Button>
+      <span>Create Zone</span>
+    </SidebarMenuButton>
   );
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        {isCollapsed ? (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>{trigger}</TooltipTrigger>
-              <TooltipContent side="right">
-                <p>Create Zone</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        ) : (
-          trigger
-        )}
+        {trigger}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[480px]">
         <DialogHeader>

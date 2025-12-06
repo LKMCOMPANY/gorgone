@@ -8,7 +8,7 @@
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Video, RefreshCw, Search } from "lucide-react";
 import { TikTokRuleDialog } from "./tiktok-rule-dialog";
 import { TikTokRulesList } from "./tiktok-rules-list";
 import { TikTokDataSourceSkeleton } from "./tiktok-data-source-skeleton";
@@ -86,9 +86,11 @@ export function TikTokDataSourceTab({ zoneId }: TikTokDataSourceTabProps) {
       <div className="flex items-start justify-between gap-4">
         <div className="space-y-1.5">
           <h3 className="text-lg font-semibold flex items-center gap-2">
-            <svg className="size-5 text-primary flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
-            </svg>
+            <div className="relative size-5 flex items-center justify-center">
+              <svg viewBox="0 0 24 24" aria-hidden="true" className="size-5 fill-current text-foreground">
+                <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
+              </svg>
+            </div>
             <span>Data Sources</span>
           </h3>
           <p className="text-sm text-muted-foreground">
@@ -121,9 +123,7 @@ export function TikTokDataSourceTab({ zoneId }: TikTokDataSourceTabProps) {
             size="sm"
             className="gap-2"
           >
-            <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
+            <RefreshCw className="size-4" />
             Collect Now
           </Button>
         )}
@@ -134,17 +134,9 @@ export function TikTokDataSourceTab({ zoneId }: TikTokDataSourceTabProps) {
         <Card className="card-padding">
           <div className="rounded-lg border border-dashed border-border/60 bg-muted/20 p-12 sm:p-16">
             <div className="text-center space-y-4">
-              <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-                <svg
-                  className="w-8 h-8 text-primary"
-                  fill="none"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              <div className="mx-auto w-16 h-16 rounded-full bg-foreground/5 flex items-center justify-center">
+                <svg viewBox="0 0 24 24" aria-hidden="true" className="w-8 h-8 fill-current text-foreground/80">
+                  <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
                 </svg>
               </div>
               <div className="space-y-2">

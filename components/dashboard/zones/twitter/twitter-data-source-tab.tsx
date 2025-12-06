@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Database, Twitter } from "lucide-react";
 import { TwitterRulesList } from "./twitter-rules-list";
 import { TwitterRuleDialog } from "./twitter-rule-dialog";
 import { TwitterDataSourceSkeleton } from "./twitter-data-source-skeleton";
@@ -71,9 +71,11 @@ export function TwitterDataSourceTab({ zoneId }: TwitterDataSourceTabProps) {
       {/* Header */}
       <div className="space-y-1.5">
         <h3 className="text-lg font-semibold flex items-center gap-2">
-          <svg className="size-5 text-primary flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-          </svg>
+          <div className="relative size-5 flex items-center justify-center">
+            <svg viewBox="0 0 24 24" aria-hidden="true" className="size-4 fill-current text-foreground">
+              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+            </svg>
+          </div>
           <span>Data Sources</span>
         </h3>
         <p className="text-sm text-muted-foreground">
@@ -86,17 +88,9 @@ export function TwitterDataSourceTab({ zoneId }: TwitterDataSourceTabProps) {
         <Card className="card-padding">
           <div className="rounded-lg border border-dashed border-border/60 bg-muted/20 p-12 sm:p-16">
             <div className="text-center space-y-4">
-              <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-                <svg
-                  className="w-8 h-8 text-primary"
-                  fill="none"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              <div className="mx-auto w-16 h-16 rounded-full bg-foreground/5 flex items-center justify-center">
+                <svg viewBox="0 0 24 24" aria-hidden="true" className="w-8 h-8 fill-current text-foreground/80">
+                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
                 </svg>
               </div>
               <div className="space-y-2">

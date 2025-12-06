@@ -15,8 +15,8 @@ interface TwitterSettingsTabProps {
  */
 export function TwitterSettingsTab({ zoneId }: TwitterSettingsTabProps) {
   return (
-    <Tabs defaultValue="data-source" className="w-full">
-      <TabsList className="grid w-full grid-cols-2 mb-8 h-11">
+    <Tabs defaultValue="data-source" className="w-full space-y-6">
+      <TabsList className="w-full sm:w-auto h-10 bg-muted/50 p-1">
         <TabsTrigger 
           value="data-source"
           className="text-sm font-medium transition-all duration-[var(--transition-fast)] data-[state=active]:shadow-sm"

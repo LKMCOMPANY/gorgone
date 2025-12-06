@@ -168,7 +168,7 @@ export function TwitterRuleDialog({
               placeholder="e.g., Elon Musk Monitoring"
               value={ruleName}
               onChange={(e) => setRuleName(e.target.value)}
-              className="h-10 transition-all duration-[var(--transition-fast)] focus-visible:shadow-[var(--shadow-sm)]"
+              className="h-9 transition-all duration-[var(--transition-fast)] focus-visible:shadow-[var(--shadow-sm)]"
               autoFocus
             />
             <p className="text-xs text-muted-foreground">

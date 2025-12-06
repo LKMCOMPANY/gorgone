@@ -67,7 +67,7 @@ export function TwitterQueryBuilder({ config, onChange }: TwitterQueryBuilderPro
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={handleKeyDown}
-            className="h-10 text-sm transition-all duration-[var(--transition-fast)]"
+            className="h-9 text-sm transition-all duration-[var(--transition-fast)]"
           />
           {values.length > 0 && (
             <div className="flex flex-wrap gap-2">
@@ -185,7 +185,7 @@ export function TwitterQueryBuilder({ config, onChange }: TwitterQueryBuilderPro
                   min_retweets: e.target.value ? Number(e.target.value) : null,
                 })
               }
-              className="h-10 text-sm"
+              className="h-9 text-sm"
             />
           </div>
           
@@ -204,7 +204,7 @@ export function TwitterQueryBuilder({ config, onChange }: TwitterQueryBuilderPro
                   min_likes: e.target.value ? Number(e.target.value) : null,
                 })
               }
-              className="h-10 text-sm"
+              className="h-9 text-sm"
             />
           </div>
           
@@ -223,7 +223,7 @@ export function TwitterQueryBuilder({ config, onChange }: TwitterQueryBuilderPro
                   min_replies: e.target.value ? Number(e.target.value) : null,
                 })
               }
-              className="h-10 text-sm"
+              className="h-9 text-sm"
             />
           </div>
         </div>

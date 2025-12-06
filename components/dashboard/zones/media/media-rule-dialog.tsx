@@ -338,14 +338,14 @@ export function MediaRuleDialog({
                 <Label htmlFor="keyword" className="text-sm font-medium">Keyword or Phrase *</Label>
                 <Input
                   id="keyword"
-                  placeholder='e.g., "International Holding Company" or "Climate Change"'
+                  placeholder='e.g., "Climate Change"'
                   value={keyword}
                   onChange={(e) => setKeyword(e.target.value)}
                   className="h-9"
                 />
                 <div className="space-y-1">
                   <p className="text-xs text-muted-foreground">
-                    💡 <strong>Best Practice:</strong> Create one rule per keyword for better results
+                    <strong>Best Practice:</strong> Create one rule per keyword for better results
                   </p>
                   <p className="text-xs text-muted-foreground">
                     Avoid multiple keywords in one rule - create separate rules instead

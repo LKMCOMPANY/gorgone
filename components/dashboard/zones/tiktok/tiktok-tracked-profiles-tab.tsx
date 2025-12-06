@@ -248,139 +248,163 @@ export function TikTokTrackedProfilesTab({ zoneId }: TikTokTrackedProfilesTabPro
       </div>
 
       {/* Label Tabs */}
-      <Card className="p-6">
-        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as TikTokProfileTagType)}>
-          <TabsList className="w-full grid grid-cols-7 h-auto bg-transparent p-0 gap-2">
-            {LABEL_TYPES.map((labelType) => (
-              <TabsTrigger
-                key={labelType.value}
-                value={labelType.value}
-                className="flex flex-col items-center gap-2 py-3 h-auto rounded-lg border border-transparent data-[state=active]:border-border data-[state=active]:shadow-sm hover:bg-muted/50 transition-all duration-[var(--transition-fast)]"
-              >
-                {labelType.value === 'attila' ? (
-                  <div className="relative size-4">
-                    <Image
-                      src="/AttilaBlack.svg"
-                      alt="Attila"
-                      fill
-                      className="object-contain dark:hidden"
-                    />
-                    <Image
-                      src="/AttilaWhite.svg"
-                      alt="Attila"
-                      fill
-                      className="object-contain hidden dark:block"
-                    />
+      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as TikTokProfileTagType)} className="space-y-6">
+        {/* Responsive TabsList */}
+        <div className="relative">
+          <div className="overflow-x-auto pb-4 scrollbar-hide -mx-6 px-6 sm:mx-0 sm:px-0">
+            <TabsList className="inline-flex h-auto w-full min-w-max justify-start gap-3 bg-transparent p-0 sm:w-auto sm:justify-center">
+              {LABEL_TYPES.map((type) => (
+                <TabsTrigger
+                  key={type.value}
+                  value={type.value}
+                  className={cn(
+                    "h-auto group flex flex-col items-center gap-3 rounded-xl border border-border/50 bg-background px-5 py-4 transition-all duration-200 data-[state=active]:border-primary/20 data-[state=active]:bg-muted/30 data-[state=active]:shadow-sm hover:border-border hover:bg-muted/50",
+                    "min-w-[110px]"
+                  )}
+                >
+                  <div className="flex items-center gap-1.5">
+                    {type.value === 'attila' && (
+                      <div className="relative size-3.5">
+                        <Image
+                          src="/AttilaBlack.svg"
+                          alt="Attila"
+                          fill
+                          className="object-contain dark:hidden"
+                        />
+                        <Image
+                          src="/AttilaWhite.svg"
+                          alt="Attila"
+                          fill
+                          className="object-contain hidden dark:block"
+                        />
+                      </div>
+                    )}
+                    <span className="text-xs font-medium">{type.label}</span>
                   </div>
-                ) : (
-                  <span className="text-sm font-medium truncate w-full text-center">{labelType.label}</span>
-                )}
-                <Badge variant="outline" className={cn("text-xs px-2 py-0.5 h-5 min-w-[24px] justify-center", labelType.color)}>
-                  {profiles[labelType.value].length}
-                </Badge>
-              </TabsTrigger>
-            ))}
-          </TabsList>
+                  <Badge variant="outline" className={cn("px-2 py-0.5 text-[10px] h-5 min-w-[20px] justify-center", type.color)}>
+                    {profiles[type.value].length}
+                  </Badge>
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </div>
+        </div>
 
-          {LABEL_TYPES.map((labelType) => (
-            <TabsContent key={labelType.value} value={labelType.value} className="space-y-6 mt-6">
-              {/* Add Profile Form */}
-              <div className="space-y-3">
-                <Label htmlFor="add-profile" className="text-sm font-medium">
-                  Add Profile
-                </Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="add-profile"
-                    placeholder="@username (e.g., @patrickmuyaya01)"
-                    value={currentInput}
-                    onChange={(e) => setCurrentInput(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && !isSaving) {
-                        e.preventDefault();
-                        addProfile(currentInput, activeTab);
-                      }
-                    }}
-                    disabled={isSaving}
-                    className="flex-1 h-9 shadow-xs"
-                  />
-                  <Button
-                    onClick={() => addProfile(currentInput, activeTab)}
-                    disabled={!currentInput.trim() || isSaving}
-                    size="sm"
-                    className="h-9 px-4"
-                  >
-                    {isSaving ? <Loader2 className="size-4 animate-spin" /> : "Add"}
-                  </Button>
+        <Card className="card-padding min-h-[400px]">
+          <TabsContent value={activeTab} className="mt-0 space-y-6 animate-in fade-in-50 duration-300">
+            {/* Add Profile Form */}
+            <div className="space-y-4">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
+                <div className="flex-1 space-y-2">
+                  <Label htmlFor="add-profile" className="text-sm font-medium">
+                    Add {currentLabelType?.label} Profile
+                  </Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="add-profile"
+                      placeholder="@username"
+                      value={currentInput}
+                      onChange={(e) => setCurrentInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && !isSaving) {
+                          e.preventDefault();
+                          addProfile(currentInput, activeTab);
+                        }
+                      }}
+                      disabled={isSaving}
+                      className="h-9"
+                    />
+                    <Button
+                      onClick={() => addProfile(currentInput, activeTab)}
+                      disabled={!currentInput.trim() || isSaving}
+                      className="h-9 w-20 shrink-0"
+                    >
+                      {isSaving ? <Loader2 className="size-4 animate-spin" /> : "Add"}
+                    </Button>
+                  </div>
                 </div>
               </div>
 
-              {/* Current Profiles */}
+              {/* Bulk Import */}
               <div className="space-y-2">
-                <Label className="text-sm font-medium">
-                  Tracked Profiles ({profiles[activeTab].length})
+                <Label className="text-xs text-muted-foreground">
+                  Or bulk import multiple handles
                 </Label>
-                {profiles[activeTab].length === 0 ? (
-                  <div className="rounded-lg border border-dashed border-border/60 bg-muted/20 p-8 text-center">
-                    <p className="text-sm text-muted-foreground">
-                      No profiles tracked in this category yet
-                    </p>
-                  </div>
-                ) : (
-                  <div className="flex flex-wrap gap-2">
-                    {profiles[activeTab].map((username) => (
-                      <Badge
-                        key={username}
-                        variant="outline"
-                        className="gap-2 pl-3 pr-2 py-1.5"
-                      >
-                        <span className="text-sm">@{username}</span>
-                        <button
-                          onClick={() => removeProfile(username, activeTab)}
-                          disabled={isSaving}
-                          className="ml-1 rounded-full hover:bg-muted p-0.5 transition-colors"
-                        >
-                          <X className="size-3" />
-                        </button>
-                      </Badge>
-                    ))}
-                  </div>
-                )}
+                <div className="flex gap-2">
+                  <Textarea
+                    id="bulk-upload"
+                    placeholder="Paste usernames (one per line)..."
+                    value={bulkInput}
+                    onChange={(e) => setBulkInput(e.target.value)}
+                    disabled={isSaving}
+                    className="min-h-[60px] h-[60px] resize-none text-sm font-mono"
+                  />
+                  <Button
+                    onClick={handleBulkUpload}
+                    disabled={!bulkInput.trim() || isSaving}
+                    variant="outline"
+                    className="h-[60px] w-20 shrink-0 flex-col gap-1"
+                  >
+                    {isSaving ? (
+                      <Loader2 className="size-4 animate-spin" />
+                    ) : (
+                      <>
+                        <Upload className="size-4" />
+                        <span className="text-[10px]">Import</span>
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            <div className="h-px bg-border/50 my-6" />
+
+            {/* Current Profiles */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm font-medium">
+                  Tracked Profiles <span className="text-muted-foreground ml-1">({profiles[activeTab].length})</span>
+                </Label>
               </div>
 
-              {/* Bulk Upload */}
-              <div className="space-y-3">
-                <Label htmlFor="bulk-upload" className="text-sm font-medium">
-                  Bulk Upload
-                </Label>
-                <Textarea
-                  id="bulk-upload"
-                  placeholder="Enter multiple usernames (one per line)&#10;@patrickmuyaya01&#10;@username2&#10;@username3"
-                  value={bulkInput}
-                  onChange={(e) => setBulkInput(e.target.value)}
-                  disabled={isSaving}
-                  rows={5}
-                  className="font-mono text-sm"
-                />
-                <Button
-                  onClick={handleBulkUpload}
-                  disabled={!bulkInput.trim() || isSaving}
-                  size="sm"
-                  variant="outline"
-                  className="w-full sm:w-auto gap-2"
-                >
-                  {isSaving ? (
-                    <Loader2 className="size-4 animate-spin" />
-                  ) : (
-                    <Upload className="size-4" />
-                  )}
-                  Upload Profiles
-                </Button>
-              </div>
-            </TabsContent>
-          ))}
-        </Tabs>
-      </Card>
+              {profiles[activeTab].length === 0 ? (
+                <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border/60 bg-muted/10 py-12">
+                  <div className="rounded-full bg-muted/30 p-3 mb-3">
+                    <svg className="size-6 text-muted-foreground/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                  </div>
+                  <p className="text-sm font-medium">No profiles tracked</p>
+                  <p className="text-xs text-muted-foreground mt-1">Add handles to start monitoring this category</p>
+                </div>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {profiles[activeTab].map((username) => (
+                    <Badge
+                      key={username}
+                      variant="outline"
+                      className={cn(
+                        "pl-3 pr-1.5 py-1.5 gap-2 text-sm transition-all hover:bg-muted/50",
+                        currentLabelType?.color.replace('bg-', 'border-l-4 border-l-')
+                      )}
+                    >
+                      <span className="font-medium">@{username}</span>
+                      <button
+                        onClick={() => removeProfile(username, activeTab)}
+                        disabled={isSaving}
+                        className="ml-1 rounded-full p-0.5 hover:bg-destructive/10 hover:text-destructive transition-colors"
+                      >
+                        <X className="size-3" />
+                      </button>
+                    </Badge>
+                  ))}
+                </div>
+              )}
+            </div>
+          </TabsContent>
+        </Card>
+      </Tabs>
     </div>
   );
 }

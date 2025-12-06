@@ -140,16 +140,9 @@ export async function TwitterOverviewTab({ zoneId, period }: TwitterOverviewTabP
 export function TwitterOverviewTabSkeleton() {
   return (
     <div className="space-y-8 animate-in fade-in-0 duration-300">
-      {/* Header Section Skeleton */}
-      <div className="space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="space-y-2">
-            <Skeleton className="h-6 w-40" />
-            <Skeleton className="h-4 w-64" />
-          </div>
-          <Skeleton className="h-10 w-full sm:w-[480px] rounded-lg" />
-        </div>
-        <div className="h-px bg-border/50" />
+      {/* Controls Section Skeleton */}
+      <div className="flex justify-end">
+        <Skeleton className="h-9 w-[280px] rounded-lg" />
       </div>
 
       {/* Stats Cards Skeleton */}

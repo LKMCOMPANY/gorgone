@@ -35,10 +35,11 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { isSuperAdmin, canManageZones, canViewSettings, getRoleName } from "@/lib/auth/permissions";
 import { logout } from "@/app/actions/auth";
+import { CreateZoneDialog } from "@/components/dashboard/zones/create-zone-dialog";
 import type { UserRole, Zone, User } from "@/types";
 import {
   BarChart3,
-  FileText,
+  Network,
   Rss,
   Settings,
   Bot,
@@ -72,7 +73,7 @@ export function DashboardSidebar({
   const zonePages = [
     { title: "Overview", url: "overview", icon: BarChart3 },
     { title: "Feed", url: "feed", icon: Rss },
-    { title: "Analysis", url: "analysis", icon: FileText },
+    { title: "Analysis", url: "analysis", icon: Network },
     { 
       title: "Attila", 
       url: "attila", 
@@ -145,7 +146,20 @@ export function DashboardSidebar({
                       <SidebarMenuItem>
                         <CollapsibleTrigger asChild>
                           <SidebarMenuButton tooltip={zone.name} suppressHydrationWarning>
-                            <Eye />
+                            <div className="relative size-4">
+                              <Image
+                                src="/GorgoneBlack.svg"
+                                alt="Zone"
+                                fill
+                                className="object-contain dark:hidden"
+                              />
+                              <Image
+                                src="/GorgoneWhite.svg"
+                                alt="Zone"
+                                fill
+                                className="object-contain hidden dark:block"
+                              />
+                            </div>
                             <span>{zone.name}</span>
                             <ChevronRight className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" />
                           </SidebarMenuButton>
@@ -214,10 +228,7 @@ export function DashboardSidebar({
         {showCreateZone && clientId && (
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton tooltip="Create Zone">
-                <Plus />
-                <span>Create Zone</span>
-              </SidebarMenuButton>
+              <CreateZoneDialog clientId={clientId} />
             </SidebarMenuItem>
           </SidebarMenu>
         )}

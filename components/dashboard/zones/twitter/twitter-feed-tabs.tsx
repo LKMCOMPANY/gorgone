@@ -38,12 +38,12 @@ export function TwitterFeedTabs({
   };
 
   return (
-    <Tabs value={currentView} onValueChange={handleTabChange} className="w-full">
-      <TabsList className="mb-6">
-        <TabsTrigger value="feed">
+    <Tabs value={currentView} onValueChange={handleTabChange} className="w-full space-y-6">
+      <TabsList className="w-full sm:w-auto h-10 bg-muted/50 p-1">
+        <TabsTrigger value="feed" className="text-sm font-medium transition-all duration-[var(--transition-fast)] data-[state=active]:shadow-sm">
           Feed
         </TabsTrigger>
-        <TabsTrigger value="profiles">
+        <TabsTrigger value="profiles" className="text-sm font-medium transition-all duration-[var(--transition-fast)] data-[state=active]:shadow-sm">
           Profiles
         </TabsTrigger>
       </TabsList>

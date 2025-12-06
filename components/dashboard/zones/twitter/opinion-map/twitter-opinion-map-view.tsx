@@ -425,7 +425,7 @@ export function TwitterOpinionMapView({ zoneId }: TwitterOpinionMapViewProps) {
         <Card className="border-border shadow-sm">
           <div className="flex flex-col items-center justify-center py-20 px-6">
             <div className="space-y-4 text-center max-w-md">
-              <div className="mx-auto size-200 rounded-full bg-primary/10 flex items-center justify-center transition-all duration-[var(--transition-base)] hover:bg-primary/15">
+              <div className="mx-auto h-48 w-48 rounded-full bg-primary/10 flex items-center justify-center transition-all duration-[var(--transition-base)] hover:bg-primary/15">
                 <Sparkles className="w-10 h-10 text-primary" />
               </div>
               <div className="space-y-2">
