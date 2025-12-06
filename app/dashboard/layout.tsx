@@ -47,37 +47,32 @@ export default async function DashboardLayout({
   }
 
   return (
-    <>
-      {/* Impersonation Banner - outside sidebar */}
-      {impersonationSession && (
-        <ImpersonationBanner
-          adminEmail={impersonationSession.adminEmail}
-          clientName={clientName}
-        />
-      )}
-      
-      <SidebarProvider defaultOpen={true}>
-        <DashboardSidebar
-          user={user}
-          userRole={user.role}
-          clientId={user.client_id}
-          zones={zones}
-        />
-        <SidebarInset 
-          className="flex flex-col w-full h-screen overflow-hidden relative"
-          style={{ paddingTop: impersonationSession ? '32px' : '0' }}
-        >
-          {/* Header INSIDE Inset - sticky to top of this container */}
-          <DashboardHeader user={user} />
-          
-          {/* Main content area - scrolls relative to Inset */}
-          <main className="flex-1 overflow-y-auto overflow-x-hidden flex flex-col w-full relative">
-            {children}
-            {/* Global Chat Overlay */}
-            {zones.length > 0 && <GlobalChatSheet zones={zones} />}
-          </main>
-        </SidebarInset>
-      </SidebarProvider>
-    </>
+    <SidebarProvider defaultOpen={true}>
+      <DashboardSidebar
+        user={user}
+        userRole={user.role}
+        clientId={user.client_id}
+        zones={zones}
+      />
+      <SidebarInset className="flex flex-col w-full h-screen overflow-hidden relative">
+        {/* Impersonation Banner - inside Inset, above header */}
+        {impersonationSession && (
+          <ImpersonationBanner
+            adminEmail={impersonationSession.adminEmail}
+            clientName={clientName}
+          />
+        )}
+        
+        {/* Header INSIDE Inset - sticky to top of this container */}
+        <DashboardHeader user={user} />
+        
+        {/* Main content area - scrolls relative to Inset */}
+        <main className="flex-1 overflow-y-auto overflow-x-hidden flex flex-col w-full relative">
+          {children}
+          {/* Global Chat Overlay */}
+          {zones.length > 0 && <GlobalChatSheet zones={zones} />}
+        </main>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }

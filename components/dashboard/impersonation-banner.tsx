@@ -26,8 +26,8 @@ export function ImpersonationBanner({ adminEmail, clientName }: ImpersonationBan
   };
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-[100] bg-muted/30 backdrop-blur-md border-b border-border/20">
-      <div className="flex items-center justify-between px-4 py-1 max-w-screen-2xl mx-auto">
+    <div className="w-full bg-muted/30 backdrop-blur-md border-b border-border/20 shrink-0">
+      <div className="flex items-center justify-between px-4 lg:px-6 py-1">
         <div className="flex items-center gap-2 text-muted-foreground">
           <Shield className="size-3" />
           <span className="text-xs">
