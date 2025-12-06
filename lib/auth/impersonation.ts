@@ -134,8 +134,9 @@ export async function getEffectiveUser(realUser: User): Promise<User> {
 
   // Verify the real user is still a super_admin
   if (realUser.role !== "super_admin") {
-    // Security: Clear impersonation if user is no longer super_admin
-    await stopImpersonation(realUser);
+    // Security: Ignore impersonation if user is no longer super_admin
+    // We cannot clear the cookie here (Server Component), but we simply ignore it
+    // The cookie will naturally expire or be cleared by a client-side action later
     return realUser;
   }
 
