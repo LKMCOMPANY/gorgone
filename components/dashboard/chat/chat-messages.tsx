@@ -91,13 +91,13 @@ export function ChatMessages({
                 {/* Message Content (Markdown) */}
                 {message.content && (
                   <div className="relative group/content">
-                    <MemoizedReactMarkdown
-                      className="prose dark:prose-invert prose-p:leading-relaxed prose-pre:p-0 text-sm max-w-none break-words"
-                      remarkPlugins={[remarkGfm, remarkMath]}
-                      components={{
-                        p({ children }) {
-                          return <p className="mb-2 last:mb-0">{children}</p>;
-                        },
+                    <div className="prose dark:prose-invert prose-p:leading-relaxed prose-pre:p-0 text-sm max-w-none break-words">
+                      <MemoizedReactMarkdown
+                        remarkPlugins={[remarkGfm, remarkMath]}
+                        components={{
+                          p({ children }) {
+                            return <p className="mb-2 last:mb-0">{children}</p>;
+                          },
                         code({ node, inline, className, children, ...props }: any) {
                           if (children.length) {
                             if (children[0] == '▍') {
@@ -131,6 +131,7 @@ export function ChatMessages({
                     >
                       {message.content}
                     </MemoizedReactMarkdown>
+                    </div>
                     
                     {message.role === "assistant" && !isLoading && (
                       <div className="mt-2 flex justify-start opacity-0 group-hover/content:opacity-100 transition-opacity">
