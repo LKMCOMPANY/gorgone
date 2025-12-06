@@ -10,6 +10,8 @@ import { getCurrentUser } from "@/lib/auth/utils";
 import { getActiveZonesByClient } from "@/lib/data/zones";
 import type { Zone } from "@/types";
 
+export const dynamic = "force-dynamic";
+
 export default async function DashboardLayout({
   children,
 }: {

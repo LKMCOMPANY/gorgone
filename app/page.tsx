@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { getCurrentUser } from "@/lib/auth/utils";
 
+export const dynamic = "force-dynamic";
+
 export default async function Home() {
   const user = await getCurrentUser();
 
