@@ -90,67 +90,63 @@ export function ClientsQuickAccess() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header with action */}
+    <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-semibold tracking-tight">Active Clients</h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            {clients.length} {clients.length === 1 ? 'client' : 'clients'} ready to access
-          </p>
-        </div>
-        <Button variant="outline" size="sm" asChild>
+        <h2 className="text-lg font-semibold">Recent Clients</h2>
+        <Button variant="outline" size="sm" asChild className="h-8">
           <Link href="/dashboard/clients" className="gap-2">
-            View All Clients
-            <ArrowRight className="size-4" />
+            View All
+            <ArrowRight className="size-3.5" />
           </Link>
         </Button>
       </div>
 
       {/* Clients grid */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {clients.map((client) => (
           <Card 
             key={client.id}
-            className="group hover:shadow-md transition-all duration-200 overflow-hidden"
+            className="group relative hover:shadow-md transition-all duration-200 overflow-hidden border-muted-foreground/20"
           >
-            <CardContent className="p-6">
+            <CardContent className="p-5">
               <div className="space-y-4">
                 {/* Client info */}
-                <div className="space-y-2">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <div className="shrink-0 flex items-center justify-center size-10 rounded-lg bg-primary/10">
-                        <Building2 className="size-5 text-primary" />
-                      </div>
-                      <div className="min-w-0">
-                        <h3 className="font-semibold truncate">{client.name}</h3>
-                        <div className="flex items-center gap-1.5 mt-0.5">
-                          <Users className="size-3 text-muted-foreground" />
-                          <span className="text-xs text-muted-foreground">
-                            {client.user_count} {client.user_count === 1 ? 'user' : 'users'}
-                          </span>
-                        </div>
-                      </div>
+                <div className="flex items-start gap-3">
+                  <div className="shrink-0 flex items-center justify-center size-10 rounded-md bg-primary/10 text-primary">
+                    <Building2 className="size-5" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-semibold truncate leading-none mb-1.5">{client.name}</h3>
+                    <div className="flex items-center gap-1.5">
+                      <Badge variant="secondary" className="h-5 px-1.5 text-[10px] font-medium gap-1">
+                        <Users className="size-3" />
+                        {client.user_count}
+                      </Badge>
+                      {client.description && (
+                        <span className="text-xs text-muted-foreground truncate max-w-[120px]" title={client.description}>
+                          {client.description}
+                        </span>
+                      )}
                     </div>
                   </div>
-                  
-                  {client.description && (
-                    <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
-                      {client.description}
-                    </p>
-                  )}
                 </div>
 
                 {/* Action button */}
                 <Button
                   onClick={() => handleViewAsClient(client.id, client.name)}
                   disabled={impersonating === client.id}
-                  className="w-full gap-2"
+                  className="w-full h-9"
+                  size="sm"
                   variant="secondary"
                 >
-                  <UserCog className="size-4" />
-                  {impersonating === client.id ? 'Switching...' : 'Access Dashboard'}
+                  {impersonating === client.id ? (
+                    'Switching...'
+                  ) : (
+                    <>
+                      <UserCog className="size-3.5 mr-2" />
+                      Access Dashboard
+                    </>
+                  )}
                 </Button>
               </div>
             </CardContent>

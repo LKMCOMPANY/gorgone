@@ -9,25 +9,21 @@ export default async function DashboardPage() {
   // Super admin view: show clients quick access
   if (user?.role === "super_admin" && !user?.client_id) {
     return (
-      <div className="flex flex-col h-full">
+      <div className="flex flex-col h-full bg-muted/10">
         {/* Page header */}
-        <div className="shrink-0 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-          <div className="container max-w-7xl py-6">
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
-              <p className="text-muted-foreground mt-2">
-                Manage and access client environments
-              </p>
-            </div>
+        <div className="shrink-0 border-b bg-background px-6 py-4">
+          <div className="max-w-6xl mx-auto">
+            <h1 className="text-2xl font-semibold tracking-tight">Admin Dashboard</h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              Overview of all active client environments
+            </p>
           </div>
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto">
-          <div className="container max-w-7xl py-8">
-            <div className="grid gap-6">
-              <ClientsQuickAccess />
-            </div>
+        <div className="flex-1 overflow-y-auto p-6">
+          <div className="max-w-6xl mx-auto space-y-8">
+            <ClientsQuickAccess />
           </div>
         </div>
       </div>
