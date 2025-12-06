@@ -65,7 +65,7 @@ export default async function DashboardLayout({
         />
         <SidebarInset 
           className="flex flex-col w-full h-screen overflow-hidden relative"
-          style={{ paddingTop: impersonationSession ? '48px' : '0' }}
+          style={{ paddingTop: impersonationSession ? '32px' : '0' }}
         >
           {/* Header INSIDE Inset - sticky to top of this container */}
           <DashboardHeader user={user} />

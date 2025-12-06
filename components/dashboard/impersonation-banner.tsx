@@ -26,24 +26,25 @@ export function ImpersonationBanner({ adminEmail, clientName }: ImpersonationBan
   };
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-[100] bg-amber-500/90 backdrop-blur-sm border-b border-amber-600/50">
-      <div className="flex items-center justify-between px-4 py-2 max-w-screen-2xl mx-auto">
-        <div className="flex items-center gap-2 text-amber-950">
-          <Shield className="size-4" />
-          <span className="text-sm font-medium">
-            Viewing as {clientName || "Client"}
+    <div className="fixed top-0 left-0 right-0 z-[100] bg-muted/30 backdrop-blur-md border-b border-border/20">
+      <div className="flex items-center justify-between px-4 py-1 max-w-screen-2xl mx-auto">
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <Shield className="size-3" />
+          <span className="text-xs">
+            {clientName || "Client"}
           </span>
-          <span className="text-xs opacity-75">({adminEmail})</span>
+          <span className="text-xs opacity-50">·</span>
+          <span className="text-xs opacity-50">{adminEmail}</span>
         </div>
         <Button
           size="sm"
           variant="ghost"
           onClick={handleExit}
           disabled={isExiting}
-          className="h-7 gap-2 text-amber-950 hover:bg-amber-600/20 hover:text-amber-950"
+          className="h-6 gap-1.5 text-xs text-muted-foreground hover:text-foreground"
         >
-          <LogOut className="size-3.5" />
-          Exit Admin View
+          <LogOut className="size-3" />
+          Exit
         </Button>
       </div>
     </div>
