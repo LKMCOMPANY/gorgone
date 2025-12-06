@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 import type { Zone } from "@/types";
 import { Conversation, ConversationEmpty } from "@/components/ai/conversation";
 import { Suggestion } from "@/components/ai/suggestion";
+import { InteractiveGridPattern } from "@/components/ui/interactive-grid-pattern";
 
 interface DashboardChatProps {
   zones: Zone[];
@@ -79,10 +80,22 @@ export function DashboardChat({ zones }: DashboardChatProps) {
   }
 
   return (
-    <div className="flex flex-col h-full w-full relative bg-transparent">
+    <div className="flex flex-col h-full w-full relative bg-background overflow-hidden">
+      {/* Background Grid Pattern */}
+      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+        <InteractiveGridPattern 
+          className="w-full h-full opacity-[0.15] dark:opacity-[0.2]"
+          width={40}
+          height={40}
+          squares={[40, 40]} 
+        />
+        {/* Gradient Mask for subtle fade */}
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background/80" />
+      </div>
+
       {/* Floating Zone Selector (Top Left) - Minimal & Integrated */}
       {zones.length > 1 && (
-        <div className="absolute top-4 left-4 z-10">
+        <div className="absolute top-4 left-4 z-20">
           <Select value={activeZone.id} onValueChange={setSelectedZoneId}>
             <SelectTrigger className="h-8 w-auto min-w-[120px] border-none bg-background/50 backdrop-blur-sm hover:bg-accent/50 transition-colors shadow-sm gap-2 rounded-full px-3">
               <span className="text-xs font-medium text-muted-foreground">Zone:</span>
@@ -100,7 +113,7 @@ export function DashboardChat({ zones }: DashboardChatProps) {
       )}
 
       {/* Main Conversation Area - Full Height & Scrollable */}
-      <div className="flex-1 overflow-hidden relative">
+      <div className="flex-1 overflow-hidden relative z-10">
         <Conversation className="h-full">
           {messages.length === 0 ? (
             <ConversationEmpty 
@@ -145,7 +158,7 @@ export function DashboardChat({ zones }: DashboardChatProps) {
       </div>
 
       {/* Input Area - Floating/Glassmorphism at bottom */}
-      <div className="shrink-0 p-4 sm:p-6 bg-transparent">
+      <div className="shrink-0 p-4 sm:p-6 bg-transparent relative z-20">
         <div className="mx-auto max-w-3xl w-full relative">
           {/* Contextual Suggestions */}
           {messages.length > 0 && !isLoading && (
