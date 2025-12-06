@@ -63,12 +63,16 @@ export default async function DashboardLayout({
           />
         )}
         
-        {/* Header INSIDE Inset - sticky to top of this container */}
-        <DashboardHeader user={user} />
-        
         {/* Main content area - scrolls relative to Inset */}
-        <main className="flex-1 overflow-y-auto overflow-x-hidden flex flex-col w-full relative">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden w-full relative">
+          {/* Header - Fixed inside the scrollable area (Sticky) */}
+          <div className="sticky top-0 z-50 w-full">
+            <DashboardHeader user={user} />
+          </div>
+
+          {/* Content starts here */}
           {children}
+          
           {/* Global Chat Overlay */}
           {zones.length > 0 && <GlobalChatSheet zones={zones} />}
         </main>
