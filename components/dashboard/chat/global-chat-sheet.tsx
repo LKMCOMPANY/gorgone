@@ -80,7 +80,7 @@ export function GlobalChatSheet({ zones }: GlobalChatSheetProps) {
           </div>
 
           <div className="h-full flex flex-col bg-transparent">
-             <DashboardChat zones={zones} />
+             <DashboardChat zones={zones} variant="sheet" />
           </div>
         </SheetContent>
       </Sheet>
