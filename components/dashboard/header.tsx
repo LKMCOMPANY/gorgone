@@ -40,14 +40,9 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
             <Menu className="size-5" />
             <span className="sr-only">Toggle sidebar</span>
           </Button>
-          
-          {/* App Title */}
-          <h2 className="text-lg font-bold tracking-tight sm:text-xl">
-            {APP_NAME}
-          </h2>
         </div>
 
-        {/* Center: Logo */}
+        {/* Center: Logo Eye */}
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
           <div className="relative h-6 w-24">
             <GorgoneEye className="h-full w-full" />

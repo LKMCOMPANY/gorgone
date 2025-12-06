@@ -21,6 +21,7 @@ import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
+  SidebarHeader,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -36,6 +37,8 @@ import { Button } from "@/components/ui/button";
 import { isSuperAdmin, canManageZones, canViewSettings, getRoleName } from "@/lib/auth/permissions";
 import { logout } from "@/app/actions/auth";
 import { CreateZoneDialog } from "@/components/dashboard/zones/create-zone-dialog";
+import { APP_NAME } from "@/lib/constants";
+import { GorgoneEye } from "@/components/ui/gorgone-eye";
 import type { UserRole, Zone, User } from "@/types";
 import {
   BarChart3,
@@ -100,17 +103,35 @@ export function DashboardSidebar({
 
   return (
     <Sidebar collapsible="icon">
+      <SidebarHeader>
+        <div className="flex items-center overflow-hidden px-4 py-2 transition-all duration-300 ease-in-out group-data-[collapsible=icon]/sidebar:px-0">
+          <div className="flex flex-col whitespace-nowrap transition-all duration-300 ease-in-out group-data-[collapsible=icon]/sidebar:w-0 group-data-[collapsible=icon]/sidebar:opacity-0 group-data-[collapsible=icon]/sidebar:-translate-x-4">
+            <h2 className="text-xl font-bold tracking-tight leading-none">
+              {APP_NAME}
+            </h2>
+            <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mt-0.5">
+              Operational Monitoring
+            </span>
+          </div>
+          {/* Collapsed Logo (Gorgone Eye) */}
+          <div className="hidden group-data-[collapsible=icon]/sidebar:flex w-full items-center justify-center pt-1">
+             <div className="relative size-6">
+                <GorgoneEye className="h-full w-full" />
+             </div>
+          </div>
+        </div>
+      </SidebarHeader>
+
       {/* Main Content */}
       <SidebarContent>
         {/* Navigation */}
         <SidebarGroup>
-          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={pathname === "/dashboard"} tooltip="Dashboard">
                   <Link href="/dashboard">
-                    <div className="relative size-4">
+                    <div className="relative size-4 shrink-0">
                       <Image
                         src="/GorgoneBlack.svg"
                         alt="Gorgone"
@@ -146,7 +167,7 @@ export function DashboardSidebar({
                       <SidebarMenuItem>
                         <CollapsibleTrigger asChild>
                           <SidebarMenuButton tooltip={zone.name} suppressHydrationWarning>
-                            <div className="relative size-4">
+                            <div className="relative size-4 shrink-0">
                               <Image
                                 src="/GorgoneBlack.svg"
                                 alt="Zone"
