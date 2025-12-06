@@ -63,7 +63,8 @@ export function DashboardSidebar({
   zones = [],
 }: DashboardSidebarProps) {
   const pathname = usePathname();
-  const showAdminMenu = userRole && isSuperAdmin(userRole);
+  // Only show admin menu if super admin AND NOT viewing a specific client (impersonation)
+  const showAdminMenu = userRole && isSuperAdmin(userRole) && !clientId;
   const showCreateZone = clientId && userRole && canManageZones(userRole);
   const shouldShowSettings = canViewSettings(userRole);
   
