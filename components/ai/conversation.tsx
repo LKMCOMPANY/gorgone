@@ -62,11 +62,6 @@ export function ConversationEmpty({
     <div className={cn("flex h-full flex-col", className)}>
       <div className="flex flex-1 items-center justify-center p-8">
         <div className="text-center space-y-4">
-          {/* Icon */}
-          <div className="mx-auto flex size-14 items-center justify-center rounded-lg bg-primary/10 shadow-sm">
-            <MessageSquare className="size-7 text-primary" />
-          </div>
-          
           {/* Text */}
           <div className="space-y-1.5">
             <h3 className="text-base font-semibold">{title}</h3>

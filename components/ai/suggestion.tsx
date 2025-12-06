@@ -1,54 +1,35 @@
 "use client";
 
 import * as React from "react";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 
 interface SuggestionProps {
-  children: React.ReactNode;
-  onClick?: () => void;
-  icon?: React.ReactNode;
+  suggestions: string[];
+  onSelect: (suggestion: string) => void;
   className?: string;
 }
 
-export function Suggestion({ children, onClick, icon, className }: SuggestionProps) {
-  return (
-    <Button
-      variant="ghost"
-      onClick={onClick}
-      className={cn(
-        "h-auto justify-start gap-3 p-3 glass",
-        "hover:bg-accent/50 hover:shadow-sm",
-        "transition-all duration-[var(--transition-fast)]",
-        className
-      )}
-    >
-      {icon && (
-        <div className="flex size-8 items-center justify-center rounded-lg bg-primary/10 shrink-0 shadow-sm">
-          {icon}
-        </div>
-      )}
-      <span className="text-sm text-left flex-1">{children}</span>
-    </Button>
-  );
-}
+export function Suggestion({ suggestions, onSelect, className }: SuggestionProps) {
+  if (!suggestions?.length) return null;
 
-interface SuggestionsProps {
-  children: React.ReactNode;
-  title?: string;
-  className?: string;
-}
-
-export function Suggestions({ children, title, className }: SuggestionsProps) {
   return (
-    <div className={cn("border-t border-border bg-muted/20 p-4", className)}>
-      {title && (
-        <p className="text-sm font-medium mb-3">{title}</p>
-      )}
-      <div className="grid gap-2">
-        {children}
+    <ScrollArea className={cn("w-full whitespace-nowrap pb-2", className)}>
+      <div className="flex w-max gap-2 px-1">
+        {suggestions.map((suggestion, idx) => (
+          <Button
+            key={idx}
+            variant="outline"
+            size="sm"
+            onClick={() => onSelect(suggestion)}
+            className="h-8 rounded-full bg-background/50 backdrop-blur-sm border-white/10 hover:bg-white/10 hover:text-accent-foreground transition-all shadow-sm"
+          >
+            {suggestion}
+          </Button>
+        ))}
       </div>
-    </div>
+      <ScrollBar orientation="horizontal" />
+    </ScrollArea>
   );
 }
-

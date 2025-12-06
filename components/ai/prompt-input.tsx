@@ -56,7 +56,7 @@ export function PromptInput({
   };
 
   return (
-    <form onSubmit={handleSubmit} className={cn("flex items-end gap-2", className)}>
+    <form onSubmit={handleSubmit} className={cn("relative flex items-end w-full", className)}>
       <Textarea
         ref={textareaRef}
         value={value}
@@ -67,16 +67,26 @@ export function PromptInput({
         maxLength={maxLength}
         rows={2}
         className={cn(
-          "min-h-[56px] max-h-[200px] resize-none shadow-xs bg-background",
-          "transition-all duration-[var(--transition-fast)]",
-          "focus-visible:shadow-sm focus-visible:ring-2 focus-visible:ring-primary/20"
+          "min-h-[56px] max-h-[200px] resize-none shadow-none border-none bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-4 pr-14",
+          "text-sm placeholder:text-muted-foreground/50",
+          className
         )}
       />
       <Button
         type="submit"
         size="icon"
         disabled={!value.trim() || isLoading || disabled}
-        className="size-9 shrink-0 shadow-sm transition-all duration-[var(--transition-fast)]"
+        className={cn(
+          "absolute right-3 bottom-3 size-9 shrink-0 rounded-xl transition-all duration-300",
+          // Default / Disabled state
+          "bg-background/20 backdrop-blur-md border border-white/10 text-muted-foreground shadow-sm",
+          // Hover / Active state
+          "hover:bg-primary hover:text-primary-foreground hover:border-primary/20 hover:shadow-md hover:scale-105",
+          // Active (has text) override
+          value.trim() && "bg-primary text-primary-foreground border-primary/20 shadow-md",
+          // Disabled specific
+          "disabled:opacity-50 disabled:scale-100 disabled:shadow-none disabled:bg-background/20 disabled:text-muted-foreground disabled:cursor-not-allowed"
+        )}
       >
         {isLoading ? (
           <Loader2 className="size-4 animate-spin" />

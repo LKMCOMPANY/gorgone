@@ -145,7 +145,7 @@ export function DashboardSidebar({
                         className="object-contain hidden dark:block"
                       />
                     </div>
-                    <span>Dashboard</span>
+                    <span>IA Monitoring</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -185,7 +185,7 @@ export function DashboardSidebar({
                             <ChevronRight className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" />
                           </SidebarMenuButton>
                         </CollapsibleTrigger>
-                        <CollapsibleContent className="overflow-hidden transition-all data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down">
+                        <CollapsibleContent className="overflow-hidden transition-all data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down" suppressHydrationWarning>
                           <SidebarMenuSub>
                             {zonePages
                               .filter((page) => {

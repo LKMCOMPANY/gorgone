@@ -4,6 +4,7 @@ import { canManageZones } from "@/lib/auth/permissions";
 import { getOperationById } from "@/lib/data/attila";
 import { getOpinionClusters } from "@/lib/data/opinion";
 import { AttilaEditorLayout } from "@/components/dashboard/attila/editor/attila-editor-layout";
+import { PageContainer } from "@/components/dashboard/page-container";
 
 interface AttilaEditorPageProps {
   params: Promise<{
@@ -28,11 +29,13 @@ export default async function AttilaEditorPage({ params }: AttilaEditorPageProps
     : [];
 
   return (
-    <AttilaEditorLayout 
-      operation={operation} 
-      zoneId={zoneId}
-      clusters={clusters}
-    />
+    <PageContainer fullWidth className="p-0 overflow-hidden">
+      <AttilaEditorLayout 
+        operation={operation} 
+        zoneId={zoneId}
+        clusters={clusters}
+      />
+    </PageContainer>
   );
 }
 

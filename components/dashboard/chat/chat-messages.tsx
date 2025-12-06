@@ -6,94 +6,129 @@ import { Message, MessageContent } from "@/components/ai/message";
 import { Response } from "@/components/ai/response";
 import { Tool } from "@/components/ai/tool";
 import { Loader } from "@/components/ai/loader";
+import { Actions, ActionButton } from "@/components/ai/actions";
 import { ChatQuickActions } from "./chat-quick-actions";
 import { ChatChart } from "./chat-chart";
 import type { Message as AIMessage } from "ai";
+import { Copy, RefreshCw } from "lucide-react";
 
 interface ChatMessagesProps {
   messages: AIMessage[];
   isLoading: boolean;
   onQuickAction?: (query: string) => void;
+  reload?: () => void;
 }
 
 export function ChatMessages({
   messages,
   isLoading,
   onQuickAction,
+  reload,
 }: ChatMessagesProps) {
-  // Empty state
+  // Empty state (managed by parent usually, but good fallback)
   if (messages.length === 0 && !isLoading) {
-    return (
-      <ConversationEmpty
-        title="Start a conversation"
-        description="Ask questions about your monitored data"
-      >
-        <ChatQuickActions show={true} onSelect={onQuickAction} />
-      </ConversationEmpty>
-    );
+    return null;
   }
+
+  const handleCopy = (content: string) => {
+    navigator.clipboard.writeText(content);
+  };
 
   return (
     <ConversationContent>
-      {messages.map((message) => (
-        <Message key={message.id} from={message.role as "user" | "assistant"}>
-          <MessageContent>
-            {/* Tool Invocations */}
-            {(message as any).toolInvocations?.map((tool: any, idx: number) => {
-              // Visualization tools
-              if (tool.state === "result" && tool.result?._type === "visualization") {
-                return (
-                  <ChatChart
-                    key={idx}
-                    type={tool.result.chart_type}
-                    title={tool.result.title}
-                    data={tool.result.data}
-                    config={tool.result.config}
-                  />
-                );
-              }
-
-              // Regular tools
-              return (
-                <Tool
-                  key={idx}
-                  name={tool.toolName}
-                  status={
-                    tool.state === "result"
-                      ? "complete"
-                      : tool.state === "partial-call"
-                        ? "in-progress"
-                        : "pending"
+      <div className="max-w-3xl mx-auto space-y-6">
+        {messages.map((message, i) => {
+          const isLast = i === messages.length - 1;
+          
+          return (
+            <Message key={message.id} from={message.role as "user" | "assistant"}>
+              <MessageContent>
+                {/* Tool Invocations */}
+                {(message as any).toolInvocations?.map((tool: any, idx: number) => {
+                  // Visualization tools
+                  if (tool.state === "result" && tool.result?._type === "visualization") {
+                    return (
+                      <ChatChart
+                        key={idx}
+                        type={tool.result.chart_type}
+                        title={tool.result.title}
+                        data={tool.result.data}
+                        config={tool.result.config}
+                      />
+                    );
                   }
-                  defaultOpen={false}
-                >
-                  {tool.state === "result" && tool.result && (
-                    <pre className="text-xs overflow-x-auto">
-                      {JSON.stringify(tool.result, null, 2)}
-                    </pre>
-                  )}
-                </Tool>
-              );
-            })}
 
-            {/* Message Content */}
-            {message.content && (
-              <Response showCopy={message.role === "assistant"}>
-                {message.content}
-              </Response>
-            )}
-          </MessageContent>
-        </Message>
-      ))}
+                  // Regular tools
+                  return (
+                    <Tool
+                      key={idx}
+                      name={tool.toolName}
+                      status={
+                        tool.state === "result"
+                          ? "complete"
+                          : tool.state === "partial-call"
+                            ? "in-progress"
+                            : tool.state === "error" 
+                              ? "error" 
+                              : "pending"
+                      }
+                      input={tool.args}
+                      output={
+                        tool.state === "result" ? (
+                           <pre className="text-xs overflow-x-auto whitespace-pre-wrap">
+                             {typeof tool.result === 'string' 
+                               ? tool.result 
+                               : JSON.stringify(tool.result, null, 2)}
+                           </pre>
+                        ) : null
+                      }
+                      defaultOpen={false}
+                    />
+                  );
+                })}
 
-      {/* Loading Indicator */}
-      {isLoading && messages.length > 0 && (
-        <Message from="assistant">
-          <Loader text="Analyzing your data..." />
-        </Message>
-      )}
+                {/* Message Content */}
+                {message.content && (
+                  <>
+                    <Response showCopy={false}>
+                      {message.content}
+                    </Response>
+                    
+                    {message.role === "assistant" && !isLoading && (
+                      <Actions>
+                        <ActionButton 
+                          label="Copy" 
+                          tooltip="Copy to clipboard"
+                          icon={<Copy className="size-3.5" />}
+                          onClick={() => handleCopy(message.content)} 
+                        />
+                        {isLast && reload && (
+                          <ActionButton 
+                            label="Regenerate" 
+                            tooltip="Regenerate response"
+                            icon={<RefreshCw className="size-3.5" />} 
+                            onClick={reload} 
+                          />
+                        )}
+                      </Actions>
+                    )}
+                  </>
+                )}
+              </MessageContent>
+            </Message>
+          );
+        })}
+
+        {/* Loading Indicator */}
+        {isLoading && messages[messages.length - 1]?.role !== "assistant" && (
+          <Message from="assistant">
+            <div className="flex items-center gap-2 text-muted-foreground text-sm">
+               <Loader size={16} />
+               <span>Thinking...</span>
+            </div>
+          </Message>
+        )}
+      </div>
     </ConversationContent>
   );
 }
-
-

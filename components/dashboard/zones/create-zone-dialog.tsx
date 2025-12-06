@@ -83,7 +83,10 @@ export function CreateZoneDialog({ clientId }: CreateZoneDialogProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        {trigger}
+        {/* Wrap in a span to avoid button nesting if SidebarMenuButton renders a button */}
+        <span className="w-full cursor-pointer" tabIndex={-1}>
+          {trigger}
+        </span>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[480px]">
         <DialogHeader>

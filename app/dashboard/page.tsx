@@ -1,15 +1,20 @@
-export default function DashboardPage() {
+import { DashboardChat } from "@/components/dashboard/chat/dashboard-chat";
+import { getActiveZonesByClientAction } from "@/app/actions/zones";
+import { getCurrentUser } from "@/lib/auth/utils";
+
+export default async function DashboardPage() {
+  const user = await getCurrentUser();
+  
+  let zones: any[] = [];
+  if (user?.client_id) {
+      zones = await getActiveZonesByClientAction(user.client_id) || [];
+  }
+
+  // Full height minus header (if present) is handled by layout flex-1, 
+  // but we enforce 100% height here to fill the parent main container.
   return (
-    <div className="animate-in space-y-8">
-      {/* Page Header */}
-      <div className="space-y-1.5">
-        <h1 className="scroll-m-20 text-4xl font-extrabold tracking-tight">
-          Dashboard
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          Welcome to the social media monitoring platform
-        </p>
-      </div>
+    <div className="h-full w-full flex flex-col overflow-hidden">
+      <DashboardChat zones={zones} />
     </div>
   );
 }

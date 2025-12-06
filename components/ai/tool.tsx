@@ -1,107 +1,99 @@
 "use client";
 
 import * as React from "react";
-import { ChevronDown, ChevronRight, CheckCircle2, Loader2, AlertCircle, Wrench } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { ChevronDown, Loader2, CheckCircle2, XCircle, Terminal } from "lucide-react";
 
 interface ToolProps {
   name: string;
-  status?: "pending" | "in-progress" | "complete" | "error";
-  children?: React.ReactNode;
+  status: "pending" | "in-progress" | "complete" | "error";
+  input?: any;
+  output?: any;
+  error?: string;
   defaultOpen?: boolean;
   className?: string;
 }
 
-const statusIcons = {
-  pending: Loader2,
-  "in-progress": Loader2,
-  complete: CheckCircle2,
-  error: AlertCircle,
-};
-
-const statusColors = {
-  pending: "text-muted-foreground",
-  "in-progress": "text-primary",
-  complete: "text-[var(--tactical-green)]",
-  error: "text-[var(--tactical-red)]",
-};
-
-const statusLabels = {
-  pending: "Pending",
-  "in-progress": "Running",
-  complete: "Complete",
-  error: "Error",
-};
-
 export function Tool({
   name,
-  status = "complete",
-  children,
+  status,
+  input,
+  output,
+  error,
   defaultOpen = false,
   className,
 }: ToolProps) {
   const [isOpen, setIsOpen] = React.useState(defaultOpen);
-  const hasContent = Boolean(children);
 
-  const StatusIcon = statusIcons[status];
-  const isAnimated = status === "pending" || status === "in-progress";
+  // Auto-open on error or if it's just finished
+  React.useEffect(() => {
+    if (status === "error" || status === "complete") {
+      // Optional: auto-open logic if desired, but usually we keep it collapsed unless error
+      if (status === "error") setIsOpen(true);
+    }
+  }, [status]);
 
   return (
-    <div className={cn("rounded-xl border border-border bg-muted/30 overflow-hidden shadow-xs w-full max-w-full", className)}>
-      {/* Header */}
-      <button
-        onClick={() => hasContent && setIsOpen(!isOpen)}
-        disabled={!hasContent}
-        className={cn(
-          "w-full max-w-full flex items-center gap-3 p-3 text-left transition-colors duration-[var(--transition-fast)]",
-          hasContent && "hover:bg-muted/50 cursor-pointer"
-        )}
-      >
-        {/* Icon */}
-        <div className="shrink-0 flex size-7 items-center justify-center rounded-lg bg-primary/10">
-          <Wrench className="size-3.5 text-primary" />
+    <Collapsible
+      open={isOpen}
+      onOpenChange={setIsOpen}
+      className={cn("w-full rounded-md border bg-card text-card-foreground shadow-sm", className)}
+    >
+      <CollapsibleTrigger className="flex w-full items-center justify-between px-4 py-3 hover:bg-muted/50 transition-colors">
+        <div className="flex items-center gap-2">
+          <div className={cn(
+            "flex size-6 items-center justify-center rounded-md border",
+            status === "pending" && "bg-muted text-muted-foreground",
+            status === "in-progress" && "bg-blue-500/10 text-blue-500 border-blue-500/20",
+            status === "complete" && "bg-green-500/10 text-green-500 border-green-500/20",
+            status === "error" && "bg-red-500/10 text-red-500 border-red-500/20",
+          )}>
+            <Terminal className="size-3" />
+          </div>
+          <span className="text-sm font-medium">{name}</span>
         </div>
-
-        {/* Tool Name */}
-        <div className="flex-1 min-w-0">
-          <p className="text-[7px] font-mono text-muted-foreground/60 truncate uppercase tracking-widest opacity-50">{name}</p>
+        <div className="flex items-center gap-2">
+          {status === "in-progress" && <Loader2 className="size-3.5 animate-spin text-muted-foreground" />}
+          {status === "complete" && <CheckCircle2 className="size-3.5 text-green-500" />}
+          {status === "error" && <XCircle className="size-3.5 text-red-500" />}
+          <ChevronDown className={cn("size-4 text-muted-foreground transition-transform duration-200", isOpen && "rotate-180")} />
         </div>
-
-        {/* Status Badge */}
-        <Badge 
-          variant="outline" 
-          className={cn(
-            "shrink-0 gap-1.5 transition-colors duration-[var(--transition-fast)] text-xs h-5 px-2",
-            statusColors[status]
+      </CollapsibleTrigger>
+      
+      <CollapsibleContent>
+        <div className="border-t bg-muted/30 px-4 py-3 space-y-3">
+          {/* Input */}
+          {input && (
+            <div className="space-y-1">
+              <span className="text-xs font-medium text-muted-foreground">Input</span>
+              <pre className="overflow-x-auto rounded-md bg-background border p-2 text-xs font-mono text-muted-foreground">
+                {typeof input === 'string' ? input : JSON.stringify(input, null, 2)}
+              </pre>
+            </div>
           )}
-        >
-          <StatusIcon className={cn("size-2.5", isAnimated && "animate-spin")} />
-          <span className="text-[10px]">{statusLabels[status]}</span>
-        </Badge>
+          
+          {/* Output */}
+          {output && (
+            <div className="space-y-1">
+              <span className="text-xs font-medium text-muted-foreground">Result</span>
+              <div className="rounded-md bg-background border p-2 text-xs overflow-hidden">
+                {output}
+              </div>
+            </div>
+          )}
 
-        {/* Expand Icon */}
-        {hasContent && (
-          <div className="shrink-0">
-            {isOpen ? (
-              <ChevronDown className="size-3.5 text-muted-foreground" />
-            ) : (
-              <ChevronRight className="size-3.5 text-muted-foreground" />
-            )}
-          </div>
-        )}
-      </button>
-
-      {/* Content */}
-      {hasContent && isOpen && (
-        <div className="border-t border-border bg-muted/20 p-3 w-full max-w-full overflow-hidden">
-          <div className="text-xs text-muted-foreground break-words" style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
-            {children}
-          </div>
+          {/* Error */}
+          {error && (
+            <div className="space-y-1">
+              <span className="text-xs font-medium text-red-500">Error</span>
+              <pre className="overflow-x-auto rounded-md bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900 p-2 text-xs font-mono text-red-600 dark:text-red-400">
+                {error}
+              </pre>
+            </div>
+          )}
         </div>
-      )}
-    </div>
+      </CollapsibleContent>
+    </Collapsible>
   );
 }
-

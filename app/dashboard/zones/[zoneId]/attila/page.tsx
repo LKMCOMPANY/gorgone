@@ -12,6 +12,7 @@ import { Bot, Activity } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Suspense } from "react";
 import { AttilaMonitoringSkeleton } from "@/components/dashboard/attila/attila-monitoring-skeleton";
+import { PageContainer } from "@/components/dashboard/page-container";
 
 interface AttilaPageProps {
   params: Promise<{
@@ -46,71 +47,73 @@ export default async function AttilaPage({ params }: AttilaPageProps) {
   const activity = await getAttilaActivity(zoneId);
 
   return (
-    <div className="animate-in space-y-6">
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="space-y-1.5">
-          <div className="flex items-center gap-3">
-            <div className="relative size-8">
-              <Image
-                src="/AttilaBlack.svg"
-                alt="Attila"
-                fill
-                className="object-contain dark:hidden"
-              />
-              <Image
-                src="/AttilaWhite.svg"
-                alt="Attila"
-                fill
-                className="object-contain hidden dark:block"
-              />
+    <PageContainer>
+      <div className="animate-in space-y-6">
+        {/* Page Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-3">
+              <div className="relative size-8">
+                <Image
+                  src="/AttilaBlack.svg"
+                  alt="Attila"
+                  fill
+                  className="object-contain dark:hidden"
+                />
+                <Image
+                  src="/AttilaWhite.svg"
+                  alt="Attila"
+                  fill
+                  className="object-contain hidden dark:block"
+                />
+              </div>
+              <h1 className="scroll-m-20 text-3xl font-semibold tracking-tight">
+                ATTILA Orchestrator
+              </h1>
             </div>
-            <h1 className="scroll-m-20 text-3xl font-semibold tracking-tight">
-              ATTILA Orchestrator
-            </h1>
+            <p className="text-sm text-muted-foreground">
+              Manage automated AI response operations and monitor activity
+            </p>
           </div>
-          <p className="text-sm text-muted-foreground">
-            Manage automated AI response operations and monitor activity
-          </p>
+          <CreateOperationDialog zoneId={zoneId} />
         </div>
-        <CreateOperationDialog zoneId={zoneId} />
-      </div>
 
-      {/* Tabs */}
-      <Tabs defaultValue="operations" className="space-y-6">
-        <TabsList className="grid w-full max-w-md grid-cols-2 h-9">
-          <TabsTrigger 
-            value="operations" 
-            className="gap-2 data-[state=active]:shadow-none h-7 text-xs"
-          >
-            <Bot className="size-3.5" />
-            <span>Operations</span>
-          </TabsTrigger>
-          <TabsTrigger 
-            value="monitoring" 
-            className="gap-2 data-[state=active]:shadow-none h-7 text-xs"
-          >
-            <Activity className="size-3.5" />
-            <span>Live Monitoring</span>
-          </TabsTrigger>
-        </TabsList>
+        {/* Tabs */}
+        <Tabs defaultValue="operations" className="space-y-6">
+          <TabsList className="grid w-full max-w-md grid-cols-2 h-9">
+            <TabsTrigger 
+              value="operations" 
+              className="gap-2 data-[state=active]:shadow-none h-7 text-xs"
+            >
+              <Bot className="size-3.5" />
+              <span>Operations</span>
+            </TabsTrigger>
+            <TabsTrigger 
+              value="monitoring" 
+              className="gap-2 data-[state=active]:shadow-none h-7 text-xs"
+            >
+              <Activity className="size-3.5" />
+              <span>Live Monitoring</span>
+            </TabsTrigger>
+          </TabsList>
 
-        <TabsContent value="operations" className="outline-none">
-           <AttilaOperationsList 
-             zoneId={zoneId} 
-             initialOperations={operations || []} 
-           />
-        </TabsContent>
-
-        <TabsContent value="monitoring" className="outline-none">
-           <Suspense fallback={<AttilaMonitoringSkeleton />}>
-             <AttilaMonitoringFeed 
-               activity={activity} 
+          <TabsContent value="operations" className="outline-none">
+             <AttilaOperationsList 
                zoneId={zoneId} 
+               initialOperations={operations || []} 
              />
-           </Suspense>
-        </TabsContent>
-      </Tabs>
-    </div>
+          </TabsContent>
+
+          <TabsContent value="monitoring" className="outline-none">
+             <Suspense fallback={<AttilaMonitoringSkeleton />}>
+               <AttilaMonitoringFeed 
+                 activity={activity} 
+                 zoneId={zoneId} 
+               />
+             </Suspense>
+          </TabsContent>
+        </Tabs>
+      </div>
+    </PageContainer>
   );
 }

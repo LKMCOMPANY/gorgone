@@ -91,6 +91,20 @@ export function Response({ children, showCopy = true, className }: ResponseProps
               <li className="leading-7">{children}</li>
             ),
 
+            // Images
+            img: ({ src, alt }) => {
+              if (!src) return null;
+              return (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img 
+                  src={src} 
+                  alt={alt || "Image"} 
+                  className="rounded-lg border shadow-sm max-w-full h-auto my-4" 
+                  loading="lazy"
+                />
+              );
+            },
+
             // Links
             a: ({ href, children }) => (
               <a

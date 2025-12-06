@@ -1,7 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { Bot, User as UserIcon } from "lucide-react";
+import { User as UserIcon } from "lucide-react";
+import Image from "next/image";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 
@@ -31,7 +32,20 @@ export function Message({ from, children, className }: MessageProps) {
           {isUser ? (
             <UserIcon className="size-4" />
           ) : (
-            <Bot className="size-4 text-primary" />
+            <div className="relative size-5">
+              <Image
+                src="/GorgoneBlack.svg"
+                alt="Gorgone"
+                fill
+                className="object-contain dark:hidden"
+              />
+              <Image
+                src="/GorgoneWhite.svg"
+                alt="Gorgone"
+                fill
+                className="object-contain hidden dark:block"
+              />
+            </div>
           )}
         </AvatarFallback>
       </Avatar>
