@@ -42,6 +42,9 @@ export interface TikTokProfileWithStats {
   total_comment_count: number;
   total_share_count: number;
   total_collect_count: number;
+  
+  // Added for UI compatibility
+  tags?: Array<{ tag_type: string; id: string }>;
 }
 
 /**
