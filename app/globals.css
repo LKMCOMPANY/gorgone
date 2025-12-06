@@ -767,16 +767,18 @@
   display: none !important;
 }
 
-/* Aurora background animation (Standard Aceternity UI) */
-@keyframes aurora {
-  from {
-    background-position: 50% 50%, 50% 50%;
+/* Aurora background animation - Subtle pulse */
+@keyframes aurora-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
   }
-  to {
-    background-position: 350% 50%, 350% 50%;
+  50% {
+    opacity: 0.6;
+    transform: scale(1.02);
   }
 }
 
 .animate-aurora {
-  animation: aurora 60s linear infinite;
+  animation: aurora-pulse 10s ease-in-out infinite;
 }

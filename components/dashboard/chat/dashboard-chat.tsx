@@ -18,7 +18,6 @@ import { cn } from "@/lib/utils";
 import type { Zone } from "@/types";
 import { Conversation, ConversationEmpty } from "@/components/ai/conversation";
 import { Suggestion } from "@/components/ai/suggestion";
-import { AuroraBackground } from "@/components/ui/aurora-background";
 
 interface DashboardChatProps {
   zones: Zone[];
@@ -81,11 +80,20 @@ export function DashboardChat({ zones }: DashboardChatProps) {
 
   return (
     <div className="flex flex-col h-full w-full relative overflow-hidden bg-background">
-      {/* Aurora Background */}
-      <div className="absolute inset-0 z-0">
-        <AuroraBackground showRadialGradient={true} className="opacity-60" >
-          {/* Empty children to keep background only */}
-        </AuroraBackground>
+      {/* Aurora Background - Custom Gorgone Theme */}
+      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+        <div
+          className="absolute -inset-[10px] opacity-[0.15] dark:opacity-[0.12] blur-3xl animate-aurora"
+          style={{
+            background: `
+              radial-gradient(ellipse 800px 600px at 50% 0%, oklch(0.62 0.24 285 / 0.8) 0%, transparent 50%),
+              radial-gradient(ellipse 600px 500px at 0% 50%, oklch(0.72 0.15 220 / 0.6) 0%, transparent 50%),
+              radial-gradient(ellipse 600px 500px at 100% 50%, oklch(0.70 0.18 150 / 0.6) 0%, transparent 50%)
+            `
+          }}
+        />
+        {/* Radial mask for focus */}
+        <div className="absolute inset-0 bg-gradient-to-b from-background/50 via-transparent to-background" />
       </div>
 
       {/* Floating Zone Selector (Top Left) - Minimal & Integrated */}
