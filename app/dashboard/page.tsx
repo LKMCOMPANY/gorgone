@@ -36,10 +36,9 @@ export default async function DashboardPage() {
       zones = await getActiveZonesByClientAction(user.client_id) || [];
   }
 
-  // Full height minus header (if present) is handled by layout flex-1, 
-  // but we enforce 100% height here to fill the parent main container.
+  // Full height minus header (approximate) to prevent main scrollbar
   return (
-    <div className="h-full w-full flex flex-col overflow-hidden">
+    <div className="h-[calc(100vh-3.5rem)] lg:h-[calc(100vh-4rem)] w-full flex flex-col overflow-hidden">
       <DashboardChat zones={zones} />
     </div>
   );
