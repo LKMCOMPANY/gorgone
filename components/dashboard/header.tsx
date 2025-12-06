@@ -39,8 +39,8 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Theme Toggle */}
-          <ThemeToggle />
+          {/* Theme Toggle - Hidden temporarily to force dark mode */}
+          {/* <ThemeToggle /> */}
         </div>
       </div>
     </header>
