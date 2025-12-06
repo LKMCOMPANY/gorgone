@@ -81,17 +81,17 @@ export function DashboardChat({ zones }: DashboardChatProps) {
 
   return (
     <div className="flex flex-col h-full w-full relative bg-background overflow-hidden">
-      {/* Background Grid Pattern - Elegant & Subtle 2D */}
+      {/* Background Grid Pattern */}
       <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
         <InteractiveGridPattern 
-          className="w-full h-full opacity-[0.5]"
-          width={32}
-          height={32}
-          squares={[80, 80]}
-          squaresClassName="hover:fill-primary/5 dark:hover:fill-primary/10 transition-colors duration-500"
+          className="w-full h-full opacity-[0.3] dark:opacity-[0.4]"
+          width={40}
+          height={40}
+          squares={[40, 40]} 
+          squaresClassName="hover:fill-primary/20 dark:hover:fill-primary/20"
         />
-        {/* Radial Gradient Mask for a professional 'spotlight' feel */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,background_70%)]" />
+        {/* Gradient Mask for subtle fade */}
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background/80" />
       </div>
 
       {/* Floating Zone Selector (Top Left) - Minimal & Integrated */}
