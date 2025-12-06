@@ -1,9 +1,10 @@
 "use client";
 
-import { LayoutDashboard, Users, ChevronUp, ChevronRight, Plus } from "lucide-react";
+import { LayoutDashboard, Users, ChevronUp, ChevronRight, Plus, Sun, Moon, Laptop } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTheme } from "next-themes";
 import {
   Collapsible,
   CollapsibleContent,
@@ -63,6 +64,7 @@ export function DashboardSidebar({
   zones = [],
 }: DashboardSidebarProps) {
   const pathname = usePathname();
+  const { setTheme } = useTheme();
   // Only show admin menu if super admin AND NOT viewing a specific client (impersonation)
   const showAdminMenu = userRole && isSuperAdmin(userRole) && !clientId;
   const showCreateZone = clientId && userRole && canManageZones(userRole);
@@ -285,7 +287,21 @@ export function DashboardSidebar({
               >
                 <DropdownMenuLabel>My Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout}>
+                <DropdownMenuLabel className="text-xs text-muted-foreground font-normal">Theme</DropdownMenuLabel>
+                <DropdownMenuItem onClick={() => setTheme("light")}>
+                  <Sun className="mr-2 size-4" />
+                  <span>Light</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setTheme("dark")}>
+                  <Moon className="mr-2 size-4" />
+                  <span>Dark</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setTheme("system")}>
+                  <Laptop className="mr-2 size-4" />
+                  <span>System</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">
                   <span>Logout</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
