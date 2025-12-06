@@ -84,10 +84,11 @@ export function DashboardChat({ zones }: DashboardChatProps) {
       {/* Background Grid Pattern */}
       <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
         <InteractiveGridPattern 
-          className="w-full h-full opacity-[0.15] dark:opacity-[0.2]"
+          className="w-full h-full opacity-[0.3] dark:opacity-[0.4]"
           width={40}
           height={40}
           squares={[40, 40]} 
+          squaresClassName="hover:fill-primary/20 dark:hover:fill-primary/20"
         />
         {/* Gradient Mask for subtle fade */}
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background/80" />
