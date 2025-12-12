@@ -70,13 +70,34 @@ export async function POST(request: NextRequest) {
       targetSize: sample_size
     })
 
+    // Minimum posts required for meaningful clustering
+    const MIN_POSTS_FOR_CLUSTERING = 10
+
     if (samplingResult.samples.length === 0) {
+      logger.warn('[Opinion Map] No tweets found in period', { zone_id })
       return NextResponse.json(
         { 
-          error: 'No tweets found in selected period',
-          total_available: samplingResult.totalAvailable
+          error: 'No posts found in the selected period. Try selecting a longer time range or wait for more data to be collected.',
+          total_available: 0
         },
         { status: 404 }
+      )
+    }
+
+    if (samplingResult.samples.length < MIN_POSTS_FOR_CLUSTERING) {
+      logger.warn('[Opinion Map] Insufficient data for clustering', { 
+        zone_id, 
+        found: samplingResult.samples.length,
+        minimum: MIN_POSTS_FOR_CLUSTERING 
+      })
+      return NextResponse.json(
+        { 
+          error: `Not enough data to generate an opinion map. Found ${samplingResult.samples.length} posts, but at least ${MIN_POSTS_FOR_CLUSTERING} are required for meaningful clustering. Try selecting a longer time range.`,
+          total_available: samplingResult.totalAvailable,
+          found: samplingResult.samples.length,
+          minimum_required: MIN_POSTS_FOR_CLUSTERING
+        },
+        { status: 400 }
       )
     }
 

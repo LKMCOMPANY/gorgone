@@ -39,6 +39,9 @@ const PHASE_INFO = {
   labeling: { icon: Sparkles, label: 'Generating Labels', color: 'text-primary' },
 }
 
+// Maximum sample size for opinion map generation (timeout constraint)
+const MAX_SAMPLE_SIZE = 5000
+
 export function TwitterOpinionMapControls({
   session,
   isSubmitting = false,
@@ -46,7 +49,6 @@ export function TwitterOpinionMapControls({
   onCancel
 }: TwitterOpinionMapControlsProps) {
   const [period, setPeriod] = useState<TimePeriod>('24h')
-  const [sampleSize, setSampleSize] = useState(5000)
 
   const isGenerating = Boolean(session && [
     'pending',
@@ -91,7 +93,7 @@ export function TwitterOpinionMapControls({
     onGenerate({
       start_date: startDate.toISOString(),
       end_date: now.toISOString(),
-      sample_size: sampleSize
+      sample_size: MAX_SAMPLE_SIZE
     })
   }
 
@@ -129,38 +131,7 @@ export function TwitterOpinionMapControls({
                 </Select>
               </div>
 
-              {/* Sample Size */}
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground shrink-0">
-                  Sample:
-                </span>
-                <Select 
-                  value={sampleSize.toString()} 
-                  onValueChange={(v) => setSampleSize(parseInt(v))}
-                  disabled={isButtonDisabled}
-                >
-                  <SelectTrigger className="w-36 h-9">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="500">500 posts</SelectItem>
-                    <SelectItem value="1000">1,000 posts</SelectItem>
-                    <SelectItem value="2500">2,500 posts</SelectItem>
-                    <SelectItem value="5000">5,000 posts</SelectItem>
-                    <SelectItem value="7500">7,500 posts</SelectItem>
-                    <SelectItem value="10000">10,000 posts (max)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
             </div>
-
-            {/* Sample Size Warning */}
-            {sampleSize > 5000 && !isButtonDisabled && (
-              <div className="text-xs text-tactical-amber flex items-center gap-1.5">
-                <Clock className="size-3.5" />
-                <span>Large samples may take up to 15 minutes to process</span>
-              </div>
-            )}
 
             {/* Generate Button */}
             <Button

@@ -48,32 +48,28 @@ export async function generateClusterLabel(
     ? `\n\nOperational Context:\n${operationalContext}\n\nUse this context to better understand the significance of the posts and provide more relevant analysis.`
     : ''
 
-  const prompt = `You are analyzing social media posts to identify opinion clusters for a government-grade monitoring application.
+  const prompt = `You are an expert analyst identifying opinion clusters in social media data for a government-grade monitoring platform.
 
-Analyze these ${sampledTweets.length} social media posts and provide:
-1. A concise descriptive label (2-4 words) capturing the main theme
-2. A detailed description (1-2 sentences) explaining:
-   - The main opinion or subject discussed
-   - The type of accounts involved (supporters, critics, influencers, etc.)
-   - The significance in the given context
-3. Overall sentiment score (-1 to 1, where -1 is very negative, 0 is neutral, 1 is very positive)
-4. Brief reasoning for the label${contextSection}
-
-Output language: ${outputLanguage === 'fr' ? 'French' : 'English'} (label, description, reasoning must follow this).
+Analyze these ${sampledTweets.length} posts and provide a precise, insightful analysis.${contextSection}
 
 Posts:
 ${sampledTweets.map((t, i) => `${i + 1}. ${t}`).join('\n')}
 
-Top keywords: ${keywords.join(', ')}
+Detected keywords: ${keywords.join(', ')}
 
-CRITICAL: Respond with ONLY a valid JSON object. No markdown, no additional text. Be professional and objective.
+Your task:
+1. **label**: Create a SHORT, SPECIFIC, MEMORABLE title (2-5 words) that captures the essence of this cluster. Avoid generic labels like "Discussion" or "Various Topics". Be specific about WHO is saying WHAT.
+2. **description**: Write 2-3 sentences explaining:
+   - What specific topic/opinion unites these posts
+   - What type of accounts are posting (supporters, critics, media, officials, bots, etc.)
+   - Why this matters in the monitoring context
+3. **sentiment**: Score from -1 (very negative) to +1 (very positive), 0 = neutral
+4. **reasoning**: One sentence explaining your label choice
 
-{
-  "label": "short descriptive label",
-  "description": "Detailed 1-2 sentence description of the cluster's opinion, subjects, and account types",
-  "sentiment": 0.5,
-  "reasoning": "brief explanation of why this label fits"
-}`
+Output language: ${outputLanguage === 'fr' ? 'French' : 'English'}
+
+Respond with ONLY valid JSON (no markdown):
+{"label": "...", "description": "...", "sentiment": 0.0, "reasoning": "..."}`
 
   // Retry with exponential backoff
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
@@ -81,8 +77,13 @@ CRITICAL: Respond with ONLY a valid JSON object. No markdown, no additional text
       const { text } = await generateText({
         model: openaiProvider(LABELING_MODEL_ID),
         prompt,
-        temperature: 0.2,
-        maxOutputTokens: 350
+        temperature: 0.5, // Higher for more creative/varied descriptions (GPT-5.2 is already disciplined)
+        maxOutputTokens: 500, // More room for quality descriptions
+        providerOptions: {
+          openai: {
+            reasoningEffort: 'medium' // GPT-5.2: enable deeper analysis for better labels
+          }
+        }
       })
 
     // Parse response

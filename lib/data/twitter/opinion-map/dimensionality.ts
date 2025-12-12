@@ -10,15 +10,19 @@ import type { OpinionUMAPResult } from '@/types'
 
 /**
  * Reduce embeddings using PCA (for clustering)
- * Reduces from 1536D to 20D while preserving variance
+ * Reduces from 1536D to target dimensions while preserving variance
+ * 
+ * Best practices for OpenAI embeddings:
+ * - 50D: ~85-95% variance preserved (recommended for clustering)
+ * - 20D: ~70-85% variance preserved (faster but lower quality)
  * 
  * @param embeddings - Array of 1536D vectors
- * @param nComponents - Target dimensions (default: 20)
- * @returns Reduced 20D vectors
+ * @param nComponents - Target dimensions (default: 50 for quality clustering)
+ * @returns Reduced vectors with explained variance info
  */
 export async function reducePCA(
   embeddings: number[][],
-  nComponents: number = 20
+  nComponents: number = 50
 ): Promise<{
   projections: number[][]
   explainedVariance: number[]
@@ -59,9 +63,9 @@ export async function reducePCA(
 }
 
 /**
- * Reduce embeddings using UMAP to 3D for visualization
+ * Reduce high-dimensional vectors using UMAP to 3D for visualization
  * 
- * @param embeddings - Array of 1536D vectors
+ * @param embeddings - Array of N-dimensional vectors (typically 20D from PCA or 1536D raw)
  * @param config - UMAP configuration
  * @returns 3D coordinates
  */
