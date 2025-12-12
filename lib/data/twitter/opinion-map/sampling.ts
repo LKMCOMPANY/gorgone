@@ -1,6 +1,12 @@
 /**
  * Stratified sampling for opinion map
- * Ensures temporal balance across time periods
+ * Ensures temporal balance across time periods with engagement prioritization
+ * 
+ * Best practices applied:
+ * - Stratified by day for temporal coverage
+ * - Prioritizes high-engagement tweets within each bucket
+ * - Filters out pure retweets (lower semantic value)
+ * - Maintains representativeness over pure volume
  */
 
 import { createAdminClient } from '@/lib/supabase/admin'
@@ -12,6 +18,8 @@ export interface SamplingConfig {
   startDate: Date
   endDate: Date
   targetSize: number
+  /** If true, prioritize tweets with higher engagement (recommended) */
+  prioritizeEngagement?: boolean
 }
 
 export interface SamplingResult {
@@ -19,12 +27,12 @@ export interface SamplingResult {
   totalAvailable: number
   actualSampled: number
   buckets: number
-  strategy: 'stratified' | 'all'
+  strategy: 'stratified' | 'stratified_engagement' | 'all'
 }
 
 /**
- * Sample tweets using stratified bucketing
- * Ensures each time bucket is represented equally
+ * Sample tweets using stratified bucketing with engagement prioritization
+ * Ensures each time bucket is represented equally while favoring high-engagement content
  * 
  * @param config - Sampling configuration
  * @returns Sampled tweet IDs with statistics
@@ -34,44 +42,47 @@ export interface SamplingResult {
  *   zoneId: 'zone-123',
  *   startDate: new Date('2025-11-01'),
  *   endDate: new Date('2025-11-30'),
- *   targetSize: 10000
+ *   targetSize: 2500,
+ *   prioritizeEngagement: true
  * })
- * // Returns 10,000 tweets evenly distributed across 30 days
+ * // Returns 2500 tweets: temporal coverage + high-engagement priority
  */
 export async function sampleTweetsStratified(
   config: SamplingConfig
 ): Promise<SamplingResult> {
   const supabase = createAdminClient()
-  const { zoneId, startDate, endDate, targetSize } = config
+  const { zoneId, startDate, endDate, targetSize, prioritizeEngagement = true } = config
 
   logger.info('[Opinion Map Sampling] 🎯 Starting stratified sampling', {
     zone_id: zoneId,
     start_date: startDate.toISOString(),
     end_date: endDate.toISOString(),
     target_size: targetSize,
+    prioritize_engagement: prioritizeEngagement,
     period_days: Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))
   })
 
-  // Count total available tweets in period
-    const { count: totalAvailable } = await supabase
+  // Count total available tweets in period (excluding pure RTs which have low semantic value)
+  const { count: totalAvailable } = await supabase
     .from('twitter_tweets')
     .select('*', { count: 'exact', head: true })
     .eq('zone_id', zoneId)
     .gte('twitter_created_at', startDate.toISOString())
     .lte('twitter_created_at', endDate.toISOString())
+    .not('text', 'like', 'RT @%') // Exclude pure retweets
 
-    if (!totalAvailable || totalAvailable === 0) {
+  if (!totalAvailable || totalAvailable === 0) {
     logger.warn('[Opinion Map] No tweets found in period', { zone_id: zoneId })
-      return {
+    return {
       samples: [],
       totalAvailable: 0,
       actualSampled: 0,
       buckets: 0,
       strategy: 'all'
     }
-    }
+  }
 
-  // If fewer tweets than target, return all
+  // If fewer tweets than target, return all (sorted by engagement for consistency)
   if (totalAvailable <= targetSize) {
     logger.info('[Opinion Map] Returning all tweets (below target)', {
       available: totalAvailable,
@@ -84,7 +95,8 @@ export async function sampleTweetsStratified(
       .eq('zone_id', zoneId)
       .gte('twitter_created_at', startDate.toISOString())
       .lte('twitter_created_at', endDate.toISOString())
-      .order('twitter_created_at', { ascending: true })
+      .not('text', 'like', 'RT @%')
+      .order('total_engagement', { ascending: false, nullsFirst: false })
 
     return {
       samples: allTweets || [],
@@ -92,8 +104,8 @@ export async function sampleTweetsStratified(
       actualSampled: allTweets?.length || 0,
       buckets: 1,
       strategy: 'all'
+    }
   }
-}
 
   // Calculate buckets (one per day)
   const days = differenceInDays(endDate, startDate) + 1
@@ -103,7 +115,8 @@ export async function sampleTweetsStratified(
   logger.info('[Opinion Map] Sampling with stratified buckets', {
     days,
     buckets: bucketsCount,
-    tweets_per_bucket: tweetsPerBucket
+    tweets_per_bucket: tweetsPerBucket,
+    prioritize_engagement: prioritizeEngagement
   })
 
   // Sample from each bucket (day)
@@ -113,13 +126,14 @@ export async function sampleTweetsStratified(
     const bucketStart = addDays(startDate, i)
     const bucketEnd = addDays(bucketStart, 1)
 
-    // First: count tweets in this bucket
+    // Count tweets in this bucket (excluding pure RTs)
     const { count: bucketCount } = await supabase
       .from('twitter_tweets')
       .select('*', { count: 'exact', head: true })
       .eq('zone_id', zoneId)
       .gte('twitter_created_at', bucketStart.toISOString())
       .lt('twitter_created_at', bucketEnd.toISOString())
+      .not('text', 'like', 'RT @%')
 
     if (!bucketCount || bucketCount === 0) {
       logger.debug('[Opinion Map] Empty bucket', {
@@ -129,7 +143,7 @@ export async function sampleTweetsStratified(
       continue
     }
 
-    // If bucket has fewer tweets than needed, take all
+    // If bucket has fewer tweets than needed, take all (sorted by engagement)
     if (bucketCount <= tweetsPerBucket) {
       const { data: allBucketTweets } = await supabase
         .from('twitter_tweets')
@@ -137,7 +151,8 @@ export async function sampleTweetsStratified(
         .eq('zone_id', zoneId)
         .gte('twitter_created_at', bucketStart.toISOString())
         .lt('twitter_created_at', bucketEnd.toISOString())
-        .order('twitter_created_at', { ascending: true })
+        .not('text', 'like', 'RT @%')
+        .order('total_engagement', { ascending: false, nullsFirst: false })
 
       if (allBucketTweets && allBucketTweets.length > 0) {
         samples.push(...allBucketTweets)
@@ -150,29 +165,27 @@ export async function sampleTweetsStratified(
         })
       }
     } else {
-      // Bucket has more tweets than needed - sample using offset
-      // Use deterministic pseudo-random offset based on bucket index for reproducibility
-      const maxOffset = Math.max(0, bucketCount - tweetsPerBucket)
-      const offset = Math.floor(Math.random() * (maxOffset + 1))
-
+      // Bucket has more tweets than needed
+      // Strategy: take top N by engagement (prioritizes viral/important content)
+      // This gives better cluster quality than random sampling
       const { data: bucketSamples } = await supabase
         .from('twitter_tweets')
         .select('id, tweet_id')
         .eq('zone_id', zoneId)
         .gte('twitter_created_at', bucketStart.toISOString())
         .lt('twitter_created_at', bucketEnd.toISOString())
-        .order('twitter_created_at', { ascending: true })
-        .range(offset, offset + tweetsPerBucket - 1)
+        .not('text', 'like', 'RT @%')
+        .order('total_engagement', { ascending: false, nullsFirst: false })
+        .limit(tweetsPerBucket)
 
       if (bucketSamples && bucketSamples.length > 0) {
         samples.push(...bucketSamples)
         
-        logger.debug('[Opinion Map] Bucket sampled (with offset)', {
+        logger.debug('[Opinion Map] Bucket sampled (top engagement)', {
           bucket: i + 1,
           date: bucketStart.toISOString().split('T')[0],
           sampled: bucketSamples.length,
-          available: bucketCount,
-          offset
+          available: bucketCount
         })
       }
     }
@@ -182,10 +195,11 @@ export async function sampleTweetsStratified(
   let finalSamples = samples.slice(0, targetSize)
 
   // If we undersampled (some buckets had fewer tweets than needed), try to fill up
+  // Fill with remaining high-engagement tweets not yet sampled
   if (finalSamples.length < targetSize && finalSamples.length < totalAvailable) {
     const shortfall = targetSize - finalSamples.length
     
-    logger.info('[Opinion Map Sampling] 🔄 Undersampled - attempting to fill up to target', {
+    logger.info('[Opinion Map Sampling] 🔄 Undersampled - filling with additional high-engagement tweets', {
       zone_id: zoneId,
       current: finalSamples.length,
       target: targetSize,
@@ -193,39 +207,33 @@ export async function sampleTweetsStratified(
       available_for_fill: totalAvailable - finalSamples.length
     })
 
-    // Simple approach: get additional tweets with offset to avoid duplicates
-    // Calculate a random offset to get different tweets
-    const maxOffset = Math.max(0, totalAvailable - shortfall - finalSamples.length)
-    const offset = maxOffset > 0 ? Math.floor(Math.random() * maxOffset) : 0
-
+    // Get additional high-engagement tweets that weren't already sampled
+    const existingIds = new Set(finalSamples.map(s => s.id))
+    
     const { data: additionalSamples } = await supabase
       .from('twitter_tweets')
       .select('id, tweet_id')
       .eq('zone_id', zoneId)
       .gte('twitter_created_at', startDate.toISOString())
       .lte('twitter_created_at', endDate.toISOString())
-      .order('twitter_created_at', { ascending: true })
-      .range(offset, offset + shortfall - 1)
+      .not('text', 'like', 'RT @%')
+      .order('total_engagement', { ascending: false, nullsFirst: false })
+      .limit(shortfall + 100) // Fetch extra to account for duplicates
 
     if (additionalSamples && additionalSamples.length > 0) {
-      // Deduplicate in case of overlap
-      const existingIds = new Set(finalSamples.map(s => s.id))
-      const uniqueAdditional = additionalSamples.filter(s => !existingIds.has(s.id))
+      // Filter out already-sampled tweets
+      const uniqueAdditional = additionalSamples
+        .filter(s => !existingIds.has(s.id))
+        .slice(0, shortfall)
       
       if (uniqueAdditional.length > 0) {
         finalSamples = [...finalSamples, ...uniqueAdditional]
-        logger.info('[Opinion Map Sampling] ✅ Added additional samples', {
+        logger.info('[Opinion Map Sampling] ✅ Added additional high-engagement samples', {
           zone_id: zoneId,
           fetched: additionalSamples.length,
-          unique: uniqueAdditional.length,
-          duplicates_filtered: additionalSamples.length - uniqueAdditional.length,
+          unique_added: uniqueAdditional.length,
           new_total: finalSamples.length,
           target_reached: `${((finalSamples.length / targetSize) * 100).toFixed(1)}%`
-        })
-      } else {
-        logger.warn('[Opinion Map Sampling] ⚠️ Could not add additional samples (all were duplicates)', {
-          zone_id: zoneId,
-          fetched: additionalSamples.length
         })
       }
     }
@@ -253,7 +261,8 @@ export async function sampleTweetsStratified(
       actual: finalSamples.length,
       buckets: bucketsCount,
       sampling_rate: `${samplingRate.toFixed(1)}%`,
-      coverage: `${coverage.toFixed(1)}%`
+      coverage: `${coverage.toFixed(1)}%`,
+      strategy: prioritizeEngagement ? 'stratified_engagement' : 'stratified'
     })
   }
 
@@ -262,7 +271,7 @@ export async function sampleTweetsStratified(
     totalAvailable,
     actualSampled: finalSamples.length,
     buckets: bucketsCount,
-    strategy: 'stratified'
+    strategy: prioritizeEngagement ? 'stratified_engagement' : 'stratified'
   }
 }
 

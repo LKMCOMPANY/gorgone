@@ -40,8 +40,11 @@ const PHASE_INFO = {
 }
 
 // Maximum sample size for opinion map generation
-// Reduced from 5000 to 3000 to ensure pipeline completes within Vercel timeout limits
-const MAX_SAMPLE_SIZE = 3000
+// Reduced to 2500 based on production data analysis:
+// - 2000-2200 tweets: 100% success rate (93-232s)
+// - 3000+ tweets: frequent timeouts at PCA/UMAP phase
+// The bottleneck is O(n² × d) complexity in UMAP after PCA
+const MAX_SAMPLE_SIZE = 2500
 
 export function TwitterOpinionMapControls({
   session,

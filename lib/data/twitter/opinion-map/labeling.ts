@@ -1,7 +1,13 @@
 /**
  * AI-powered cluster labeling - Enhanced with Context & Descriptions
- * Generates descriptive labels using a small, deterministic JSON-only prompt
- * (used during opinion-map generation; output is stored and displayed in the UI)
+ * 
+ * Labels are ALWAYS generated in English (reference language for storage).
+ * The Chat AI translates them dynamically based on user's language.
+ * 
+ * This approach ensures:
+ * - Consistent storage format
+ * - No language detection complexity
+ * - Dynamic translation via chat (FR, ES, DE, etc.)
  */
 
 import { generateText } from 'ai'
@@ -41,13 +47,13 @@ export async function generateClusterLabel(
   // Extract keywords for context
   const keywords = extractKeywords(sampledTweets, 10)
 
-  const outputLanguage = detectOutputLanguage(sampledTweets, operationalContext)
-
   // Build enhanced prompt with operational context
   const contextSection = operationalContext 
     ? `\n\nOperational Context:\n${operationalContext}\n\nUse this context to better understand the significance of the posts and provide more relevant analysis.`
     : ''
 
+  // Labels are ALWAYS in English (reference language)
+  // The Chat AI translates dynamically based on user's language
   const prompt = `You are an expert analyst identifying opinion clusters in social media data for a government-grade monitoring platform.
 
 Analyze these ${sampledTweets.length} social media posts and provide a detailed, operational analysis.${contextSection}
@@ -75,7 +81,7 @@ REQUIRED OUTPUT - You MUST provide ALL fields with substantial content:
    - 0.0 = neutral (factual, balanced)
    - +1.0 = strongly positive (praise, support, celebration)
 
-Output MUST be in ${outputLanguage === 'fr' ? 'French' : 'English'}.
+IMPORTANT: Output MUST be in English (reference language for storage).
 
 Respond with ONLY a valid JSON object (no markdown, no explanation):
 {"label": "Specific Punchy Title", "description": "Detailed 2-4 sentence operational briefing about this cluster...", "sentiment": 0.0}`
@@ -146,7 +152,7 @@ Respond with ONLY a valid JSON object (no markdown, no explanation):
     }
   }
 
-  // Fallback: keyword-based label
+  // Fallback: keyword-based label (always English)
   logger.warn('[Opinion Map] Using fallback label', { cluster_id: clusterId })
 
   const fallbackLabel = keywords.length > 0
@@ -154,14 +160,14 @@ Respond with ONLY a valid JSON object (no markdown, no explanation):
     : `Cluster ${clusterId}`
 
   const fallbackDescription = keywords.length > 0
-    ? `This cluster discusses topics related to ${keywords.slice(0, 5).join(', ')}. Generated from keyword analysis due to AI unavailability.`
-    : 'Cluster analysis unavailable at this time.'
+    ? `This cluster discusses topics related to ${keywords.slice(0, 5).join(', ')}. Generated from keyword analysis.`
+    : 'Cluster analysis unavailable.'
 
-    return {
-      label: fallbackLabel,
-      keywords,
-      sentiment: 0,
-      confidence: 0.3,
+  return {
+    label: fallbackLabel,
+    keywords,
+    sentiment: 0,
+    confidence: 0.3,
     reasoning: fallbackDescription
   }
 }
@@ -295,33 +301,3 @@ export function extractKeywords(tweets: string[], topN: number): string[] {
     .map(([word]) => word)
 }
 
-function detectOutputLanguage(tweets: string[], operationalContext?: string | null): 'fr' | 'en' {
-  // Heuristic: count common FR vs EN function words (robust to short texts)
-  const frHits = countHits(tweets, [
-    ' le ', ' la ', ' les ', ' de ', ' des ', ' du ', ' et ', ' pour ', ' sur ', ' dans ', ' avec ', " d'", ' est ', ' sont '
-  ])
-  const enHits = countHits(tweets, [
-    ' the ', ' and ', ' of ', ' to ', ' in ', ' on ', ' for ', ' with ', ' is ', ' are '
-  ])
-
-  // Context can break ties (many zones will have FR operational context)
-  const ctx = (operationalContext || '').toLowerCase()
-  const ctxLooksFr = /[àâçéèêëîïôùûüÿœ]/.test(ctx) || /\b(zone|contexte|opérationnel|sécurité|risque|narratif)\b/.test(ctx)
-
-  if (frHits === 0 && enHits === 0) {
-    return ctxLooksFr ? 'fr' : 'en'
-  }
-
-  return frHits >= enHits ? 'fr' : 'en'
-}
-
-function countHits(texts: string[], needles: string[]): number {
-  let hits = 0
-  for (const t of texts) {
-    const s = ` ${String(t).toLowerCase()} `
-    for (const n of needles) {
-      if (s.includes(n)) hits++
-    }
-  }
-  return hits
-}
