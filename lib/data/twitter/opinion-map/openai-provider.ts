@@ -1,28 +1,18 @@
 import { createOpenAI } from '@ai-sdk/openai'
 
-const AI_GATEWAY_BASE_URL = 'https://ai-gateway.vercel.sh/v1'
-
 /**
- * Opinion-map (carto) provider selection.
+ * Opinion-map OpenAI provider for cluster labeling.
  *
- * Best practice:
- * - Prefer Vercel AI Gateway via OIDC in preview/prod (VERCEL_OIDC_TOKEN provided by Vercel)
- * - Allow local dev with an explicit AI Gateway key
- * - Fallback to direct OpenAI when running locally without Gateway
+ * Uses direct OpenAI API (same as chat) for consistency and reliability.
+ * GPT-5.2 support requires direct API access.
  */
 export function getOpinionMapOpenAIProvider() {
-  if (process.env.VERCEL_OIDC_TOKEN) {
-    return createOpenAI({ baseURL: AI_GATEWAY_BASE_URL })
-  }
-
-  if (process.env.AI_GATEWAY_API_KEY) {
-    return createOpenAI({
-      apiKey: process.env.AI_GATEWAY_API_KEY,
-      baseURL: AI_GATEWAY_BASE_URL,
-    })
-  }
-
-  return createOpenAI({ apiKey: process.env.OPENAI_API_KEY })
+  // Use direct OpenAI API with OPENAI_API_KEY (same as chat route)
+  // This ensures GPT-5.2 compatibility and avoids AI Gateway routing issues
+  return createOpenAI({ 
+    apiKey: process.env.OPENAI_API_KEY,
+    compatibility: 'strict' // Ensure full API compatibility
+  })
 }
 
 

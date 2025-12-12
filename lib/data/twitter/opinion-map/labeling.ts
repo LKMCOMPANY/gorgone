@@ -50,26 +50,35 @@ export async function generateClusterLabel(
 
   const prompt = `You are an expert analyst identifying opinion clusters in social media data for a government-grade monitoring platform.
 
-Analyze these ${sampledTweets.length} posts and provide a precise, insightful analysis.${contextSection}
+Analyze these ${sampledTweets.length} social media posts and provide a detailed, operational analysis.${contextSection}
 
-Posts:
+Posts to analyze:
 ${sampledTweets.map((t, i) => `${i + 1}. ${t}`).join('\n')}
 
 Detected keywords: ${keywords.join(', ')}
 
-Your task:
-1. **label**: Create a SHORT, SPECIFIC, MEMORABLE title (2-5 words) that captures the essence of this cluster. Avoid generic labels like "Discussion" or "Various Topics". Be specific about WHO is saying WHAT.
-2. **description**: Write 2-3 sentences explaining:
-   - What specific topic/opinion unites these posts
-   - What type of accounts are posting (supporters, critics, media, officials, bots, etc.)
-   - Why this matters in the monitoring context
-3. **sentiment**: Score from -1 (very negative) to +1 (very positive), 0 = neutral
-4. **reasoning**: One sentence explaining your label choice
+REQUIRED OUTPUT - You MUST provide ALL fields with substantial content:
 
-Output language: ${outputLanguage === 'fr' ? 'French' : 'English'}
+1. **label** (REQUIRED): A punchy, specific title in 2-5 words. 
+   - BAD examples: "Discussion", "Various Topics", "Mixed Opinions", "General Discourse"
+   - GOOD examples: "Pro-Government Rally", "Media Criticism Wave", "DRC Tensions Spike", "Anti-Sanctions Campaign"
+   - Be specific: WHO is saying WHAT or WHAT is happening
 
-Respond with ONLY valid JSON (no markdown):
-{"label": "...", "description": "...", "sentiment": 0.0, "reasoning": "..."}`
+2. **description** (REQUIRED, 2-4 sentences): A detailed operational briefing explaining:
+   - The core narrative/opinion that unites these posts
+   - The type of voices involved (supporters, critics, journalists, officials, activists, bots, etc.)
+   - The significance for monitoring (emerging threat, viral campaign, coordinated action, etc.)
+   - Any notable patterns (hashtags, shared media, timing, etc.)
+
+3. **sentiment** (REQUIRED): A score from -1.0 to +1.0
+   - -1.0 = strongly negative (attacks, accusations, outrage)
+   - 0.0 = neutral (factual, balanced)
+   - +1.0 = strongly positive (praise, support, celebration)
+
+Output MUST be in ${outputLanguage === 'fr' ? 'French' : 'English'}.
+
+Respond with ONLY a valid JSON object (no markdown, no explanation):
+{"label": "Specific Punchy Title", "description": "Detailed 2-4 sentence operational briefing about this cluster...", "sentiment": 0.0}`
 
   // Retry with exponential backoff
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
@@ -89,19 +98,22 @@ Respond with ONLY valid JSON (no markdown):
     // Parse response
       const parsed = parseAIResponse(text)
 
+      // Description goes into reasoning field (that's what the UI displays)
+      const description = parsed.description || parsed.reasoning || ''
+
       logger.info('[Opinion Map] Cluster labeled successfully', {
         cluster_id: clusterId,
-      label: parsed.label,
+        label: parsed.label,
         sentiment: parsed.sentiment,
-        has_description: Boolean(parsed.description)
+        description_length: description.length
       })
 
-    return {
+      return {
         label: parsed.label,
-      keywords,
+        keywords,
         sentiment: parsed.sentiment,
-      confidence: 0.8,
-        reasoning: parsed.description || parsed.reasoning // Use description if available, fallback to reasoning
+        confidence: 0.8,
+        reasoning: description // UI displays this as "Analysis"
       }
 
   } catch (error) {
