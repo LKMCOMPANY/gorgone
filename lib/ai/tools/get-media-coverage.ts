@@ -3,46 +3,43 @@
  * Analyzes media coverage of a topic or event
  */
 
-import { tool } from "ai";
+import { type Tool, type ToolCallOptions, zodSchema } from "ai";
 import { z } from "zod";
 import { getArticlesByZone } from "@/lib/data/media/articles";
 import { logger } from "@/lib/logger";
-import type { ToolContext } from "@/lib/ai/types";
+import { getToolContext } from "@/lib/ai/types";
 
-export const getMediaCoverageTool = tool({
-  description: `Analyze media coverage of a specific topic or event.
+const parametersSchema = z.object({
+  topic: z.string().describe("Topic or keyword to analyze"),
+  period: z
+    .enum(["24h", "7d", "30d"])
+    .default("7d")
+    .describe("Time period"),
+  min_social_score: z
+    .number()
+    .optional()
+    .describe("Minimum social media engagement score"),
+});
 
-Use this tool when the user asks for:
-- "Media coverage of [topic]"
-- "How is the press covering [event]?"
-- "News articles about [subject]"
-- "Media sentiment on [topic]"
+type Parameters = z.infer<typeof parametersSchema>;
+type Output = Record<string, unknown>;
 
-Returns articles, sources, sentiment breakdown, and coverage volume.`,
+export const getMediaCoverageTool: Tool<Parameters, Output> = {
+  description:
+    "Analyze media coverage for a topic (volume, sources, sentiment) over a time window.",
 
-  parameters: z.object({
-    topic: z.string().describe("Topic or keyword to analyze"),
-    period: z
-      .enum(["24h", "7d", "30d"])
-      .default("7d")
-      .describe("Time period"),
-    min_social_score: z
-      .number()
-      .optional()
-      .describe("Minimum social media engagement score"),
-  }),
+  inputSchema: zodSchema(parametersSchema),
 
-  execute: async ({ topic, period, min_social_score }, context: any) => {
+  execute: async (
+    { topic, period, min_social_score },
+    options: ToolCallOptions
+  ): Promise<Output> => {
+    const { zoneId } = getToolContext(options);
     try {
-      logger.info(`[AI Tool] get_media_coverage called`, {
-        topic,
-        period,
-      });
+      logger.info(`[AI Tool] get_media_coverage called`, { topic, period });
 
-      const { zoneId } = context;
       const startDate = getStartDate(period);
 
-      // Search articles
       const articles = await getArticlesByZone(zoneId, {
         searchText: topic,
         startDate,
@@ -57,12 +54,10 @@ Returns articles, sources, sentiment breakdown, and coverage volume.`,
         };
       }
 
-      // Filter by social score if specified
       const filtered = min_social_score
         ? articles.filter((a) => (a.social_score || 0) >= min_social_score)
         : articles;
 
-      // Calculate sentiment breakdown
       const withSentiment = filtered.filter((a) => a.sentiment !== null);
       const sentiments = withSentiment.map((a) => a.sentiment!);
 
@@ -75,7 +70,6 @@ Returns articles, sources, sentiment breakdown, and coverage volume.`,
       const negative = sentiments.filter((s) => s < -0.1).length;
       const neutral = sentiments.length - positive - negative;
 
-      // Top sources
       const sourceCounts = new Map<string, number>();
       filtered.forEach((a) => {
         const source = a.source_title;
@@ -87,7 +81,6 @@ Returns articles, sources, sentiment breakdown, and coverage volume.`,
         .sort((a, b) => b.count - a.count)
         .slice(0, 5);
 
-      // Top articles by social score
       const topArticles = filtered
         .sort((a, b) => (b.social_score || 0) - (a.social_score || 0))
         .slice(0, 5)
@@ -128,7 +121,7 @@ Returns articles, sources, sentiment breakdown, and coverage volume.`,
       throw new Error("Failed to get media coverage");
     }
   },
-});
+};
 
 function getStartDate(period: string): Date {
   const hours: Record<string, number> = {
@@ -138,4 +131,3 @@ function getStartDate(period: string): Date {
   };
   return new Date(Date.now() - (hours[period] || 168) * 60 * 60 * 1000);
 }
-

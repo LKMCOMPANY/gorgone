@@ -3,59 +3,54 @@
  * Identifies unusual activity patterns (volume spikes, viral content, etc.)
  */
 
-import { tool } from "ai";
+import { type Tool, type ToolCallOptions, zodSchema } from "ai";
 import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logger } from "@/lib/logger";
-import type { ToolContext } from "@/lib/ai/types";
+import { getToolContext } from "@/lib/ai/types";
 
-export const detectAnomaliesTool = tool({
-  description: `Detect anomalies and unusual patterns in the zone activity.
+const parametersSchema = z.object({
+  sensitivity: z
+    .enum(["low", "medium", "high"])
+    .default("medium")
+    .describe("Anomaly detection sensitivity"),
+});
 
-Use this tool when the user asks for:
-- "Any unusual activity?"
-- "Detect anomalies"
-- "Are there any spikes?"
-- "Viral content detection"
-- "Suspicious patterns"
+type Parameters = z.infer<typeof parametersSchema>;
+type Output = Record<string, unknown>;
 
-Returns volume spikes, viral content, and engagement anomalies.`,
+export const detectAnomaliesTool: Tool<Parameters, Output> = {
+  description:
+    "Detect abnormal spikes/viral concentration in zone activity (volume/engagement) at a chosen sensitivity.",
 
-  parameters: z.object({
-    sensitivity: z
-      .enum(["low", "medium", "high"])
-      .default("medium")
-      .describe("Anomaly detection sensitivity"),
-  }),
+  inputSchema: zodSchema(parametersSchema),
 
-  execute: async ({ sensitivity }, context: any) => {
+  execute: async (
+    { sensitivity },
+    options: ToolCallOptions
+  ): Promise<Output> => {
+    const { zoneId, dataSources } = getToolContext(options);
     try {
-      logger.info(`[AI Tool] detect_anomalies called`, {
-        sensitivity,
-      });
+      logger.info(`[AI Tool] detect_anomalies called`, { sensitivity });
 
-      const { zoneId, dataSources } = context;
       const supabase = createAdminClient();
 
-      // Thresholds based on sensitivity
-      const thresholds = {
+      const thresholds: Record<string, { volume: number; engagement: number }> = {
         low: { volume: 3.0, engagement: 5.0 },
         medium: { volume: 2.0, engagement: 3.0 },
         high: { volume: 1.5, engagement: 2.0 },
       };
 
       const threshold = thresholds[sensitivity];
-      const anomalies: any = {
+      const anomalies: Output = {
         sensitivity,
         detected_at: new Date().toISOString(),
       };
 
-      // Detect volume spikes (Twitter)
       if (dataSources.twitter) {
         const last24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
         const last7d = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
-        // Get hourly counts
         const { data: recent } = await supabase
           .from("twitter_tweets")
           .select("twitter_created_at")
@@ -70,10 +65,10 @@ Returns volume spikes, viral content, and engagement anomalies.`,
           .lt("twitter_created_at", last24h.toISOString());
 
         if (recent && baseline) {
-          const recentAvg = recent.length / 24; // Tweets per hour
-          const baselineAvg = baseline.length / (24 * 6); // 6 days average
+          const recentAvg = recent.length / 24;
+          const baselineAvg = baseline.length / (24 * 6);
 
-          if (recentAvg > baselineAvg * threshold.volume) {
+          if (baselineAvg > 0 && recentAvg > baselineAvg * threshold.volume) {
             anomalies.twitter_volume_spike = {
               current_rate: Math.round(recentAvg),
               baseline_rate: Math.round(baselineAvg),
@@ -83,7 +78,6 @@ Returns volume spikes, viral content, and engagement anomalies.`,
           }
         }
 
-        // Detect viral content
         const { data: viral } = await supabase
           .from("twitter_tweets")
           .select("tweet_id, text, total_engagement, author_profile_id")
@@ -94,15 +88,13 @@ Returns volume spikes, viral content, and engagement anomalies.`,
 
         if (viral && viral.length > 0) {
           const avgEngagement =
-            viral.reduce((sum, t) => sum + (t.total_engagement || 0), 0) /
-            viral.length;
+            viral.reduce((sum, t) => sum + (t.total_engagement || 0), 0) / viral.length;
           const topEngagement = viral[0].total_engagement || 0;
 
-          if (topEngagement > avgEngagement * threshold.engagement) {
+          if (avgEngagement > 0 && topEngagement > avgEngagement * threshold.engagement) {
             anomalies.viral_content = {
               count: viral.filter(
-                (t) =>
-                  (t.total_engagement || 0) > avgEngagement * threshold.engagement
+                (t) => (t.total_engagement || 0) > avgEngagement * threshold.engagement
               ).length,
               top_tweet: {
                 text: viral[0].text.substring(0, 200),
@@ -114,7 +106,6 @@ Returns volume spikes, viral content, and engagement anomalies.`,
         }
       }
 
-      // TikTok anomalies
       if (dataSources.tiktok) {
         const last24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
@@ -138,7 +129,7 @@ Returns volume spikes, viral content, and engagement anomalies.`,
         }
       }
 
-      const hasAnomalies = Object.keys(anomalies).length > 2; // More than default fields
+      const hasAnomalies = Object.keys(anomalies).length > 2;
 
       return {
         has_anomalies: hasAnomalies,
@@ -152,17 +143,4 @@ Returns volume spikes, viral content, and engagement anomalies.`,
       throw new Error("Failed to detect anomalies");
     }
   },
-});
-
-function getStartDate(period: string): Date {
-  const hours: Record<string, number> = {
-    "3h": 3,
-    "6h": 6,
-    "12h": 12,
-    "24h": 24,
-    "7d": 168,
-    "30d": 720,
-  };
-  return new Date(Date.now() - (hours[period] || 24) * 60 * 60 * 1000);
-}
-
+};

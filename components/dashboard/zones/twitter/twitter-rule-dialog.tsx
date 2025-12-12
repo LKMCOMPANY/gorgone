@@ -201,7 +201,7 @@ export function TwitterRuleDialog({
                   className="min-h-[120px] font-mono text-sm resize-none transition-all duration-[var(--transition-fast)]"
                 />
                 <p className="text-xs text-muted-foreground">
-                  Use Twitter's search syntax (AND, OR, -, etc.)
+                  Use Twitter&apos;s search syntax (AND, OR, -, etc.)
                 </p>
               </div>
             </TabsContent>

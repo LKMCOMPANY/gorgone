@@ -257,7 +257,7 @@ export function MediaFeedContent({ zoneId }: MediaFeedContentProps) {
             {/* End of results message */}
             {!hasMore && articles.length > 0 && (
               <p className="py-8 text-center text-xs text-muted-foreground">
-                You've reached the end of the results
+                You&apos;ve reached the end of the results
               </p>
             )}
           </>

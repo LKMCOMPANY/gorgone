@@ -3,42 +3,39 @@
  * Cross-platform content search (Twitter, TikTok, Media)
  */
 
-import { tool } from "ai";
+import { type Tool, type ToolCallOptions, zodSchema } from "ai";
 import { z } from "zod";
 import { searchTweets } from "@/lib/data/twitter/tweets";
 import { getVideosByZone } from "@/lib/data/tiktok/videos";
 import { getArticlesByZone } from "@/lib/data/media/articles";
 import { logger } from "@/lib/logger";
-import type { ToolContext } from "@/lib/ai/types";
+import { getToolContext } from "@/lib/ai/types";
 
-export const searchContentTool = tool({
-  description: `Search for content across all platforms using text search.
+const parametersSchema = z.object({
+  query: z.string().min(1).describe("Search query (keywords or phrase)"),
+  platforms: z
+    .array(z.enum(["twitter", "tiktok", "media"]))
+    .default(["twitter", "tiktok", "media"])
+    .describe("Platforms to search"),
+  start_date: z.string().optional().describe("Start date (ISO 8601)"),
+  end_date: z.string().optional().describe("End date (ISO 8601)"),
+  limit: z.number().min(1).max(50).default(20).describe("Max results per platform"),
+});
 
-Use this tool when the user asks for:
-- "Find tweets about AI"
-- "Search for videos mentioning climate"
-- "Show me articles about elections"
-- "Content containing [keyword]"
-- "Posts about [topic]"
+type Parameters = z.infer<typeof parametersSchema>;
+type Output = Record<string, unknown>;
 
-Searches in tweet text, video descriptions, and article titles/bodies.`,
+export const searchContentTool: Tool<Parameters, Output> = {
+  description:
+    "Cross-platform keyword search (Twitter/TikTok/Media) within the zone and optional date window.",
 
-  parameters: z.object({
-    query: z.string().min(1).describe("Search query (keywords or phrase)"),
-    platforms: z
-      .array(z.enum(["twitter", "tiktok", "media"]))
-      .default(["twitter", "tiktok", "media"])
-      .describe("Platforms to search"),
-    start_date: z.string().optional().describe("Start date (ISO 8601)"),
-    end_date: z.string().optional().describe("End date (ISO 8601)"),
-    limit: z.number().min(1).max(50).default(20).describe("Max results per platform"),
-  }),
+  inputSchema: zodSchema(parametersSchema),
 
   execute: async (
     { query, platforms, start_date, end_date, limit },
-    context: any
-  ) => {
-    const { zoneId, dataSources } = context;
+    options: ToolCallOptions
+  ): Promise<Output> => {
+    const { zoneId, dataSources } = getToolContext(options);
     try {
       logger.info(`[AI Tool] search_content called`, {
         zone_id: zoneId,
@@ -46,7 +43,12 @@ Searches in tweet text, video descriptions, and article titles/bodies.`,
         platforms,
       });
 
-      const results: any = {
+      const results: {
+        query: string;
+        platforms: string[];
+        results: Array<Record<string, unknown>>;
+        total_results?: number;
+      } = {
         query,
         platforms,
         results: [],
@@ -55,24 +57,41 @@ Searches in tweet text, video descriptions, and article titles/bodies.`,
       const startDate = start_date ? new Date(start_date) : undefined;
       const endDate = end_date ? new Date(end_date) : undefined;
 
-      // Search Twitter  
       if (platforms.includes("twitter") && dataSources.twitter) {
         try {
           const tweets = await searchTweets(zoneId, query, {
             limit: limit * 2,
           });
-          
-          // Filter by date if specified
-          const filtered = (startDate || endDate) 
-            ? tweets.filter((t: any) => {
-                const createdAt = new Date(t.twitter_created_at);
-                if (startDate && createdAt < startDate) return false;
-                if (endDate && createdAt > endDate) return false;
-                return true;
-              }).slice(0, limit)
-            : tweets;
 
-          for (const tweet of filtered as any[]) {
+          const filtered =
+            startDate || endDate
+              ? tweets
+                  .filter((t: { twitter_created_at: string }) => {
+                    const createdAt = new Date(t.twitter_created_at);
+                    if (startDate && createdAt < startDate) return false;
+                    if (endDate && createdAt > endDate) return false;
+                    return true;
+                  })
+                  .slice(0, limit)
+              : tweets;
+
+          for (const tweet of filtered as Array<{
+            tweet_id: string;
+            author?: {
+              username?: string;
+              name?: string;
+              is_verified?: boolean;
+              is_blue_verified?: boolean;
+            };
+            text: string;
+            like_count: number;
+            retweet_count: number;
+            reply_count: number;
+            total_engagement: number;
+            twitter_created_at: string;
+            twitter_url?: string;
+            tweet_url?: string;
+          }>) {
             results.results.push({
               platform: "twitter",
               type: "tweet",
@@ -98,18 +117,16 @@ Searches in tweet text, video descriptions, and article titles/bodies.`,
         }
       }
 
-      // Search TikTok
       if (platforms.includes("tiktok") && dataSources.tiktok) {
         try {
           const videos = await getVideosByZone(zoneId, {
             limit: limit * 2,
           });
 
-          // Filter by query and date
           let filtered = videos.filter((v) =>
             v.description?.toLowerCase().includes(query.toLowerCase())
           );
-          
+
           if (startDate || endDate) {
             filtered = filtered.filter((v) => {
               const createdAt = new Date(v.tiktok_created_at);
@@ -120,25 +137,32 @@ Searches in tweet text, video descriptions, and article titles/bodies.`,
           }
 
           for (const video of filtered.slice(0, limit)) {
+            const v = video as typeof video & {
+              author?: {
+                username?: string;
+                nickname?: string;
+                is_verified?: boolean;
+              };
+            };
             results.results.push({
               platform: "tiktok",
               type: "video",
-              id: video.video_id,
+              id: v.video_id,
               author: {
-                username: (video as any).author?.username,
-                nickname: (video as any).author?.nickname,
-                verified: (video as any).author?.is_verified,
+                username: v.author?.username,
+                nickname: v.author?.nickname,
+                verified: v.author?.is_verified,
               },
-              content: video.description,
+              content: v.description || undefined,
               engagement: {
-                views: video.play_count,
-                likes: video.digg_count,
-                comments: video.comment_count,
-                shares: video.share_count,
-                total: video.total_engagement,
+                views: v.play_count,
+                likes: v.digg_count,
+                comments: v.comment_count,
+                shares: v.share_count,
+                total: Number(v.total_engagement),
               },
-              created_at: video.tiktok_created_at,
-              url: video.share_url,
+              created_at: v.tiktok_created_at,
+              url: v.share_url || undefined,
             });
           }
         } catch (error) {
@@ -146,7 +170,6 @@ Searches in tweet text, video descriptions, and article titles/bodies.`,
         }
       }
 
-      // Search Media
       if (platforms.includes("media") && dataSources.media) {
         try {
           const articles = await getArticlesByZone(zoneId, {
@@ -175,12 +198,11 @@ Searches in tweet text, video descriptions, and article titles/bodies.`,
         }
       }
 
-      // Sort by engagement/social score
-      results.results.sort((a: any, b: any) => {
+      results.results.sort((a, b) => {
         const scoreA =
-          a.engagement?.total || a.social_score || 0;
+          (a.engagement as { total?: number })?.total || (a.social_score as number) || 0;
         const scoreB =
-          b.engagement?.total || b.social_score || 0;
+          (b.engagement as { total?: number })?.total || (b.social_score as number) || 0;
         return scoreB - scoreA;
       });
 
@@ -193,5 +215,4 @@ Searches in tweet text, video descriptions, and article titles/bodies.`,
       throw new Error("Failed to search content");
     }
   },
-});
-
+};

@@ -3,39 +3,39 @@
  * Returns trending hashtags and topics across platforms
  */
 
-import { tool } from "ai";
+import { type Tool, type ToolCallOptions, zodSchema } from "ai";
 import { z } from "zod";
 import { getTrendingHashtags as getTwitterHashtags } from "@/lib/data/twitter/entities";
 import { getTrendingHashtags as getTikTokHashtags } from "@/lib/data/tiktok/entities";
 import { logger } from "@/lib/logger";
-import type { ToolContext } from "@/lib/ai/types";
+import { getToolContext } from "@/lib/ai/types";
 
-export const getTrendingTopicsTool = tool({
-  description: `Get trending hashtags and topics across social media platforms.
+const parametersSchema = z.object({
+  platform: z
+    .enum(["twitter", "tiktok", "all"])
+    .default("all")
+    .describe("Which platform to analyze"),
+  period: z
+    .enum(["3h", "6h", "12h", "24h", "7d", "30d"])
+    .default("24h")
+    .describe("Time period to analyze"),
+  limit: z.number().min(1).max(50).default(10).describe("Number of hashtags to return"),
+});
 
-Use this tool when the user asks for:
-- "What are the trending hashtags?"
-- "Top topics right now"
-- "What's trending?"
-- "Popular hashtags"
-- "What are people talking about?"
+type Parameters = z.infer<typeof parametersSchema>;
+type Output = Record<string, unknown>;
 
-Returns hashtags with usage counts and growth trends.`,
+export const getTrendingTopicsTool: Tool<Parameters, Output> = {
+  description:
+    "Return trending hashtags/topics in the zone for a given time window (counts + basic trend metadata).",
 
-  parameters: z.object({
-    platform: z
-      .enum(["twitter", "tiktok", "all"])
-      .default("all")
-      .describe("Which platform to analyze"),
-    period: z
-      .enum(["3h", "6h", "12h", "24h", "7d", "30d"])
-      .default("24h")
-      .describe("Time period to analyze"),
-    limit: z.number().min(1).max(50).default(10).describe("Number of hashtags to return"),
-  }),
+  inputSchema: zodSchema(parametersSchema),
 
-  execute: async ({ platform, period, limit }, context: any) => {
-    const { zoneId, dataSources } = context;
+  execute: async (
+    { platform, period, limit },
+    options: ToolCallOptions
+  ): Promise<Output> => {
+    const { zoneId, dataSources } = getToolContext(options);
     try {
       logger.info(`[AI Tool] get_trending_topics called`, {
         zone_id: zoneId,
@@ -45,9 +45,13 @@ Returns hashtags with usage counts and growth trends.`,
       });
 
       const periodHours = getPeriodHours(period);
-      const topics: any[] = [];
+      const topics: Array<{
+        platform: string;
+        hashtag: string;
+        count: number;
+        unique_users?: number;
+      }> = [];
 
-      // Twitter hashtags
       if ((platform === "twitter" || platform === "all") && dataSources.twitter) {
         try {
           const startDate = new Date(Date.now() - periodHours * 60 * 60 * 1000);
@@ -62,7 +66,7 @@ Returns hashtags with usage counts and growth trends.`,
               platform: "twitter",
               hashtag: hashtag.hashtag,
               count: hashtag.count,
-              unique_users: 0, // Not available in new signature
+              unique_users: 0,
             });
           }
         } catch (error) {
@@ -70,7 +74,6 @@ Returns hashtags with usage counts and growth trends.`,
         }
       }
 
-      // TikTok hashtags
       if ((platform === "tiktok" || platform === "all") && dataSources.tiktok) {
         try {
           const tiktokHashtags = await getTikTokHashtags(zoneId, limit);
@@ -87,10 +90,8 @@ Returns hashtags with usage counts and growth trends.`,
         }
       }
 
-      // Merge duplicates across platforms
       const merged = mergeDuplicateHashtags(topics);
 
-      // Sort by total count
       merged.sort((a, b) => b.total_count - a.total_count);
 
       return {
@@ -104,9 +105,8 @@ Returns hashtags with usage counts and growth trends.`,
       throw new Error("Failed to get trending topics");
     }
   },
-});
+};
 
-// Helper functions
 function getPeriodHours(period: string): number {
   const map: Record<string, number> = {
     "3h": 3,
@@ -119,8 +119,23 @@ function getPeriodHours(period: string): number {
   return map[period] || 24;
 }
 
-function mergeDuplicateHashtags(topics: any[]): any[] {
-  const hashtagMap = new Map<string, any>();
+interface TopicInput {
+  platform: string;
+  hashtag: string;
+  count: number;
+  unique_users?: number;
+}
+
+interface MergedTopic {
+  hashtag: string;
+  platforms: string[];
+  counts: Record<string, number>;
+  total_count: number;
+  unique_users: number;
+}
+
+function mergeDuplicateHashtags(topics: TopicInput[]): MergedTopic[] {
+  const hashtagMap = new Map<string, MergedTopic>();
 
   for (const topic of topics) {
     const key = topic.hashtag.toLowerCase();
@@ -148,4 +163,3 @@ function mergeDuplicateHashtags(topics: any[]): any[] {
 
   return Array.from(hashtagMap.values());
 }
-

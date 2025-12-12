@@ -19,8 +19,8 @@ export function Reasoning({
   className 
 }: ReasoningProps) {
   const [isOpen, setIsOpen] = React.useState(defaultOpen);
-  const [startTime] = React.useState(Date.now());
   const [duration, setDuration] = React.useState(0);
+  const startTimeRef = React.useRef<number | null>(null);
 
   // Auto-open during streaming
   React.useEffect(() => {
@@ -29,16 +29,28 @@ export function Reasoning({
     }
   }, [isStreaming]);
 
+  // Capture start time when streaming begins (avoid impure calls during render).
+  React.useEffect(() => {
+    if (isStreaming) {
+      startTimeRef.current = Date.now();
+      setDuration(0);
+    } else {
+      startTimeRef.current = null;
+    }
+  }, [isStreaming]);
+
   // Track duration
   React.useEffect(() => {
     if (!isStreaming) return;
     
     const interval = setInterval(() => {
-      setDuration(Math.floor((Date.now() - startTime) / 1000));
+      const start = startTimeRef.current;
+      if (start == null) return;
+      setDuration(Math.floor((Date.now() - start) / 1000));
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [isStreaming, startTime]);
+  }, [isStreaming]);
 
   return (
     <Collapsible

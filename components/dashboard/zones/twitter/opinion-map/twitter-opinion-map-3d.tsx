@@ -127,12 +127,12 @@ function PremiumBackground() {
       }
     }
     
-    return new THREE.CanvasTexture(canvas)
+    const t = new THREE.CanvasTexture(canvas)
+    t.wrapS = THREE.RepeatWrapping
+    t.wrapT = THREE.RepeatWrapping
+    t.repeat.set(1.5, 1.5)
+    return t
   }, [])
-  
-  texture.wrapS = THREE.RepeatWrapping
-  texture.wrapT = THREE.RepeatWrapping
-  texture.repeat.set(1.5, 1.5)
   
   return (
     <mesh position={[50, -0.1, 50]} rotation={[-Math.PI / 2, 0, 0]}>

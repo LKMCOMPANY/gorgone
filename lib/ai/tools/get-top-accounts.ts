@@ -3,43 +3,43 @@
  * Returns most influential accounts by engagement or followers
  */
 
-import { tool } from "ai";
+import { type Tool, type ToolCallOptions, zodSchema } from "ai";
 import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getProfilesWithStatsForZone } from "@/lib/data/tiktok/profiles-stats";
 import { logger } from "@/lib/logger";
-import type { ToolContext } from "@/lib/ai/types";
+import { getToolContext } from "@/lib/ai/types";
 
-export const getTopAccountsTool = tool({
-  description: `Get the most influential accounts ranked by engagement or followers.
+const parametersSchema = z.object({
+  platform: z
+    .enum(["twitter", "tiktok", "all"])
+    .default("all")
+    .describe("Which platform to analyze"),
+  period: z
+    .enum(["3h", "6h", "12h", "24h", "7d", "30d"])
+    .default("24h")
+    .describe("Time period for engagement calculation"),
+  limit: z.number().min(1).max(50).default(10).describe("Number of accounts to return"),
+  sort_by: z
+    .enum(["engagement", "followers"])
+    .default("engagement")
+    .describe("Sort by total engagement or follower count"),
+});
 
-Use this tool when the user asks for:
-- "Top accounts by engagement"
-- "Most influential accounts"
-- "Who has the most interactions?"
-- "Best performing creators"
-- "Top influencers"
+type Parameters = z.infer<typeof parametersSchema>;
+type Output = Record<string, unknown>;
 
-Returns profiles with engagement statistics and growth metrics.`,
+export const getTopAccountsTool: Tool<Parameters, Output> = {
+  description:
+    "Rank the most influential accounts in the zone (by engagement or followers) for a given time window.",
 
-  parameters: z.object({
-    platform: z
-      .enum(["twitter", "tiktok", "all"])
-      .default("all")
-      .describe("Which platform to analyze"),
-    period: z
-      .enum(["3h", "6h", "12h", "24h", "7d", "30d"])
-      .default("24h")
-      .describe("Time period for engagement calculation"),
-    limit: z.number().min(1).max(50).default(10).describe("Number of accounts to return"),
-    sort_by: z
-      .enum(["engagement", "followers"])
-      .default("engagement")
-      .describe("Sort by total engagement or follower count"),
-  }),
+  inputSchema: zodSchema(parametersSchema),
 
-  execute: async ({ platform, period, limit, sort_by }, context: any) => {
-    const { zoneId, dataSources } = context;
+  execute: async (
+    { platform, period, limit, sort_by },
+    options: ToolCallOptions
+  ): Promise<Output> => {
+    const { zoneId, dataSources } = getToolContext(options);
     try {
       logger.info(`[AI Tool] get_top_accounts called`, {
         zone_id: zoneId,
@@ -49,15 +49,13 @@ Returns profiles with engagement statistics and growth metrics.`,
         sort_by,
       });
 
-      const accounts: any[] = [];
+      const accounts: Array<Record<string, unknown>> = [];
 
-      // Twitter accounts - Direct aggregation (materialized views are empty)
       if ((platform === "twitter" || platform === "all") && dataSources.twitter) {
         try {
           const supabase = createAdminClient();
           const startDate = getStartDate(period);
 
-          // Get all tweets with profiles in period
           const { data: tweets } = await supabase
             .from("twitter_tweets")
             .select("author_profile_id, total_engagement, author:twitter_profiles(*)")
@@ -66,10 +64,17 @@ Returns profiles with engagement statistics and growth metrics.`,
             .not("author_profile_id", "is", null);
 
           if (tweets && tweets.length > 0) {
-            // Aggregate by profile
-            const profileStats = new Map<string, any>();
+            const profileStats = new Map<string, {
+              profile: Record<string, unknown>;
+              tweet_count: number;
+              total_engagement: number;
+            }>();
 
-            for (const tweet of tweets as any[]) {
+            for (const tweet of tweets as unknown as Array<{
+              author_profile_id: string;
+              total_engagement: number;
+              author: Record<string, unknown>;
+            }>) {
               if (!tweet.author) continue;
 
               const profileId = tweet.author_profile_id;
@@ -84,7 +89,6 @@ Returns profiles with engagement statistics and growth metrics.`,
               profileStats.set(profileId, existing);
             }
 
-            // Convert to array and calculate averages
             const profileArray = Array.from(profileStats.values()).map((stats) => ({
               ...stats,
               avg_engagement:
@@ -93,29 +97,36 @@ Returns profiles with engagement statistics and growth metrics.`,
                   : 0,
             }));
 
-            // Sort by total engagement or followers
             if (sort_by === "engagement") {
               profileArray.sort((a, b) => b.total_engagement - a.total_engagement);
             } else {
               profileArray.sort(
-                (a, b) => (b.profile.followers_count || 0) - (a.profile.followers_count || 0)
+                (a, b) =>
+                  ((b.profile as { followers_count?: number }).followers_count || 0) -
+                  ((a.profile as { followers_count?: number }).followers_count || 0)
               );
             }
 
-            // Take top N
             for (const stats of profileArray.slice(0, limit)) {
+              const profile = stats.profile as {
+                username?: string;
+                name?: string;
+                is_verified?: boolean;
+                is_blue_verified?: boolean;
+                followers_count?: number;
+              };
               accounts.push({
                 platform: "twitter",
-                username: stats.profile.username,
-                name: stats.profile.name,
-                verified: stats.profile.is_verified || stats.profile.is_blue_verified,
-                followers: stats.profile.followers_count,
+                username: profile.username || "",
+                name: profile.name,
+                verified: profile.is_verified || profile.is_blue_verified || false,
+                followers: profile.followers_count || 0,
                 stats: {
                   tweet_count: stats.tweet_count,
                   total_engagement: stats.total_engagement,
                   avg_engagement: stats.avg_engagement,
                 },
-                profile_url: `https://x.com/${stats.profile.username}`,
+                profile_url: `https://x.com/${profile.username}`,
               });
             }
           }
@@ -124,7 +135,6 @@ Returns profiles with engagement statistics and growth metrics.`,
         }
       }
 
-      // TikTok accounts
       if ((platform === "tiktok" || platform === "all") && dataSources.tiktok) {
         try {
           const profiles = await getProfilesWithStatsForZone(zoneId, {
@@ -153,13 +163,14 @@ Returns profiles with engagement statistics and growth metrics.`,
         }
       }
 
-      // Sort combined results
       if (sort_by === "engagement") {
         accounts.sort(
-          (a, b) => (b.stats.total_engagement || 0) - (a.stats.total_engagement || 0)
+          (a, b) =>
+            ((b.stats as { total_engagement?: number })?.total_engagement || 0) -
+            ((a.stats as { total_engagement?: number })?.total_engagement || 0)
         );
       } else {
-        accounts.sort((a, b) => (b.followers || 0) - (a.followers || 0));
+        accounts.sort((a, b) => ((b.followers as number) || 0) - ((a.followers as number) || 0));
       }
 
       return {
@@ -174,9 +185,8 @@ Returns profiles with engagement statistics and growth metrics.`,
       throw new Error("Failed to get top accounts");
     }
   },
-});
+};
 
-// Helper function
 function getStartDate(period: string): Date {
   const hours: Record<string, number> = {
     "3h": 3,
@@ -188,4 +198,3 @@ function getStartDate(period: string): Date {
   };
   return new Date(Date.now() - (hours[period] || 24) * 60 * 60 * 1000);
 }
-

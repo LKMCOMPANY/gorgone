@@ -3,53 +3,50 @@
  * Side-by-side comparison of multiple accounts
  */
 
-import { tool } from "ai";
+import { type Tool, type ToolCallOptions, zodSchema } from "ai";
 import { z } from "zod";
 import { getProfileByUsername } from "@/lib/data/twitter/profiles";
 import { getProfileByUsername as getTikTokProfile } from "@/lib/data/tiktok/profiles";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logger } from "@/lib/logger";
-import type { ToolContext } from "@/lib/ai/types";
+import { getToolContext } from "@/lib/ai/types";
 
-export const compareAccountsTool = tool({
-  description: `Compare multiple accounts side-by-side (2 to 5 accounts).
+const parametersSchema = z.object({
+  usernames: z
+    .array(z.string())
+    .min(2)
+    .max(5)
+    .describe("Usernames to compare (2-5 accounts)"),
+  platform: z
+    .enum(["twitter", "tiktok"])
+    .describe("Platform where accounts are"),
+  period: z
+    .enum(["3h", "6h", "12h", "24h", "7d", "30d"])
+    .default("7d")
+    .describe("Time period for activity comparison"),
+});
 
-Use this tool when the user asks for:
-- "Compare @user1 and @user2"
-- "Difference between @account1 and @account2"
-- "Who is more influential: @user1 or @user2?"
-- "Comparison of accounts"
+type Parameters = z.infer<typeof parametersSchema>;
+type Output = Record<string, unknown>;
 
-Returns side-by-side stats: followers, engagement, activity, influence.`,
+export const compareAccountsTool: Tool<Parameters, Output> = {
+  description:
+    "Compare 2–5 accounts side-by-side on activity and engagement over a time window.",
 
-  parameters: z.object({
-    usernames: z
-      .array(z.string())
-      .min(2)
-      .max(5)
-      .describe("Usernames to compare (2-5 accounts)"),
-    platform: z
-      .enum(["twitter", "tiktok"])
-      .describe("Platform where accounts are"),
-    period: z
-      .enum(["3h", "6h", "12h", "24h", "7d", "30d"])
-      .default("7d")
-      .describe("Time period for activity comparison"),
-  }),
+  inputSchema: zodSchema(parametersSchema),
 
-  execute: async ({ usernames, platform, period }, context: any) => {
+  execute: async (
+    { usernames, platform, period },
+    options: ToolCallOptions
+  ): Promise<Output> => {
+    const { zoneId } = getToolContext(options);
     try {
-      logger.info(`[AI Tool] compare_accounts called`, {
-        usernames,
-        platform,
-        period,
-      });
+      logger.info(`[AI Tool] compare_accounts called`, { usernames, platform, period });
 
-      const { zoneId } = context;
       const startDate = getStartDate(period);
       const supabase = createAdminClient();
 
-      const comparisons: any[] = [];
+      const comparisons: Array<Record<string, unknown>> = [];
 
       for (const username of usernames) {
         const cleanUsername = username.replace("@", "").trim().toLowerCase();
@@ -58,14 +55,10 @@ Returns side-by-side stats: followers, engagement, activity, influence.`,
           const profile = await getProfileByUsername(cleanUsername);
 
           if (!profile) {
-            comparisons.push({
-              username: cleanUsername,
-              found: false,
-            });
+            comparisons.push({ username: cleanUsername, found: false });
             continue;
           }
 
-          // Get activity
           const { data: tweets, count } = await supabase
             .from("twitter_tweets")
             .select("total_engagement", { count: "exact" })
@@ -87,20 +80,16 @@ Returns side-by-side stats: followers, engagement, activity, influence.`,
               total_engagement: totalEngagement,
               avg_engagement: count && count > 0 ? Math.round(totalEngagement / count) : 0,
               engagement_rate:
-                profile.followers_count > 0
-                  ? ((totalEngagement / count! / profile.followers_count) * 100).toFixed(3)
+                profile.followers_count > 0 && count && count > 0
+                  ? ((totalEngagement / count / profile.followers_count) * 100).toFixed(3)
                   : "0",
             },
           });
         } else {
-          // TikTok
           const profile = await getTikTokProfile(cleanUsername);
 
           if (!profile) {
-            comparisons.push({
-              username: cleanUsername,
-              found: false,
-            });
+            comparisons.push({ username: cleanUsername, found: false });
             continue;
           }
 
@@ -140,8 +129,8 @@ Returns side-by-side stats: followers, engagement, activity, influence.`,
         winner:
           comparisons.length >= 2
             ? comparisons.reduce((prev, curr) =>
-                (curr.activity?.total_engagement || 0) >
-                (prev.activity?.total_engagement || 0)
+                ((curr.activity as Record<string, unknown>)?.total_engagement as number || 0) >
+                ((prev.activity as Record<string, unknown>)?.total_engagement as number || 0)
                   ? curr
                   : prev
               ).username
@@ -152,7 +141,7 @@ Returns side-by-side stats: followers, engagement, activity, influence.`,
       throw new Error("Failed to compare accounts");
     }
   },
-});
+};
 
 function getStartDate(period: string): Date {
   const hours: Record<string, number> = {
@@ -165,4 +154,3 @@ function getStartDate(period: string): Date {
   };
   return new Date(Date.now() - (hours[period] || 168) * 60 * 60 * 1000);
 }
-

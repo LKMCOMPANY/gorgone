@@ -3,55 +3,53 @@
  * Signals to GPT to create a comprehensive report using other tools
  */
 
-import { tool } from "ai";
+import { type Tool, type ToolCallOptions, zodSchema } from "ai";
 import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logger } from "@/lib/logger";
-import type { ToolContext } from "@/lib/ai/types";
+import { getToolContext } from "@/lib/ai/types";
 
-export const generateReportTool = tool({
-  description: `Generate a comprehensive monitoring report for the zone.
+const parametersSchema = z.object({
+  period: z
+    .enum(["3h", "6h", "12h", "24h", "7d", "30d"])
+    .default("24h")
+    .describe("Time period for the report"),
+  include_sections: z
+    .array(
+      z.enum([
+        "overview",
+        "top_content",
+        "top_accounts",
+        "trending",
+        "sentiment",
+        "share_of_voice",
+        "anomalies",
+      ])
+    )
+    .optional()
+    .describe("Sections to include (default: all)"),
+});
 
-Use this tool when the user asks for:
-- "Generate a report"
-- "Create a summary report"
-- "Full analysis report"
-- "Daily/weekly report"
-- "Executive summary"
+type Parameters = z.infer<typeof parametersSchema>;
+type Output = Record<string, unknown>;
 
-This tool provides metadata for report generation. After calling this tool, 
-use other tools (get_zone_overview, get_top_content, analyze_sentiment, etc.) 
-to gather the actual data for each section.`,
+export const generateReportTool: Tool<Parameters, Output> = {
+  description:
+    "Generate a structured monitoring report (sections, citations, and limitations) for a chosen time window.",
 
-  parameters: z.object({
-    period: z
-      .enum(["3h", "6h", "12h", "24h", "7d", "30d"])
-      .default("24h")
-      .describe("Time period for the report"),
-    include_sections: z
-      .array(
-        z.enum([
-          "overview",
-          "top_content",
-          "top_accounts",
-          "trending",
-          "sentiment",
-          "share_of_voice",
-          "anomalies",
-        ])
-      )
-      .optional()
-      .describe("Sections to include (default: all)"),
-  }),
+  inputSchema: zodSchema(parametersSchema),
 
-  execute: async ({ period, include_sections }, context: any) => {
+  execute: async (
+    { period, include_sections },
+    options: ToolCallOptions
+  ): Promise<Output> => {
+    const { zoneId, dataSources } = getToolContext(options);
     try {
       logger.info(`[AI Tool] generate_report called`, {
         period,
         include_sections: include_sections || "all",
       });
 
-      const { zoneId, dataSources } = context;
       const supabase = createAdminClient();
       const startDate = getStartDate(period);
 
@@ -65,8 +63,7 @@ to gather the actual data for each section.`,
         "anomalies",
       ];
 
-      // Get basic stats for report header
-      const stats: any = {};
+      const stats: Record<string, number> = {};
 
       if (dataSources.twitter) {
         const { count } = await supabase
@@ -111,7 +108,7 @@ to gather the actual data for each section.`,
       throw new Error("Failed to generate report");
     }
   },
-});
+};
 
 function getStartDate(period: string): Date {
   const hours: Record<string, number> = {

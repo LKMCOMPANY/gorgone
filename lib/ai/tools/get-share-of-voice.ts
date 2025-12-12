@@ -3,59 +3,59 @@
  * Analyzes content distribution by profile tags (Attila, Ally, Adversary, etc.)
  */
 
-import { tool } from "ai";
+import { type Tool, type ToolCallOptions, zodSchema } from "ai";
 import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logger } from "@/lib/logger";
-import type { ToolContext } from "@/lib/ai/types";
+import { getToolContext } from "@/lib/ai/types";
 
-export const getShareOfVoiceTool = tool({
-  description: `Analyze share of voice by profile tags (Attila, Ally, Adversary, Surveillance, Target, Asset, Local Team).
+const parametersSchema = z.object({
+  platform: z
+    .enum(["twitter", "tiktok", "all"])
+    .default("all")
+    .describe("Which platform to analyze"),
+  period: z
+    .enum(["3h", "6h", "12h", "24h", "7d", "30d"])
+    .default("24h")
+    .describe("Time period"),
+});
 
-Use this tool when the user asks for:
-- "Share of voice by profile type"
-- "Distribution between allies and adversaries"
-- "Who is dominating the conversation?"
-- "Volume by profile category"
+type Parameters = z.infer<typeof parametersSchema>;
+type Output = Record<string, unknown>;
 
-Returns volume and engagement percentages for each profile tag type.`,
+export const getShareOfVoiceTool: Tool<Parameters, Output> = {
+  description:
+    "Compute share-of-voice distribution by profile tags (volume + engagement) over a time window.",
 
-  parameters: z.object({
-    platform: z
-      .enum(["twitter", "tiktok", "all"])
-      .default("all")
-      .describe("Which platform to analyze"),
-    period: z
-      .enum(["3h", "6h", "12h", "24h", "7d", "30d"])
-      .default("24h")
-      .describe("Time period"),
-  }),
+  inputSchema: zodSchema(parametersSchema),
 
-  execute: async ({ platform, period }, context: any) => {
+  execute: async (
+    { platform, period },
+    options: ToolCallOptions
+  ): Promise<Output> => {
+    const { zoneId, dataSources } = getToolContext(options);
     try {
-      logger.info(`[AI Tool] get_share_of_voice called`, {
-        platform,
-        period,
-      });
+      logger.info(`[AI Tool] get_share_of_voice called`, { platform, period });
 
-      const { zoneId, dataSources } = context;
       const startDate = getStartDate(period);
       const supabase = createAdminClient();
 
-      const shareOfVoice: any[] = [];
+      const shareOfVoice: Array<{
+        platform: string;
+        tag_type: string;
+        volume: number;
+        engagement: number;
+      }> = [];
       let totalVolume = 0;
       let totalEngagement = 0;
 
-      // Twitter Share of Voice
       if ((platform === "twitter" || platform === "all") && dataSources.twitter) {
-        // Get tagged profiles
         const { data: tags } = await supabase
           .from("twitter_profile_zone_tags")
           .select("tag_type, profile_id")
           .eq("zone_id", zoneId);
 
         if (tags && tags.length > 0) {
-          // Group by tag type
           const tagGroups = new Map<string, string[]>();
           for (const tag of tags) {
             const existing = tagGroups.get(tag.tag_type) || [];
@@ -63,7 +63,6 @@ Returns volume and engagement percentages for each profile tag type.`,
             tagGroups.set(tag.tag_type, existing);
           }
 
-          // Calculate volume per tag
           for (const [tagType, profileIds] of tagGroups) {
             const { data: tweets, count } = await supabase
               .from("twitter_tweets")
@@ -89,7 +88,6 @@ Returns volume and engagement percentages for each profile tag type.`,
         }
       }
 
-      // TikTok Share of Voice
       if ((platform === "tiktok" || platform === "all") && dataSources.tiktok) {
         const { data: tags } = await supabase
           .from("tiktok_profile_zone_tags")
@@ -129,7 +127,6 @@ Returns volume and engagement percentages for each profile tag type.`,
         }
       }
 
-      // Calculate percentages
       const withPercentages = shareOfVoice.map((sov) => ({
         ...sov,
         volume_percent: totalVolume > 0 ? ((sov.volume / totalVolume) * 100).toFixed(1) : "0",
@@ -139,7 +136,6 @@ Returns volume and engagement percentages for each profile tag type.`,
             : "0",
       }));
 
-      // Sort by volume descending
       withPercentages.sort((a, b) => b.volume - a.volume);
 
       return {
@@ -158,7 +154,7 @@ Returns volume and engagement percentages for each profile tag type.`,
       throw new Error("Failed to get share of voice");
     }
   },
-});
+};
 
 function getStartDate(period: string): Date {
   const hours: Record<string, number> = {
@@ -171,4 +167,3 @@ function getStartDate(period: string): Date {
   };
   return new Date(Date.now() - (hours[period] || 24) * 60 * 60 * 1000);
 }
-

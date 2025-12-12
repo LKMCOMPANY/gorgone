@@ -10,7 +10,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-export interface ActionsProps extends React.HTMLAttributes<HTMLDivElement> {}
+export type ActionsProps = React.HTMLAttributes<HTMLDivElement>;
 
 export function Actions({ className, ...props }: ActionsProps) {
   return (

@@ -23,6 +23,7 @@ export default async function Home() {
             src="/GorgoneBlack.svg"
             alt="Gorgone"
             fill
+            sizes="(max-width: 640px) 180px, (max-width: 768px) 240px, 300px"
             className="object-contain dark:hidden"
             priority
           />
@@ -30,6 +31,7 @@ export default async function Home() {
             src="/GorgoneWhite.svg"
             alt="Gorgone"
             fill
+            sizes="(max-width: 640px) 180px, (max-width: 768px) 240px, 300px"
             className="object-contain hidden dark:block"
             priority
           />

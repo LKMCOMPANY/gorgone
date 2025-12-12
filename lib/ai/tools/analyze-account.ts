@@ -3,39 +3,40 @@
  * Deep analysis of a specific account's activity and influence
  */
 
-import { tool } from "ai";
+import { type Tool, type ToolCallOptions, zodSchema } from "ai";
 import { z } from "zod";
 import { getProfileByUsername } from "@/lib/data/twitter/profiles";
 import { getProfileByUsername as getTikTokProfile } from "@/lib/data/tiktok/profiles";
 import { getProfilesWithStatsForZone } from "@/lib/data/tiktok/profiles-stats";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logger } from "@/lib/logger";
-import type { ToolContext } from "@/lib/ai/types";
+import { getToolContext } from "@/lib/ai/types";
 
-export const analyzeAccountTool = tool({
-  description: `Analyze a specific account in detail (profile, stats, top content, tags).
+const parametersSchema = z.object({
+  username: z.string().describe("Username to analyze (with or without @)"),
+  platform: z
+    .enum(["twitter", "tiktok"])
+    .describe("Which platform the account is on"),
+  period: z
+    .enum(["3h", "6h", "12h", "24h", "7d", "30d"])
+    .default("7d")
+    .describe("Time period for activity analysis"),
+});
 
-Use this tool when the user asks for:
-- "Analyze @username"
-- "Tell me about @account"
-- "Profile analysis for @user"
-- "Stats for @username"
-- "Who is @account?"
+type Parameters = z.infer<typeof parametersSchema>;
+type Output = Record<string, unknown>;
 
-Returns comprehensive profile analysis with engagement metrics and top posts.`,
+export const analyzeAccountTool: Tool<Parameters, Output> = {
+  description:
+    "Deep-dive a specific account (profile + activity + engagement) over a time window.",
 
-  parameters: z.object({
-    username: z.string().describe("Username to analyze (with or without @)"),
-    platform: z
-      .enum(["twitter", "tiktok"])
-      .describe("Which platform the account is on"),
-    period: z
-      .enum(["3h", "6h", "12h", "24h", "7d", "30d"])
-      .default("7d")
-      .describe("Time period for activity analysis"),
-  }),
+  inputSchema: zodSchema(parametersSchema),
 
-  execute: async ({ username, platform, period }, context: any) => {
+  execute: async (
+    { username, platform, period },
+    options: ToolCallOptions
+  ): Promise<Output> => {
+    const { zoneId } = getToolContext(options);
     try {
       logger.info(`[AI Tool] analyze_account called`, {
         username,
@@ -43,13 +44,11 @@ Returns comprehensive profile analysis with engagement metrics and top posts.`,
         period,
       });
 
-      const { zoneId } = context;
       const cleanUsername = username.replace("@", "").trim().toLowerCase();
       const startDate = getStartDate(period);
       const supabase = createAdminClient();
 
       if (platform === "twitter") {
-        // Get profile
         const profile = await getProfileByUsername(cleanUsername);
 
         if (!profile) {
@@ -59,7 +58,6 @@ Returns comprehensive profile analysis with engagement metrics and top posts.`,
           };
         }
 
-        // Get activity stats
         const { data: tweets, count } = await supabase
           .from("twitter_tweets")
           .select("total_engagement, text, twitter_created_at, tweet_id", {
@@ -71,7 +69,6 @@ Returns comprehensive profile analysis with engagement metrics and top posts.`,
           .order("total_engagement", { ascending: false })
           .limit(5);
 
-        // Get profile tags
         const { data: tags } = await supabase
           .from("twitter_profile_zone_tags")
           .select("tag_type, notes")
@@ -112,7 +109,6 @@ Returns comprehensive profile analysis with engagement metrics and top posts.`,
           })),
         };
       } else {
-        // TikTok
         const profile = await getTikTokProfile(cleanUsername);
 
         if (!profile) {
@@ -122,7 +118,6 @@ Returns comprehensive profile analysis with engagement metrics and top posts.`,
           };
         }
 
-        // Get stats
         const profilesWithStats = await getProfilesWithStatsForZone(zoneId, {
           search: cleanUsername,
           limit: 1,
@@ -130,7 +125,6 @@ Returns comprehensive profile analysis with engagement metrics and top posts.`,
 
         const stats = profilesWithStats[0];
 
-        // Get top videos
         const { data: videos } = await supabase
           .from("tiktok_videos")
           .select("description, total_engagement, tiktok_created_at, video_id")
@@ -140,7 +134,6 @@ Returns comprehensive profile analysis with engagement metrics and top posts.`,
           .order("total_engagement", { ascending: false })
           .limit(5);
 
-        // Get tags
         const { data: tags } = await supabase
           .from("tiktok_profile_zone_tags")
           .select("tag_type, notes")
@@ -179,7 +172,7 @@ Returns comprehensive profile analysis with engagement metrics and top posts.`,
       throw new Error("Failed to analyze account");
     }
   },
-});
+};
 
 function getStartDate(period: string): Date {
   const hours: Record<string, number> = {
@@ -192,4 +185,3 @@ function getStartDate(period: string): Date {
   };
   return new Date(Date.now() - (hours[period] || 24) * 60 * 60 * 1000);
 }
-

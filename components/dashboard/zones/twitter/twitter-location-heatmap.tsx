@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useTheme } from "next-themes";
 import Map, { Source, Layer } from "react-map-gl";
 import type { FillLayer } from "react-map-gl";
@@ -104,7 +104,7 @@ export function TwitterLocationHeatmap({
     const slowSpinZoom = 3;
     
     let userInteracting = false;
-    let spinEnabled = true;
+    const spinEnabled = true;
     
     const spinGlobe = () => {
       const zoom = map.getZoom();
@@ -134,6 +134,10 @@ export function TwitterLocationHeatmap({
     spinGlobe();
     setInterval(spinGlobe, 1000);
   });
+
+  const handleMapLoad = useCallback((event: any) => {
+    onMapLoad.current(event);
+  }, []);
 
   // Theme-aware map style
   const mapStyle = theme === "dark" 
@@ -240,7 +244,7 @@ export function TwitterLocationHeatmap({
       <div className="relative h-[540px] bg-muted/20 flex items-center justify-center">
         <Map
           ref={mapRef}
-          onLoad={onMapLoad.current}
+          onLoad={handleMapLoad}
           initialViewState={{
             longitude: 0,
             latitude: 0,

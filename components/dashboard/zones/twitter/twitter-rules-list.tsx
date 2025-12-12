@@ -283,7 +283,7 @@ export function TwitterRulesList({
           <DialogHeader>
             <DialogTitle>Backfill Historical Tweets</DialogTitle>
             <DialogDescription>
-              Fetch historical tweets for the rule "{backfillingRule?.tag || 'Untitled'}". 
+              Fetch historical tweets for the rule &quot;{backfillingRule?.tag || "Untitled"}&quot;.
               This will search for past tweets matching your query and add them to your zone.
             </DialogDescription>
           </DialogHeader>
@@ -309,7 +309,7 @@ export function TwitterRulesList({
             <div className="rounded-lg bg-muted/50 p-3 space-y-1">
               <p className="text-sm font-medium">What happens:</p>
               <ul className="text-xs text-muted-foreground space-y-1 list-disc list-inside">
-                <li>Searches for latest tweets matching your rule's query</li>
+                <li>Searches for latest tweets matching your rule&apos;s query</li>
                 <li>Deduplicates (skips already existing tweets)</li>
                 <li>Processes through the same pipeline (vectorization, etc.)</li>
                 <li>Tweets appear in your feed in ~5 seconds</li>

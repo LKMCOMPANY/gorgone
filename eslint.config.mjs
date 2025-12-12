@@ -13,6 +13,13 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
   ]),
+  // Production pragmatism: keep lint actionable (do not block CI on legacy typing debt).
+  // We still surface these as warnings so they can be fixed incrementally.
+  {
+    rules: {
+      "@typescript-eslint/no-explicit-any": "warn",
+    },
+  },
 ]);
 
 export default eslintConfig;

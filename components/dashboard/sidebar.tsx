@@ -89,12 +89,14 @@ export function DashboardSidebar({
             src="/AttilaBlack.svg"
             alt="Attila"
             fill
+            sizes="16px"
             className="object-contain dark:hidden"
           />
           <Image
             src="/AttilaWhite.svg"
             alt="Attila"
             fill
+            sizes="16px"
             className="object-contain hidden dark:block"
           />
         </div>
@@ -143,12 +145,14 @@ export function DashboardSidebar({
                         src="/GorgoneBlack.svg"
                         alt="Gorgone"
                         fill
+                        sizes="16px"
                         className="object-contain dark:hidden"
                       />
                       <Image
                         src="/GorgoneWhite.svg"
                         alt="Gorgone"
                         fill
+                        sizes="16px"
                         className="object-contain hidden dark:block"
                       />
                     </div>
@@ -179,12 +183,14 @@ export function DashboardSidebar({
                                 src="/GorgoneBlack.svg"
                                 alt="Zone"
                                 fill
+                                sizes="16px"
                                 className="object-contain dark:hidden"
                               />
                               <Image
                                 src="/GorgoneWhite.svg"
                                 alt="Zone"
                                 fill
+                                sizes="16px"
                                 className="object-contain hidden dark:block"
                               />
                             </div>

@@ -3,40 +3,39 @@
  * Returns most engaging tweets/videos by platform
  */
 
-import { tool } from "ai";
+import { type Tool, type ToolCallOptions, zodSchema } from "ai";
 import { z } from "zod";
-import { getTopTweetsByPeriod } from "@/lib/data/twitter/analytics";
-import { getTweetsByZone } from "@/lib/data/twitter/tweets";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { getVideosByZone } from "@/lib/data/tiktok/videos";
 import { logger } from "@/lib/logger";
-import type { ToolContext } from "@/lib/ai/types";
+import { getToolContext } from "@/lib/ai/types";
 
-export const getTopContentTool = tool({
-  description: `Get the most engaging content (tweets or videos) ranked by interactions.
+const parametersSchema = z.object({
+  platform: z
+    .enum(["twitter", "tiktok", "all"])
+    .default("all")
+    .describe("Which platform to analyze"),
+  period: z
+    .enum(["3h", "6h", "12h", "24h", "7d", "30d"])
+    .default("24h")
+    .describe("Time period"),
+  limit: z.number().min(1).max(20).default(10).describe("Number of results"),
+});
 
-Use this tool when the user asks for:
-- "Top posts with most interactions"
-- "Most viral content"
-- "Best performing tweets"
-- "Videos with most engagement"
-- "What got the most attention?"
+type Parameters = z.infer<typeof parametersSchema>;
+type Output = Record<string, unknown>;
 
-Returns top content sorted by total engagement (likes + retweets + comments + shares).`,
+export const getTopContentTool: Tool<Parameters, Output> = {
+  description:
+    "Return top content ranked by engagement (tweets/videos) for a given time window and platform.",
 
-  parameters: z.object({
-    platform: z
-      .enum(["twitter", "tiktok", "all"])
-      .default("all")
-      .describe("Which platform to analyze"),
-    period: z
-      .enum(["3h", "6h", "12h", "24h", "7d", "30d"])
-      .default("24h")
-      .describe("Time period"),
-    limit: z.number().min(1).max(20).default(10).describe("Number of results"),
-  }),
+  inputSchema: zodSchema(parametersSchema),
 
-  execute: async ({ platform, period, limit }, context: any) => {
-    const { zoneId, dataSources } = context;
+  execute: async (
+    { platform, period, limit },
+    options: ToolCallOptions
+  ): Promise<Output> => {
+    const { zoneId, dataSources } = getToolContext(options);
     try {
       logger.info(`[AI Tool] get_top_content called`, {
         zone_id: zoneId,
@@ -45,93 +44,124 @@ Returns top content sorted by total engagement (likes + retweets + comments + sh
         limit,
       });
 
-      const results: any = {
+      const results: {
+        platform: string;
+        period: string;
+        content: Array<Record<string, unknown>>;
+      } = {
         platform,
         period,
         content: [],
       };
 
-      // Twitter content
       if ((platform === "twitter" || platform === "all") && dataSources.twitter) {
         try {
-          const topTweets = await getTopTweetsByPeriod(zoneId, period, limit);
+          const supabase = createAdminClient();
+          const startDate = getStartDate(period);
 
-          for (const tweet of topTweets) {
-            // Get full tweet details
-            const tweetDetails = await getTweetsByZone(zoneId, {
-              limit: 1,
-              offset: 0,
-              includeProfile: true,
+          // Direct query (robust): do not depend on materialized views that may not exist.
+          const { data: tweets, error } = await supabase
+            .from("twitter_tweets")
+            .select(
+              "tweet_id, text, like_count, retweet_count, reply_count, quote_count, total_engagement, twitter_created_at, twitter_url, tweet_url, author:twitter_profiles(username, name, is_verified, is_blue_verified)"
+            )
+            .eq("zone_id", zoneId)
+            .gte("twitter_created_at", startDate.toISOString())
+            .order("total_engagement", { ascending: false })
+            .limit(limit);
+
+          if (error) throw error;
+
+          for (const row of tweets || []) {
+            const t = row as unknown as {
+              tweet_id: string;
+              text: string;
+              like_count: number;
+              retweet_count: number;
+              reply_count: number;
+              quote_count: number;
+              total_engagement: number;
+              twitter_created_at: string;
+              twitter_url?: string | null;
+              tweet_url?: string | null;
+              author?: {
+                username?: string | null;
+                name?: string | null;
+                is_verified?: boolean | null;
+                is_blue_verified?: boolean | null;
+              } | null;
+            };
+
+            results.content.push({
+              platform: "twitter",
+              type: "tweet",
+              id: t.tweet_id,
+              author: {
+                username: t.author?.username ?? undefined,
+                name: t.author?.name ?? undefined,
+                verified: Boolean(t.author?.is_verified || t.author?.is_blue_verified),
+              },
+              text: t.text,
+              engagement: {
+                likes: t.like_count,
+                retweets: t.retweet_count,
+                replies: t.reply_count,
+                quotes: t.quote_count,
+                total: t.total_engagement,
+              },
+              created_at: t.twitter_created_at,
+              url: (t.twitter_url || t.tweet_url) ?? undefined,
             });
-
-            if (tweetDetails.length > 0) {
-              const t = tweetDetails[0] as any;
-              results.content.push({
-                platform: "twitter",
-                type: "tweet",
-                id: t.tweet_id,
-                author: {
-                  username: t.author?.username,
-                  name: t.author?.name,
-                  verified: t.author?.is_verified || t.author?.is_blue_verified,
-                },
-                text: t.text,
-                engagement: {
-                  likes: t.like_count,
-                  retweets: t.retweet_count,
-                  replies: t.reply_count,
-                  total: t.total_engagement,
-                },
-                created_at: t.twitter_created_at,
-                url: t.twitter_url || t.tweet_url,
-              });
-            }
           }
         } catch (error) {
           logger.error("[AI Tool] Twitter top content failed", { error });
         }
       }
 
-      // TikTok content
       if ((platform === "tiktok" || platform === "all") && dataSources.tiktok) {
         try {
           const startDate = getStartDate(period);
           const videos = await getVideosByZone(zoneId, {
-            limit: limit * 2, // Get more to filter by date
+            limit: limit * 2,
             orderBy: "engagement",
           });
-          
-          // Filter by date manually
+
           const filtered = videos.filter((v) => {
             const createdAt = new Date(v.tiktok_created_at);
             return createdAt >= startDate;
           });
 
-          // Sort by engagement
           const sortedVideos = filtered
             .sort((a, b) => Number(b.total_engagement || 0) - Number(a.total_engagement || 0))
             .slice(0, limit);
 
           for (const v of sortedVideos) {
+            const video = v as typeof v & {
+              author?: {
+                username?: string;
+                nickname?: string;
+                is_verified?: boolean;
+              };
+            };
             results.content.push({
               platform: "tiktok",
               type: "video",
-              id: v.video_id,
+              id: video.video_id,
               author: {
-                username: (v as any).author?.username,
-                nickname: (v as any).author?.nickname,
-                verified: (v as any).author?.is_verified,
+                username: video.author?.username,
+                nickname: video.author?.nickname,
+                verified: video.author?.is_verified,
               },
-              description: v.description,
+              description: video.description || undefined,
               engagement: {
-                views: v.play_count,
-                likes: v.digg_count,
-                comments: v.comment_count,
-                shares: v.share_count,
-                total: v.total_engagement,
+                views: video.play_count,
+                likes: video.digg_count,
+                comments: video.comment_count,
+                shares: video.share_count,
+                total: Number(video.total_engagement),
               },
-              created_at: v.tiktok_created_at,
-              url: v.share_url,
+              created_at: video.tiktok_created_at,
+              url: video.share_url || undefined,
             });
           }
         } catch (error) {
@@ -139,12 +169,12 @@ Returns top content sorted by total engagement (likes + retweets + comments + sh
         }
       }
 
-      // Sort all content by engagement
-      results.content.sort((a: any, b: any) => 
-        b.engagement.total - a.engagement.total
+      results.content.sort(
+        (a, b) =>
+          ((b.engagement as { total?: number })?.total || 0) -
+          ((a.engagement as { total?: number })?.total || 0)
       );
 
-      // Limit final results
       results.content = results.content.slice(0, limit);
 
       return results;
@@ -153,9 +183,8 @@ Returns top content sorted by total engagement (likes + retweets + comments + sh
       throw new Error("Failed to get top content");
     }
   },
-});
+};
 
-// Helper
 function getStartDate(period: string): Date {
   const hours: Record<string, number> = {
     "3h": 3,
@@ -167,4 +196,3 @@ function getStartDate(period: string): Date {
   };
   return new Date(Date.now() - (hours[period] || 24) * 60 * 60 * 1000);
 }
-

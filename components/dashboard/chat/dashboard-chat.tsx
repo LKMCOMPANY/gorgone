@@ -51,6 +51,7 @@ export function DashboardChat({ zones, variant = "full" }: DashboardChatProps) {
       zoneId: activeZone?.id,
     },
     id: `dashboard-chat-${activeZone?.id}`,
+    streamProtocol: "text", // Stable: matches toTextStreamResponse()
     onError: (error) => {
       console.error("[Chat] Error:", error);
     },

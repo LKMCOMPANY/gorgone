@@ -148,9 +148,79 @@ export async function getTopTweetsByPeriod(
       .order("current_engagement", { ascending: false })
       .limit(limit);
 
-    if (error) throw error;
+    if (!error) {
+      return (data as TwitterTopTweet[]) || [];
+    }
 
-    return (data as TwitterTopTweet[]) || [];
+    // Fallback for environments where the materialized views are not installed yet.
+    // Best practice: keep the product functional even with partial DB deployments.
+    if (error.code === "PGRST205") {
+      const now = new Date();
+      const hours: Record<string, number> = {
+        "3h": 3,
+        "6h": 6,
+        "12h": 12,
+        "24h": 24,
+        "7d": 168,
+        "30d": 720,
+      };
+      const startDate = new Date(now.getTime() - (hours[period] || 24) * 60 * 60 * 1000);
+
+      const { data: tweets, error: tweetsError } = await supabase
+        .from("twitter_tweets")
+        .select(
+          "id, zone_id, tweet_id, text, author_profile_id, twitter_created_at, total_engagement, retweet_count, reply_count, like_count, quote_count, view_count, author:twitter_profiles(username, name)"
+        )
+        .eq("zone_id", zoneId)
+        .gte("twitter_created_at", startDate.toISOString())
+        .order("total_engagement", { ascending: false })
+        .limit(limit);
+
+      if (tweetsError) throw tweetsError;
+
+      return (
+        (tweets || []).map((row) => {
+          const r = row as unknown as {
+            id: string;
+            zone_id: string;
+            tweet_id: string;
+            text: string;
+            author_profile_id: string;
+            twitter_created_at: string;
+            total_engagement: number;
+            retweet_count: number;
+            reply_count: number;
+            like_count: number;
+            quote_count: number;
+            view_count: number;
+            author?: { username?: string | null; name?: string | null } | null;
+          };
+
+          const fallback: TwitterTopTweet = {
+            zone_id: r.zone_id,
+            tweet_id: r.id, // internal DB id
+            twitter_tweet_id: r.tweet_id, // external twitter id
+            text: r.text,
+            author_profile_id: r.author_profile_id,
+            author_username: r.author?.username ?? "",
+            author_name: r.author?.name ?? "",
+            twitter_created_at: r.twitter_created_at,
+            current_engagement: r.total_engagement,
+            retweet_count: r.retweet_count,
+            reply_count: r.reply_count,
+            like_count: r.like_count,
+            quote_count: r.quote_count,
+            view_count: r.view_count,
+            period_start: startDate.toISOString(),
+            period_end: now.toISOString(),
+          };
+
+          return fallback;
+        }) || []
+      );
+    }
+
+    throw error;
   } catch (error) {
     logger.error(`Error fetching top tweets for ${zoneId} (${period}):`, error);
     return [];

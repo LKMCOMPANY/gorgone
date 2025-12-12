@@ -3,42 +3,43 @@
  * Provides comprehensive statistics across all platforms
  */
 
-import { tool } from "ai";
+import { type Tool, type ToolCallOptions, zodSchema } from "ai";
 import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getTrendingHashtags as getTwitterHashtags } from "@/lib/data/twitter/entities";
 import { getTrendingHashtags as getTikTokHashtags } from "@/lib/data/tiktok/entities";
 import { getArticlesByZone } from "@/lib/data/media/articles";
 import { logger } from "@/lib/logger";
-import type { ToolContext } from "@/lib/ai/types";
+import { getToolContext } from "@/lib/ai/types";
 
-export const getZoneOverviewTool = tool({
-  description: `Get a comprehensive overview of zone activity across all platforms (Twitter, TikTok, Media).
-  
-Use this tool when the user asks for:
-- "Give me an overview"
-- "What's happening in this zone?"
-- "Summary of recent activity"
-- "Show me the big picture"
+const parametersSchema = z.object({
+  period: z
+    .enum(["3h", "6h", "12h", "24h", "7d", "30d"])
+    .default("24h")
+    .describe("Time period to analyze"),
+});
 
-Returns aggregated statistics, top content, and trending topics.`,
+type Parameters = z.infer<typeof parametersSchema>;
+type Output = Record<string, unknown>;
 
-  parameters: z.object({
-    period: z
-      .enum(["3h", "6h", "12h", "24h", "7d", "30d"])
-      .default("24h")
-      .describe("Time period to analyze"),
-  }),
+export const getZoneOverviewTool: Tool<Parameters, Output> = {
+  description:
+    "High-level zone overview (activity, top accounts/content, and key topics) for a given time window.",
 
-  execute: async ({ period }, context: any) => {
-    const { zoneId, dataSources } = context;
+  inputSchema: zodSchema(parametersSchema),
+
+  execute: async (
+    { period },
+    options: ToolCallOptions
+  ): Promise<Output> => {
+    const { zoneId, dataSources } = getToolContext(options);
     try {
       logger.info(`[AI Tool] get_zone_overview called`, {
         zone_id: zoneId,
         period,
       });
 
-      const overview: any = {
+      const overview: Output = {
         period,
         generated_at: new Date().toISOString(),
       };
@@ -58,9 +59,17 @@ Returns aggregated statistics, top content, and trending topics.`,
             .not("author_profile_id", "is", null);
 
           // Aggregate by profile
-          const profileStats = new Map<string, any>();
+          const profileStats = new Map<string, {
+            profile: Record<string, unknown>;
+            tweet_count: number;
+            total_engagement: number;
+          }>();
           if (tweets && tweets.length > 0) {
-            for (const tweet of tweets as any[]) {
+            for (const tweet of tweets as unknown as Array<{
+              author_profile_id: string;
+              total_engagement: number;
+              author: Record<string, unknown>;
+            }>) {
               if (!tweet.author) continue;
               const profileId = tweet.author_profile_id;
               const existing = profileStats.get(profileId) || {
@@ -87,8 +96,8 @@ Returns aggregated statistics, top content, and trending topics.`,
 
           overview.twitter = {
             top_profiles: topProfiles.map((stats) => ({
-              username: stats.profile.username,
-              name: stats.profile.name,
+              username: (stats.profile as { username?: string }).username,
+              name: (stats.profile as { name?: string }).name,
               tweet_count: stats.tweet_count,
               total_engagement: stats.total_engagement,
               avg_engagement: Math.round(stats.total_engagement / stats.tweet_count),
@@ -157,11 +166,11 @@ Returns aggregated statistics, top content, and trending topics.`,
       throw new Error("Failed to generate zone overview");
     }
   },
-});
+};
 
 // Helper functions
-function getPeriodHours(period: string): number {
-  const map: Record<string, number> = {
+function getStartDate(period: string): Date {
+  const hours: Record<string, number> = {
     "3h": 3,
     "6h": 6,
     "12h": 12,
@@ -169,15 +178,10 @@ function getPeriodHours(period: string): number {
     "7d": 168,
     "30d": 720,
   };
-  return map[period] || 24;
+  return new Date(Date.now() - (hours[period] || 24) * 60 * 60 * 1000);
 }
 
-function getStartDate(period: string): Date {
-  const hours = getPeriodHours(period);
-  return new Date(Date.now() - hours * 60 * 60 * 1000);
-}
-
-function getTopSources(articles: any[]): Array<{ source: string; count: number }> {
+function getTopSources(articles: Array<{ source_title?: string | null }>): Array<{ source: string; count: number }> {
   const sourceCounts = new Map<string, number>();
 
   articles.forEach((article) => {
@@ -189,4 +193,3 @@ function getTopSources(articles: any[]): Array<{ source: string; count: number }
     .map(([source, count]) => ({ source, count }))
     .sort((a, b) => b.count - a.count);
 }
-

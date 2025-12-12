@@ -3,38 +3,34 @@
  * Summarizes the latest opinion map clustering analysis
  */
 
-import { tool } from "ai";
+import { type Tool, type ToolCallOptions, zodSchema } from "ai";
 import { z } from "zod";
 import { getLatestSession } from "@/lib/data/twitter/opinion-map/sessions";
 import { getClusters } from "@/lib/data/twitter/opinion-map/clusters";
 import { logger } from "@/lib/logger";
-import type { ToolContext } from "@/lib/ai/types";
+import { getToolContext } from "@/lib/ai/types";
 
-export const getOpinionMapSummaryTool = tool({
-  description: `Get summary of the latest opinion map clustering analysis.
+const parametersSchema = z.object({
+  limit: z.number().min(1).max(20).default(10).describe("Number of top clusters"),
+});
 
-Use this tool when the user asks for:
-- "What are the dominant opinions?"
-- "Opinion clusters"
-- "Different viewpoints in the discussion"
-- "Discourse analysis"
-- "What do people think?"
+type Parameters = z.infer<typeof parametersSchema>;
+type Output = Record<string, unknown>;
 
-Returns cluster labels, sizes, keywords, and dominant narratives from UMAP 3D analysis.`,
+export const getOpinionMapSummaryTool: Tool<Parameters, Output> = {
+  description:
+    "Summarize the latest opinion-map clustering (top clusters, size, labels/keywords) for the zone.",
 
-  parameters: z.object({
-    limit: z.number().min(1).max(20).default(10).describe("Number of top clusters"),
-  }),
+  inputSchema: zodSchema(parametersSchema),
 
-  execute: async ({ limit }, context: any) => {
+  execute: async (
+    { limit },
+    options: ToolCallOptions
+  ): Promise<Output> => {
+    const { zoneId } = getToolContext(options);
     try {
-      logger.info(`[AI Tool] get_opinion_map_summary called`, {
-        limit,
-      });
+      logger.info(`[AI Tool] get_opinion_map_summary called`, { limit });
 
-      const { zoneId } = context;
-
-      // Get latest session
       const session = await getLatestSession(zoneId);
 
       if (!session) {
@@ -54,7 +50,6 @@ Returns cluster labels, sizes, keywords, and dominant narratives from UMAP 3D an
         };
       }
 
-      // Get clusters
       const clusters = await getClusters(zoneId, session.session_id);
 
       if (!clusters || clusters.length === 0) {
@@ -64,7 +59,6 @@ Returns cluster labels, sizes, keywords, and dominant narratives from UMAP 3D an
         };
       }
 
-      // Sort by tweet count (largest first)
       const sortedClusters = clusters
         .sort((a, b) => (b.tweet_count || 0) - (a.tweet_count || 0))
         .slice(0, limit);
@@ -106,5 +100,4 @@ Returns cluster labels, sizes, keywords, and dominant narratives from UMAP 3D an
       throw new Error("Failed to get opinion map summary");
     }
   },
-});
-
+};

@@ -57,7 +57,7 @@ function extractMedia(rawData: Record<string, any>): MediaItem[] {
   
   if (!rawData) return media;
 
-  let mediaSource = rawData.extendedEntities?.media ||
+  const mediaSource = rawData.extendedEntities?.media ||
                     rawData.extended_entities?.media ||
                     rawData.entities?.media ||
                     rawData.media;

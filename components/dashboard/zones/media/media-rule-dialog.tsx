@@ -376,7 +376,7 @@ export function MediaRuleDialog({
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-muted-foreground">
-                  Select language or "All" for multilingual monitoring
+                  Select language or &quot;All&quot; for multilingual monitoring
                 </p>
               </div>
             </TabsContent>

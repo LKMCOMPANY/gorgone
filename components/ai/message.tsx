@@ -37,12 +37,14 @@ export function Message({ from, children, className }: MessageProps) {
                 src="/GorgoneBlack.svg"
                 alt="Gorgone"
                 fill
+                sizes="20px"
                 className="object-contain dark:hidden"
               />
               <Image
                 src="/GorgoneWhite.svg"
                 alt="Gorgone"
                 fill
+                sizes="20px"
                 className="object-contain hidden dark:block"
               />
             </div>

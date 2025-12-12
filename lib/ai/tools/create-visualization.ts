@@ -3,7 +3,7 @@
  * Generates chart data for visual representation
  */
 
-import { tool } from "ai";
+import { type Tool, type ToolCallOptions, zodSchema } from "ai";
 import { z } from "zod";
 import {
   getHourlyVolumeTrend,
@@ -11,52 +11,45 @@ import {
   getMediaDailyVolumeTrend,
 } from "@/lib/data/twitter/volume-analytics";
 import { logger } from "@/lib/logger";
-import type { ToolContext } from "@/lib/ai/types";
+import { getToolContext } from "@/lib/ai/types";
 
-export const createVisualizationTool = tool({
-  description: `Create a visual chart to display data trends and statistics.
+const parametersSchema = z.object({
+  chart_type: z
+    .enum(["line", "bar", "area"])
+    .describe("Type of chart to create"),
+  title: z.string().describe("Chart title"),
+  data_type: z
+    .enum(["volume", "engagement", "growth", "comparison", "ranking"])
+    .describe("What data to visualize"),
+  custom_data: z
+    .array(
+      z.object({
+        label: z.string(),
+        value: z.number(),
+      })
+    )
+    .optional()
+    .describe("Custom data points for ranking/comparison charts"),
+  period: z
+    .enum(["3h", "6h", "12h", "24h", "7d", "30d"])
+    .default("24h")
+    .describe("Time period"),
+});
 
-Use this tool when the user asks for:
-- "Show me a chart of..." (trends, rankings, comparisons)
-- "Visualize the trend..." (time series)
-- "Graph the engagement over time" (temporal data)
-- "Chart the top accounts" (rankings)
-- "Compare X vs Y" (bar chart comparison)
+type Parameters = z.infer<typeof parametersSchema>;
+type Output = Record<string, unknown>;
 
-You can use this tool in two ways:
-1. Auto-fetch data: Set data_type (volume/engagement) and period
-2. Custom data: Provide custom_data array with {label, value} for rankings/comparisons
+export const createVisualizationTool: Tool<Parameters, Output> = {
+  description:
+    "Build a chart (line/bar/area) for trends or comparisons. Prefer this over manual SVG for standard charts.",
 
-This tool renders professional Recharts with clean labels, tooltips, and responsive layout.
-Use this instead of creating manual SVG for bar/line/area charts.`,
-
-  parameters: z.object({
-    chart_type: z
-      .enum(["line", "bar", "area"])
-      .describe("Type of chart to create"),
-    title: z.string().describe("Chart title"),
-    data_type: z
-      .enum(["volume", "engagement", "growth", "comparison", "ranking"])
-      .describe("What data to visualize"),
-    custom_data: z
-      .array(
-        z.object({
-          label: z.string(),
-          value: z.number(),
-        })
-      )
-      .optional()
-      .describe("Custom data points for ranking/comparison charts"),
-    period: z
-      .enum(["3h", "6h", "12h", "24h", "7d", "30d"])
-      .default("24h")
-      .describe("Time period"),
-  }),
+  inputSchema: zodSchema(parametersSchema),
 
   execute: async (
     { chart_type, title, data_type, period, custom_data },
-    context: any
-  ) => {
+    options: ToolCallOptions
+  ): Promise<Output> => {
+    const { zoneId, dataSources } = getToolContext(options);
     try {
       logger.info(`[AI Tool] create_visualization called`, {
         chart_type,
@@ -66,49 +59,42 @@ Use this instead of creating manual SVG for bar/line/area charts.`,
         has_custom_data: !!custom_data,
       });
 
-      const { zoneId, dataSources } = context;
       const startDate = getStartDate(period);
       const endDate = new Date();
 
-      let chartData: any[] = [];
+      let chartData: Array<{
+        timestamp: string;
+        value: number;
+        label: string;
+      }> = [];
 
-      // If custom data provided (for rankings/comparisons)
       if (custom_data && custom_data.length > 0) {
         chartData = custom_data.map((item) => ({
           timestamp: item.label,
           value: item.value,
           label: item.label,
         }));
-        
+
         return {
           _type: "visualization",
           chart_type,
           title,
           data: chartData,
           config: {
-            timestamp: {
-              label: "Category",
-            },
-            value: {
-              label: getValueLabel(data_type),
-              color: "var(--primary)",
-            },
+            timestamp: { label: "Category" },
+            value: { label: getValueLabel(data_type), color: "var(--primary)" },
           },
         };
       }
 
-      // Twitter data
       if (dataSources.twitter) {
         try {
           const twitterData = await getHourlyVolumeTrend(zoneId, startDate, endDate);
-          
+
           for (const point of twitterData) {
             chartData.push({
               timestamp: formatTimestamp(point.timestamp),
-              value:
-                data_type === "volume"
-                  ? point.tweet_count
-                  : point.total_engagement,
+              value: data_type === "volume" ? point.tweet_count : point.total_engagement,
               label: "Twitter",
             });
           }
@@ -117,24 +103,15 @@ Use this instead of creating manual SVG for bar/line/area charts.`,
         }
       }
 
-      // TikTok data
       if (dataSources.tiktok) {
         try {
-          const tiktokData = await getTikTokHourlyVolumeTrend(
-            zoneId,
-            startDate,
-            endDate
-          );
+          const tiktokData = await getTikTokHourlyVolumeTrend(zoneId, startDate, endDate);
 
-          // Merge with Twitter data or add separately
           if (chartData.length === 0) {
             for (const point of tiktokData) {
               chartData.push({
                 timestamp: formatTimestamp(point.timestamp),
-                value:
-                  data_type === "volume"
-                    ? point.tweet_count
-                    : point.total_engagement,
+                value: data_type === "volume" ? point.tweet_count : point.total_engagement,
                 label: "TikTok",
               });
             }
@@ -144,22 +121,14 @@ Use this instead of creating manual SVG for bar/line/area charts.`,
         }
       }
 
-      // Media data (daily, not hourly)
       if (dataSources.media && chartData.length === 0) {
         try {
-          const mediaData = await getMediaDailyVolumeTrend(
-            zoneId,
-            startDate,
-            endDate
-          );
+          const mediaData = await getMediaDailyVolumeTrend(zoneId, startDate, endDate);
 
           for (const point of mediaData) {
             chartData.push({
               timestamp: formatTimestamp(point.timestamp),
-              value:
-                data_type === "volume"
-                  ? point.tweet_count
-                  : point.total_engagement,
+              value: data_type === "volume" ? point.tweet_count : point.total_engagement,
               label: "Media",
             });
           }
@@ -174,13 +143,8 @@ Use this instead of creating manual SVG for bar/line/area charts.`,
         title,
         data: chartData,
         config: {
-          timestamp: {
-            label: "Time",
-          },
-          value: {
-            label: getValueLabel(data_type),
-            color: "var(--primary)",
-          },
+          timestamp: { label: "Time" },
+          value: { label: getValueLabel(data_type), color: "var(--primary)" },
         },
       };
     } catch (error) {
@@ -188,9 +152,8 @@ Use this instead of creating manual SVG for bar/line/area charts.`,
       throw new Error("Failed to create visualization");
     }
   },
-});
+};
 
-// Helper functions
 function getStartDate(period: string): Date {
   const hours: Record<string, number> = {
     "3h": 3,
@@ -220,4 +183,3 @@ function getValueLabel(dataType: string): string {
   };
   return labels[dataType] || "Value";
 }
-

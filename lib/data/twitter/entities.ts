@@ -112,6 +112,7 @@ export async function getEntitiesByTweet(
 
 /**
  * Get trending hashtags in a zone
+ * Uses direct SQL query instead of RPC for better compatibility
  */
 export async function getTrendingHashtags(
   zoneId: string,
@@ -125,10 +126,12 @@ export async function getTrendingHashtags(
     const supabase = createAdminClient();
     const { limit = 20, startDate, endDate } = options;
 
-    let query = supabase.rpc("get_trending_hashtags", {
-      p_zone_id: zoneId,
-      p_limit: limit,
-    });
+    // Build query to count hashtags by entity_normalized (case-insensitive)
+    let query = supabase
+      .from("twitter_entities")
+      .select("entity_normalized")
+      .eq("zone_id", zoneId)
+      .eq("entity_type", "hashtag");
 
     if (startDate) {
       query = query.gte("created_at", startDate.toISOString());
@@ -142,7 +145,20 @@ export async function getTrendingHashtags(
 
     if (error) throw error;
 
-    return data || [];
+    // Count occurrences and sort
+    const hashtagCounts = new Map<string, number>();
+    for (const row of data || []) {
+      const tag = row.entity_normalized;
+      hashtagCounts.set(tag, (hashtagCounts.get(tag) || 0) + 1);
+    }
+
+    // Convert to array, sort by count descending, and limit
+    const result = Array.from(hashtagCounts.entries())
+      .map(([hashtag, count]) => ({ hashtag, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, limit);
+
+    return result;
   } catch (error) {
     logger.error(`Error fetching trending hashtags for zone ${zoneId}:`, error);
     return [];

@@ -253,7 +253,7 @@ export function TwitterOpinionClusterList({
                   />
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Indicates how cohesive the cluster's topics are
+                  Indicates how cohesive the cluster&apos;s topics are
                 </p>
               </div>
             )}

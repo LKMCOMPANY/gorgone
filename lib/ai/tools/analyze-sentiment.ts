@@ -3,48 +3,45 @@
  * Analyzes overall sentiment across platforms
  */
 
-import { tool } from "ai";
+import { type Tool, type ToolCallOptions, zodSchema } from "ai";
 import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logger } from "@/lib/logger";
-import type { ToolContext } from "@/lib/ai/types";
+import { getToolContext } from "@/lib/ai/types";
 
-export const analyzeSentimentTool = tool({
-  description: `Analyze the overall sentiment of content in the zone.
+const parametersSchema = z.object({
+  topic: z.string().optional().describe("Specific topic to analyze (optional)"),
+  period: z
+    .enum(["3h", "6h", "12h", "24h", "7d", "30d"])
+    .default("24h")
+    .describe("Time period"),
+});
 
-Use this tool when the user asks for:
-- "What is the sentiment?"
-- "Is the mood positive or negative?"
-- "Sentiment analysis"
-- "How do people feel about [topic]?"
+type Parameters = z.infer<typeof parametersSchema>;
+type Output = Record<string, unknown>;
 
-Returns sentiment breakdown with percentages and examples.`,
+export const analyzeSentimentTool: Tool<Parameters, Output> = {
+  description:
+    "Compute sentiment breakdown for the zone (optionally scoped to a topic) over a time window.",
 
-  parameters: z.object({
-    topic: z.string().optional().describe("Specific topic to analyze (optional)"),
-    period: z
-      .enum(["3h", "6h", "12h", "24h", "7d", "30d"])
-      .default("24h")
-      .describe("Time period"),
-  }),
+  inputSchema: zodSchema(parametersSchema),
 
-  execute: async ({ topic, period }, context: any) => {
+  execute: async (
+    { topic, period },
+    options: ToolCallOptions
+  ): Promise<Output> => {
+    const { zoneId, dataSources } = getToolContext(options);
     try {
-      logger.info(`[AI Tool] analyze_sentiment called`, {
-        topic,
-        period,
-      });
+      logger.info(`[AI Tool] analyze_sentiment called`, { topic, period });
 
-      const { zoneId, dataSources } = context;
       const startDate = getStartDate(period);
       const supabase = createAdminClient();
 
-      const result: any = {
+      const result: Output = {
         period,
         topic: topic || "all content",
       };
 
-      // Media articles have sentiment scores (-1 to 1)
       if (dataSources.media) {
         const { data: articles } = await supabase
           .from("media_articles")
@@ -82,7 +79,6 @@ Returns sentiment breakdown with percentages and examples.`,
         }
       }
 
-      // Twitter: Calculate from engagement patterns (positive = high engagement)
       if (dataSources.twitter) {
         const { data: tweets, count } = await supabase
           .from("twitter_tweets")
@@ -91,7 +87,6 @@ Returns sentiment breakdown with percentages and examples.`,
           .gte("twitter_created_at", startDate.toISOString());
 
         if (tweets && tweets.length > 0) {
-          // Sort by engagement
           const sorted = tweets.sort(
             (a, b) => (b.total_engagement || 0) - (a.total_engagement || 0)
           );
@@ -109,7 +104,6 @@ Returns sentiment breakdown with percentages and examples.`,
         }
       }
 
-      // TikTok: Similar engagement-based heuristic
       if (dataSources.tiktok) {
         const { data: videos, count } = await supabase
           .from("tiktok_videos")
@@ -134,7 +128,7 @@ Returns sentiment breakdown with percentages and examples.`,
       throw new Error("Failed to analyze sentiment");
     }
   },
-});
+};
 
 function getStartDate(period: string): Date {
   const hours: Record<string, number> = {
@@ -147,4 +141,3 @@ function getStartDate(period: string): Date {
   };
   return new Date(Date.now() - (hours[period] || 24) * 60 * 60 * 1000);
 }
-

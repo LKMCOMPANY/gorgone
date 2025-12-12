@@ -152,7 +152,7 @@ export async function createEngagementTracking(
       (new Date().getTime() - tweetCreatedAt.getTime()) / (1000 * 60 * 60);
 
     let tier: TwitterEngagementTier = "hot";
-    let nextUpdateAt = new Date();
+    const nextUpdateAt = new Date();
 
     // Simplified: track every hour for 6 hours
     if (ageHours < 6) {

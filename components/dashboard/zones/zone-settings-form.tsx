@@ -287,7 +287,7 @@ export function ZoneSettingsForm({ zone, userRole }: ZoneSettingsFormProps) {
               className="min-h-[120px] resize-none transition-all duration-[var(--transition-fast)] focus-visible:shadow-[var(--shadow-sm)] focus-visible:ring-2 focus-visible:ring-ring"
             />
             <p className="text-xs text-muted-foreground">
-              Provide detailed context to help your team understand this zone's purpose and scope
+              Provide detailed context to help your team understand this zone&apos;s purpose and scope
             </p>
           </div>
 
