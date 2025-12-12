@@ -297,8 +297,8 @@ export function TwitterOpinionMapView({ zoneId }: TwitterOpinionMapViewProps) {
       })
 
       if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.message || 'Failed to generate opinion map')
+        const errorData = await response.json()
+        throw new Error(errorData.error || errorData.message || 'Failed to generate opinion map')
       }
 
       const data = await response.json()
