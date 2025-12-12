@@ -80,7 +80,7 @@ CRITICAL: Respond with ONLY a valid JSON object. No markdown, no additional text
         model: openaiGateway('gpt-4o-mini'),
         prompt,
         temperature: 0.3,
-        maxTokens: 300
+        maxOutputTokens: 300
       })
 
     // Parse response

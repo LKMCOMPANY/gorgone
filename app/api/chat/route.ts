@@ -1,5 +1,5 @@
 import { openai } from "@ai-sdk/openai";
-import { streamText, stepCountIs } from "ai";
+import { convertToCoreMessages, streamText, stepCountIs } from "ai";
 import { getCurrentUser } from "@/lib/auth/utils";
 import { getZoneById } from "@/lib/data/zones";
 import { buildSystemPrompt } from "@/lib/ai/chat/system-prompt";
@@ -41,9 +41,16 @@ export async function POST(request: Request) {
     };
 
     debugLog("[Chat API] Request received");
-    const { messages, zoneId } = await request.json();
+    const body = await request.json();
+    const zoneId: string | undefined =
+      body?.zoneId ?? body?.body?.zoneId ?? body?.zone_id ?? undefined;
+    const rawMessages = body?.messages ?? body?.body?.messages ?? [];
+
     debugLog("[Chat API] Zone ID:", zoneId);
-    debugLog("[Chat API] Messages count:", messages.length);
+    debugLog(
+      "[Chat API] Messages count:",
+      Array.isArray(rawMessages) ? rawMessages.length : 0
+    );
 
     // Verify authentication
     const user = await getCurrentUser();
@@ -52,6 +59,11 @@ export async function POST(request: Request) {
       return new Response("Unauthorized", { status: 401 });
     }
     debugLog("[Chat API] User authenticated");
+
+    if (!zoneId) {
+      debugLog("[Chat API] Missing zoneId");
+      return new Response("Bad Request: missing zoneId", { status: 400 });
+    }
 
     // Get zone details
     const zone = await getZoneById(zoneId);
@@ -79,12 +91,31 @@ export async function POST(request: Request) {
       .map(([source]) => source)
       .join(", ");
 
-    const latestUserText: string =
-      Array.isArray(messages) && messages.length > 0
-        ? String(messages[messages.length - 1]?.content ?? "")
-        : "";
+    // Normalize messages:
+    // - legacy clients: { role, content }
+    // - @ai-sdk/react clients: UIMessage with parts/text
+    const coreMessages = (() => {
+      try {
+        return convertToCoreMessages(rawMessages);
+      } catch {
+        return Array.isArray(rawMessages) ? rawMessages : [];
+      }
+    })();
 
-    const responseLanguage = detectResponseLanguageFromMessages(messages);
+    const latestUserText: string = (() => {
+      if (!Array.isArray(rawMessages) || rawMessages.length === 0) return "";
+      const last = rawMessages[rawMessages.length - 1];
+      if (typeof last?.content === "string") return last.content;
+      // UIMessage (parts)
+      const parts = Array.isArray(last?.parts) ? last.parts : [];
+      const text = parts
+        .filter((p: any) => p?.type === "text" && typeof p?.text === "string")
+        .map((p: any) => p.text)
+        .join("");
+      return text || "";
+    })();
+
+    const responseLanguage = detectResponseLanguageFromMessages(rawMessages);
 
     const systemPrompt = buildSystemPrompt({
       zoneName: zone.name,
@@ -145,7 +176,7 @@ export async function POST(request: Request) {
           role: "system",
           content: systemPrompt,
         },
-        ...messages,
+        ...(coreMessages as any),
       ],
       tools,
       // Allowed tools (smaller tool universe => more predictable + cheaper)
