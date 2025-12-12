@@ -39,8 +39,9 @@ const PHASE_INFO = {
   labeling: { icon: Sparkles, label: 'Generating Labels', color: 'text-primary' },
 }
 
-// Maximum sample size for opinion map generation (timeout constraint)
-const MAX_SAMPLE_SIZE = 5000
+// Maximum sample size for opinion map generation
+// Reduced from 5000 to 3000 to ensure pipeline completes within Vercel timeout limits
+const MAX_SAMPLE_SIZE = 3000
 
 export function TwitterOpinionMapControls({
   session,

@@ -216,6 +216,7 @@ export async function POST(request: NextRequest) {
 
 /**
  * Estimate processing time based on tweet count and cache status
+ * Optimized for parallel embedding fetch (5 concurrent batches)
  */
 function estimateProcessingTime(
   totalTweets: number,
@@ -224,19 +225,22 @@ function estimateProcessingTime(
   // Vectorization: ~0.5s per 100 tweets
   const vectorizationTime = Math.ceil(needsEmbedding / 100) * 0.5
 
-  // PCA: ~10s for any size
-  const pcaTime = 10
+  // Embedding fetch: ~4s for 3000 tweets with parallel batching (was ~20s sequential)
+  const fetchTime = Math.ceil(totalTweets / 500) * 0.5
 
-  // UMAP: scales with size
-  const umapTime = totalTweets < 1000 ? 30 : totalTweets < 5000 ? 60 : 120
+  // PCA (50D): ~5-10s depending on size
+  const pcaTime = totalTweets < 1000 ? 5 : 10
 
-  // K-means: ~10s
-  const kmeansTime = 10
+  // UMAP on 50D PCA (much faster than 1536D): scales with size
+  const umapTime = totalTweets < 1000 ? 15 : totalTweets < 3000 ? 30 : 45
 
-  // Labeling: ~5s per cluster (assume 8 clusters)
-  const labelingTime = 8 * 5
+  // K-means: ~5-10s
+  const kmeansTime = totalTweets < 1000 ? 5 : 10
 
-  const total = vectorizationTime + pcaTime + umapTime + kmeansTime + labelingTime
+  // Labeling: ~3s per cluster with parallel batches (assume 8 clusters)
+  const labelingTime = 8 * 3
+
+  const total = vectorizationTime + fetchTime + pcaTime + umapTime + kmeansTime + labelingTime
 
   return Math.ceil(total)
 }
