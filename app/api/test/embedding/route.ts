@@ -10,23 +10,30 @@ import { logger } from '@/lib/logger'
 
 export async function GET() {
   try {
-    // Configure OpenAI with AI Gateway
-    const openaiGateway = createOpenAI({
-      apiKey: process.env.AI_GATEWAY_API_KEY || process.env.OPENAI_API_KEY,
-      baseURL: 'https://ai-gateway.vercel.sh/v1'
-    })
+    const usingGatewayOidc = !!process.env.VERCEL_OIDC_TOKEN
+    const usingGatewayKey = !!process.env.AI_GATEWAY_API_KEY
+
+    const provider =
+      usingGatewayOidc
+        ? createOpenAI({ baseURL: 'https://ai-gateway.vercel.sh/v1' })
+        : usingGatewayKey
+          ? createOpenAI({
+              apiKey: process.env.AI_GATEWAY_API_KEY,
+              baseURL: 'https://ai-gateway.vercel.sh/v1',
+            })
+          : createOpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
     logger.info('[Test Embedding] Testing embedding API', {
+      vercel_oidc_token_present: !!process.env.VERCEL_OIDC_TOKEN,
       ai_gateway_key_present: !!process.env.AI_GATEWAY_API_KEY,
       openai_key_present: !!process.env.OPENAI_API_KEY,
-      using_key: process.env.AI_GATEWAY_API_KEY ? 'AI_GATEWAY_API_KEY' : 'OPENAI_API_KEY'
     })
 
     // Test embedding
     const testText = "This is a test tweet to verify OpenAI embeddings are working correctly."
     
     const result = await embed({
-      model: openaiGateway.embedding('text-embedding-3-small'),
+      model: provider.embedding('text-embedding-3-small'),
       value: testText
     })
 
@@ -36,9 +43,9 @@ export async function GET() {
       tokens_used: result.usage?.tokens,
       test_text: testText,
       config: {
+        vercel_oidc_token_present: !!process.env.VERCEL_OIDC_TOKEN,
         ai_gateway_key_present: !!process.env.AI_GATEWAY_API_KEY,
         openai_key_present: !!process.env.OPENAI_API_KEY,
-        using_key: process.env.AI_GATEWAY_API_KEY ? 'AI_GATEWAY_API_KEY' : 'OPENAI_API_KEY'
       }
     })
 

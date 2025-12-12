@@ -1,22 +1,20 @@
 /**
  * AI-powered cluster labeling - Enhanced with Context & Descriptions
- * Generates descriptive labels using GPT-4o-mini with operational context
+ * Generates descriptive labels using a small, deterministic JSON-only prompt
+ * (used during opinion-map generation; output is stored and displayed in the UI)
  */
 
 import { generateText } from 'ai'
-import { createOpenAI } from '@ai-sdk/openai'
 import { logger } from '@/lib/logger'
 import type { OpinionLabelingResult } from '@/types'
+import { getOpinionMapOpenAIProvider } from './openai-provider'
 
-// Configure OpenAI with AI Gateway
-const openaiGateway = createOpenAI({
-  apiKey: process.env.AI_GATEWAY_API_KEY || process.env.OPENAI_API_KEY,
-  baseURL: 'https://ai-gateway.vercel.sh/v1'
-})
+const openaiProvider = getOpinionMapOpenAIProvider()
 
 const MAX_TWEETS_FOR_LABELING = 50
 const MAX_RETRIES = 3
 const BASE_RETRY_DELAY = 5000
+const LABELING_MODEL_ID = 'gpt-5.2'
 
 /**
  * Generate a descriptive label for a cluster using AI with operational context
@@ -43,6 +41,8 @@ export async function generateClusterLabel(
   // Extract keywords for context
   const keywords = extractKeywords(sampledTweets, 10)
 
+  const outputLanguage = detectOutputLanguage(sampledTweets, operationalContext)
+
   // Build enhanced prompt with operational context
   const contextSection = operationalContext 
     ? `\n\nOperational Context:\n${operationalContext}\n\nUse this context to better understand the significance of the posts and provide more relevant analysis.`
@@ -58,6 +58,8 @@ Analyze these ${sampledTweets.length} social media posts and provide:
    - The significance in the given context
 3. Overall sentiment score (-1 to 1, where -1 is very negative, 0 is neutral, 1 is very positive)
 4. Brief reasoning for the label${contextSection}
+
+Output language: ${outputLanguage === 'fr' ? 'French' : 'English'} (label, description, reasoning must follow this).
 
 Posts:
 ${sampledTweets.map((t, i) => `${i + 1}. ${t}`).join('\n')}
@@ -77,10 +79,10 @@ CRITICAL: Respond with ONLY a valid JSON object. No markdown, no additional text
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
     try {
       const { text } = await generateText({
-        model: openaiGateway('gpt-4o-mini'),
+        model: openaiProvider(LABELING_MODEL_ID),
         prompt,
-        temperature: 0.3,
-        maxOutputTokens: 300
+        temperature: 0.2,
+        maxOutputTokens: 350
       })
 
     // Parse response
@@ -197,6 +199,25 @@ function parseAIResponse(text: string): {
     throw new Error(`Invalid response format: ${JSON.stringify(parsed)}`)
   }
 
+  // Normalize + clamp sentiment to [-1, 1]
+  if (!Number.isFinite(parsed.sentiment)) {
+    throw new Error(`Invalid sentiment (non-finite): ${JSON.stringify(parsed)}`)
+  }
+  parsed.sentiment = Math.max(-1, Math.min(1, parsed.sentiment))
+
+  // Basic label hygiene (keep it short & UI-friendly)
+  if (typeof parsed.label !== 'string' || parsed.label.trim().length < 2) {
+    throw new Error(`Invalid label: ${JSON.stringify(parsed)}`)
+  }
+  parsed.label = parsed.label.trim().slice(0, 80)
+
+  if (parsed.description && typeof parsed.description === 'string') {
+    parsed.description = parsed.description.trim().slice(0, 350)
+  }
+  if (parsed.reasoning && typeof parsed.reasoning === 'string') {
+    parsed.reasoning = parsed.reasoning.trim().slice(0, 350)
+  }
+
   return parsed
 }
 
@@ -222,7 +243,7 @@ function sampleTweets(tweets: string[], sampleSize: number): string[] {
  * Filters stop words and returns most common terms
  */
 export function extractKeywords(tweets: string[], topN: number): string[] {
-  // Stop words (English)
+  // Stop words (English + French)
   const stopWords = new Set([
     'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for',
     'of', 'with', 'by', 'from', 'is', 'are', 'was', 'were', 'be', 'been',
@@ -230,6 +251,13 @@ export function extractKeywords(tweets: string[], topN: number): string[] {
     'could', 'should', 'may', 'might', 'must', 'can', 'this', 'that',
     'these', 'those', 'i', 'you', 'he', 'she', 'it', 'we', 'they', 'rt',
     'https', 'http', 'com', 'www'
+    ,
+    // FR (minimal but high-signal)
+    'le', 'la', 'les', 'un', 'une', 'des', 'du', 'de', 'd', 'et', 'ou', 'mais',
+    'en', 'dans', 'sur', 'au', 'aux', 'pour', 'par', 'avec', 'sans', 'ce', 'cet',
+    'cette', 'ces', 'je', 'tu', 'il', 'elle', 'nous', 'vous', 'ils', 'elles',
+    'est', 'sont', 'été', 'etre', 'être', 'a', 'as', 'ai', 'ont', 'avoir', 'fait',
+    'plus', 'moins', 'très', 'tres', 'ici', 'là', 'la', 'pas', 'ne'
   ])
 
   // Count word frequencies
@@ -252,4 +280,35 @@ export function extractKeywords(tweets: string[], topN: number): string[] {
     .sort((a, b) => b[1] - a[1])
     .slice(0, topN)
     .map(([word]) => word)
+}
+
+function detectOutputLanguage(tweets: string[], operationalContext?: string | null): 'fr' | 'en' {
+  // Heuristic: count common FR vs EN function words (robust to short texts)
+  const frHits = countHits(tweets, [
+    ' le ', ' la ', ' les ', ' de ', ' des ', ' du ', ' et ', ' pour ', ' sur ', ' dans ', ' avec ', " d'", ' est ', ' sont '
+  ])
+  const enHits = countHits(tweets, [
+    ' the ', ' and ', ' of ', ' to ', ' in ', ' on ', ' for ', ' with ', ' is ', ' are '
+  ])
+
+  // Context can break ties (many zones will have FR operational context)
+  const ctx = (operationalContext || '').toLowerCase()
+  const ctxLooksFr = /[àâçéèêëîïôùûüÿœ]/.test(ctx) || /\b(zone|contexte|opérationnel|sécurité|risque|narratif)\b/.test(ctx)
+
+  if (frHits === 0 && enHits === 0) {
+    return ctxLooksFr ? 'fr' : 'en'
+  }
+
+  return frHits >= enHits ? 'fr' : 'en'
+}
+
+function countHits(texts: string[], needles: string[]): number {
+  let hits = 0
+  for (const t of texts) {
+    const s = ` ${String(t).toLowerCase()} `
+    for (const n of needles) {
+      if (s.includes(n)) hits++
+    }
+  }
+  return hits
 }

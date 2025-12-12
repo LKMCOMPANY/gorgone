@@ -7,6 +7,38 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { logger } from '@/lib/logger'
 import type { TwitterOpinionSession } from '@/types'
 
+const ACTIVE_SESSION_STATUSES = [
+  'pending',
+  'vectorizing',
+  'reducing',
+  'clustering',
+  'labeling',
+] as const
+
+type ActiveSessionStatus = (typeof ACTIVE_SESSION_STATUSES)[number]
+
+export async function getRunningSessionForZone(
+  zoneId: string
+): Promise<TwitterOpinionSession | null> {
+  const supabase = createAdminClient()
+
+  const { data, error } = await supabase
+    .from('twitter_opinion_sessions')
+    .select('*')
+    .eq('zone_id', zoneId)
+    .in('status', [...ACTIVE_SESSION_STATUSES] as ActiveSessionStatus[])
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  if (error) {
+    logger.error('[Opinion Map] Failed to get running session', { error, zone_id: zoneId })
+    return null
+  }
+
+  return data as TwitterOpinionSession | null
+}
+
 /**
  * Create a new opinion map session
  * 
@@ -53,6 +85,53 @@ export async function createSession(
   })
 
   return data as TwitterOpinionSession
+}
+
+/**
+ * Idempotent session creation:
+ * - If there is already an active session for the zone, reuse it.
+ * - Otherwise create a new one.
+ *
+ * This avoids 500s when the user double-clicks "generate" or the UI retries.
+ */
+export async function createOrReuseActiveSession(
+  zoneId: string,
+  config: TwitterOpinionSession['config'],
+  userId: string
+): Promise<{ session: TwitterOpinionSession; reused: boolean }> {
+  // Fast path: existing active session
+  const existing = await getRunningSessionForZone(zoneId)
+  if (existing) {
+    logger.info('[Opinion Map] Reusing existing active session', {
+      zone_id: zoneId,
+      session_id: existing.session_id,
+      status: existing.status,
+      progress: existing.progress,
+    })
+    return { session: existing, reused: true }
+  }
+
+  // Create new
+  try {
+    const created = await createSession(zoneId, config, userId)
+    return { session: created, reused: false }
+  } catch (e) {
+    // Race condition: another request created a session after our check.
+    const message = e instanceof Error ? e.message : String(e)
+    if (message.includes('idx_one_active_session_per_zone') || message.includes('duplicate key')) {
+      const raced = await getRunningSessionForZone(zoneId)
+      if (raced) {
+        logger.info('[Opinion Map] Reusing active session (race)', {
+          zone_id: zoneId,
+          session_id: raced.session_id,
+          status: raced.status,
+          progress: raced.progress,
+        })
+        return { session: raced, reused: true }
+      }
+    }
+    throw e
+  }
 }
 
 /**

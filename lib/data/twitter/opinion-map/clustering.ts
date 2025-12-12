@@ -19,19 +19,25 @@ export async function clusterKMeans(
     k?: number
     maxIterations?: number
     tolerance?: number
+    /**
+     * Optional deterministic seed to make runs reproducible (recommended for pipelines)
+     */
+    seed?: number
   }
 ): Promise<OpinionClusteringResult> {
   const maxIterations = config?.maxIterations ?? 100
   const tolerance = config?.tolerance ?? 1e-4
+  const rng = config?.seed != null ? createRng(config.seed) : Math.random
 
   logger.info('[Opinion Map] Starting K-means clustering', {
     samples: vectors.length,
     dimensions: vectors[0]?.length,
-    max_iterations: maxIterations
+    max_iterations: maxIterations,
+    seeded: config?.seed != null
   })
 
   // Auto-detect optimal K if not provided
-  const k = config?.k ?? await autoDetectK(vectors)
+  const k = config?.k ?? await autoDetectK(vectors, config?.seed)
 
   logger.info('[Opinion Map] K-means configuration', {
     k,
@@ -39,7 +45,7 @@ export async function clusterKMeans(
   })
 
   // Initialize centroids randomly
-  const centroids = initializeCentroids(vectors, k)
+  const centroids = initializeCentroids(vectors, k, rng)
   const labels = new Array(vectors.length).fill(0)
   const distances = new Array(vectors.length).fill(Infinity)
   let iteration = 0
@@ -71,7 +77,7 @@ export async function clusterKMeans(
     }
 
     // Update step: recalculate centroids
-    const newCentroids = calculateCentroids(vectors, labels, k)
+    const newCentroids = calculateCentroids(vectors, labels, k, rng)
 
     // Check convergence
     const centroidShift = centroids.reduce((sum, centroid, j) => {
@@ -127,27 +133,34 @@ export async function clusterKMeans(
 }
 
 /**
- * Auto-detect optimal K using elbow method + silhouette analysis
- * Tests K from 5 to 12 and selects best
+ * Auto-detect optimal K using:
+ * - Elbow method on WCSS curve
+ * - A cheap centroid-distance silhouette proxy (stable + fast for online pipelines)
+ *
+ * Tests K from 5 to 12 and selects best.
  * 
  * @param vectors - Input vectors
  * @returns Optimal K value
  */
-export async function autoDetectK(vectors: number[][]): Promise<number> {
+export async function autoDetectK(vectors: number[][], seed?: number): Promise<number> {
   const minK = 5
   const maxK = 12
   const scores: number[] = []
+  const silhouetteProxyScores: number[] = []
 
   logger.info('[Opinion Map] Auto-detecting optimal K', {
     min_k: minK,
-    max_k: maxK
+    max_k: maxK,
+    seeded: seed != null
   })
 
   for (let k = minK; k <= maxK; k++) {
     // Run quick K-means
     const result = await clusterKMeans(vectors, {
       k,
-      maxIterations: 50 // Faster for testing
+      maxIterations: 50, // Faster for testing
+      tolerance: 1e-3,
+      seed: seed != null ? (seed + k) : undefined
     })
 
     // Calculate within-cluster sum of squares
@@ -160,29 +173,43 @@ export async function autoDetectK(vectors: number[][]): Promise<number> {
     }
 
     scores.push(wcss)
+    silhouetteProxyScores.push(calculateSilhouetteProxy(vectors, result.labels, result.centroids))
 
     logger.debug('[Opinion Map] K evaluation', {
       k,
       wcss: wcss.toFixed(2),
-      outliers: result.outlier_count
+      outliers: result.outlier_count,
+      silhouette_proxy: silhouetteProxyScores[silhouetteProxyScores.length - 1].toFixed(3)
     })
   }
 
   // Find elbow point (greatest rate of change reduction)
-  let bestK = minK
+  let elbowK = minK
   let maxRateChange = 0
 
   for (let i = 1; i < scores.length - 1; i++) {
     const rateChange = (scores[i - 1] - scores[i]) - (scores[i] - scores[i + 1])
     if (rateChange > maxRateChange) {
       maxRateChange = rateChange
+      elbowK = minK + i
+    }
+  }
+
+  // Prefer silhouette proxy if meaningful; fallback to elbow otherwise.
+  let bestK = elbowK
+  let bestSil = -Infinity
+  for (let i = 0; i < silhouetteProxyScores.length; i++) {
+    const s = silhouetteProxyScores[i]
+    if (Number.isFinite(s) && s > bestSil) {
+      bestSil = s
       bestK = minK + i
     }
   }
 
   logger.info('[Opinion Map] Optimal K detected', {
     k: bestK,
-    wcss_scores: scores
+    elbow_k: elbowK,
+    silhouette_proxy_best: Number.isFinite(bestSil) ? bestSil : null
   })
 
   return bestK
@@ -192,11 +219,15 @@ export async function autoDetectK(vectors: number[][]): Promise<number> {
  * Initialize centroids using K-means++ algorithm
  * Better initialization than random
  */
-function initializeCentroids(vectors: number[][], k: number): number[][] {
+function initializeCentroids(
+  vectors: number[][],
+  k: number,
+  rng: () => number
+): number[][] {
   const centroids: number[][] = []
 
   // Choose first centroid randomly
-  const firstIdx = Math.floor(Math.random() * vectors.length)
+  const firstIdx = Math.floor(rng() * vectors.length)
   centroids.push([...vectors[firstIdx]])
 
   // Choose remaining centroids
@@ -213,7 +244,7 @@ function initializeCentroids(vectors: number[][], k: number): number[][] {
 
     // Choose next centroid with probability proportional to distance
     const sum = distances.reduce((a, b) => a + b, 0)
-    let random = Math.random() * sum
+    let random = rng() * sum
     let idx = 0
 
     for (let j = 0; j < distances.length; j++) {
@@ -237,6 +268,8 @@ function calculateCentroids(
   vectors: number[][],
   labels: number[],
   k: number
+  ,
+  rng: () => number
 ): number[][] {
   const centroids: number[][] = []
   const dimensions = vectors[0].length
@@ -246,7 +279,7 @@ function calculateCentroids(
 
     if (clusterPoints.length === 0) {
       // Empty cluster - reinitialize randomly
-      const randomIdx = Math.floor(Math.random() * vectors.length)
+      const randomIdx = Math.floor(rng() * vectors.length)
       centroids.push([...vectors[randomIdx]])
     } else {
       // Calculate mean
@@ -311,4 +344,63 @@ function euclideanDistance(a: number[], b: number[]): number {
     sum += diff * diff
   }
   return Math.sqrt(sum)
+}
+
+/**
+ * Deterministic PRNG (xorshift32) for reproducible clustering runs.
+ */
+function createRng(seed: number): () => number {
+  let x = (seed | 0) || 1
+  return () => {
+    // xorshift32
+    x ^= x << 13
+    x ^= x >>> 17
+    x ^= x << 5
+    // Convert to [0, 1)
+    return ((x >>> 0) / 4294967296)
+  }
+}
+
+/**
+ * Cheap silhouette proxy using centroid distances:
+ * a = distance to own centroid, b = distance to nearest other centroid
+ * score = (b - a) / max(a, b)
+ *
+ * This is not the full silhouette (no intra-cluster pairwise distances),
+ * but it's stable, fast, and correlates well enough for picking K online.
+ */
+function calculateSilhouetteProxy(
+  vectors: number[][],
+  labels: number[],
+  centroids: number[][]
+): number {
+  const n = vectors.length
+  if (n < 5 || centroids.length < 2) return -Infinity
+
+  const SAMPLE_LIMIT = 500
+  const step = Math.max(1, Math.floor(n / SAMPLE_LIMIT))
+
+  let sum = 0
+  let count = 0
+
+  for (let i = 0; i < n; i += step) {
+    const c = labels[i]
+    if (c == null || c < 0) continue
+
+    const a = euclideanDistance(vectors[i], centroids[c])
+    let b = Infinity
+
+    for (let j = 0; j < centroids.length; j++) {
+      if (j === c) continue
+      const d = euclideanDistance(vectors[i], centroids[j])
+      if (d < b) b = d
+    }
+
+    const denom = Math.max(a, b)
+    if (!Number.isFinite(denom) || denom === 0) continue
+    sum += (b - a) / denom
+    count++
+  }
+
+  return count > 0 ? (sum / count) : -Infinity
 }

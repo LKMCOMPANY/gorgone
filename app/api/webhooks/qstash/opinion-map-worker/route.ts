@@ -336,7 +336,8 @@ export async function POST(request: NextRequest) {
 
     await updateSessionProgress(sessionId, 'clustering', 65, 'Running K-means clustering...')
 
-    const clusteringResult = await clusterKMeans(pcaResult.projections)
+    const clusteringSeed = fnv1a32(session.session_id)
+    const clusteringResult = await clusterKMeans(pcaResult.projections, { seed: clusteringSeed })
 
     logger.info('[Opinion Map Worker] Clustering complete', {
       clusters: clusteringResult.cluster_count,
@@ -507,5 +508,16 @@ export async function GET() {
     status: 'ok',
     service: 'opinion-map-worker'
   })
+}
+
+function fnv1a32(input: string): number {
+  // FNV-1a 32-bit hash (stable seed derivation for deterministic clustering)
+  let hash = 0x811c9dc5
+  for (let i = 0; i < input.length; i++) {
+    hash ^= input.charCodeAt(i)
+    hash = Math.imul(hash, 0x01000193)
+  }
+  // Ensure positive 32-bit integer
+  return hash >>> 0
 }
 

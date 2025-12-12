@@ -21,8 +21,10 @@ export {
 // Sessions CRUD
 export {
   createSession,
+  createOrReuseActiveSession,
   getSessionById,
   getLatestSession,
+  getRunningSessionForZone,
   updateSessionProgress,
   markSessionFailed,
   cancelSession,

@@ -12,7 +12,7 @@ import { env } from '@/lib/env'
 import { createClient as createSupabaseClient } from '@/lib/supabase/server'
 import {
   sampleTweetsStratified,
-  createSession,
+  createOrReuseActiveSession,
   getEmbeddingStats
 } from '@/lib/data/twitter/opinion-map'
 
@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
     })
 
     // Create session
-    const session = await createSession(
+    const { session, reused } = await createOrReuseActiveSession(
       zone_id,
       {
         start_date,
@@ -103,6 +103,20 @@ export async function POST(request: NextRequest) {
       },
       user.id
     )
+
+    // If a session is already running, be idempotent: return it (no re-scheduling)
+    if (reused) {
+      return NextResponse.json({
+        success: true,
+        session_id: session.session_id,
+        sampled_tweets: session.total_tweets ?? samplingResult.actualSampled,
+        total_available: samplingResult.totalAvailable,
+        cache_hit_rate: embeddingStats.cache_hit_rate,
+        reused_active_session: true,
+        status: session.status,
+        progress: session.progress,
+      })
+    }
 
     // Schedule QStash worker
     // Use VERCEL_URL for preview deployments, fallback to env.appUrl for production
@@ -152,6 +166,7 @@ export async function POST(request: NextRequest) {
       sampled_tweets: samplingResult.actualSampled,
       total_available: samplingResult.totalAvailable,
       cache_hit_rate: embeddingStats.cache_hit_rate,
+      reused_active_session: false,
       estimated_time_seconds: estimatedTimeSeconds
     })
 
