@@ -10,8 +10,7 @@ export function getOpinionMapOpenAIProvider() {
   // Use direct OpenAI API with OPENAI_API_KEY (same as chat route)
   // This ensures GPT-5.2 compatibility and avoids AI Gateway routing issues
   return createOpenAI({ 
-    apiKey: process.env.OPENAI_API_KEY,
-    compatibility: 'strict' // Ensure full API compatibility
+    apiKey: process.env.OPENAI_API_KEY
   })
 }
 
