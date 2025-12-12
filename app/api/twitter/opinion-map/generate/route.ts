@@ -106,15 +106,22 @@ export async function POST(request: NextRequest) {
 
     // If a session is already running, be idempotent: return it (no re-scheduling)
     if (reused) {
+      // Estimate remaining time based on current progress
+      const sessionTweets = session.total_tweets ?? samplingResult.actualSampled
+      const fullEstimate = estimateProcessingTime(sessionTweets, 0) // Assume embeddings cached
+      const progressFraction = Math.max(0.01, session.progress / 100) // Avoid division by zero
+      const estimatedRemainingSeconds = Math.ceil(fullEstimate * (1 - progressFraction))
+
       return NextResponse.json({
         success: true,
         session_id: session.session_id,
-        sampled_tweets: session.total_tweets ?? samplingResult.actualSampled,
+        sampled_tweets: sessionTweets,
         total_available: samplingResult.totalAvailable,
         cache_hit_rate: embeddingStats.cache_hit_rate,
         reused_active_session: true,
         status: session.status,
         progress: session.progress,
+        estimated_time_seconds: estimatedRemainingSeconds,
       })
     }
 

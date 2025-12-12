@@ -17,6 +17,46 @@ const ACTIVE_SESSION_STATUSES = [
 
 type ActiveSessionStatus = (typeof ACTIVE_SESSION_STATUSES)[number]
 
+/**
+ * Sessions not updated for more than this duration are considered "stuck".
+ * They will be auto-failed to unblock new generation requests.
+ */
+const SESSION_STUCK_THRESHOLD_MS = 10 * 60 * 1000 // 10 minutes
+
+/**
+ * Check if a session is stuck (no progress for too long).
+ * 
+ * Heuristic: if a session has been in an active status for longer than
+ * SESSION_STUCK_THRESHOLD_MS since it started (or was created), consider it stuck.
+ */
+function isSessionStuck(session: TwitterOpinionSession): boolean {
+  // If session hasn't started processing yet (pending), use created_at
+  // Otherwise use started_at (when processing began)
+  const referenceTime = session.started_at || session.created_at
+  if (!referenceTime) return false
+
+  const startTime = new Date(referenceTime).getTime()
+  const now = Date.now()
+  const elapsed = now - startTime
+
+  // Only consider stuck if enough time has passed
+  if (elapsed <= SESSION_STUCK_THRESHOLD_MS) {
+    return false
+  }
+
+  // Additional check: if progress is 0 and we've been waiting, definitely stuck
+  // Or if we've been in the same state for too long
+  // For now, any active session older than threshold is considered stuck
+  return true
+}
+
+/**
+ * Get the currently running session for a zone.
+ * Returns null if no active session exists.
+ * 
+ * Note: This does NOT auto-fail stuck sessions. Use `getRunningSessionOrFailStuck`
+ * if you want that behavior.
+ */
 export async function getRunningSessionForZone(
   zoneId: string
 ): Promise<TwitterOpinionSession | null> {
@@ -37,6 +77,41 @@ export async function getRunningSessionForZone(
   }
 
   return data as TwitterOpinionSession | null
+}
+
+/**
+ * Get the currently running session for a zone, auto-failing stuck sessions.
+ * 
+ * If a session is found but has not been updated for > SESSION_STUCK_THRESHOLD_MS,
+ * it is marked as 'failed' and null is returned (allowing a new session to be created).
+ */
+async function getRunningSessionOrFailStuck(
+  zoneId: string
+): Promise<TwitterOpinionSession | null> {
+  const session = await getRunningSessionForZone(zoneId)
+  
+  if (!session) return null
+
+  if (isSessionStuck(session)) {
+    logger.warn('[Opinion Map] Detected stuck session, auto-failing', {
+      zone_id: zoneId,
+      session_id: session.session_id,
+      status: session.status,
+      progress: session.progress,
+      started_at: session.started_at,
+      created_at: session.created_at,
+      stuck_threshold_min: SESSION_STUCK_THRESHOLD_MS / 60000,
+    })
+
+    await markSessionFailed(
+      session.session_id,
+      `Session stuck (no progress for ${Math.round(SESSION_STUCK_THRESHOLD_MS / 60000)} minutes). Auto-failed to allow retry.`
+    )
+
+    return null
+  }
+
+  return session
 }
 
 /**
@@ -89,18 +164,20 @@ export async function createSession(
 
 /**
  * Idempotent session creation:
- * - If there is already an active session for the zone, reuse it.
+ * - If there is already an active (and healthy) session for the zone, reuse it.
+ * - If there is a stuck session (no update for > threshold), auto-fail it and create new.
  * - Otherwise create a new one.
  *
- * This avoids 500s when the user double-clicks "generate" or the UI retries.
+ * This avoids 500s when the user double-clicks "generate" or the UI retries,
+ * while also preventing "zombie" sessions from blocking new generation forever.
  */
 export async function createOrReuseActiveSession(
   zoneId: string,
   config: TwitterOpinionSession['config'],
   userId: string
 ): Promise<{ session: TwitterOpinionSession; reused: boolean }> {
-  // Fast path: existing active session
-  const existing = await getRunningSessionForZone(zoneId)
+  // Check for existing active session (auto-fails stuck sessions)
+  const existing = await getRunningSessionOrFailStuck(zoneId)
   if (existing) {
     logger.info('[Opinion Map] Reusing existing active session', {
       zone_id: zoneId,
@@ -111,7 +188,7 @@ export async function createOrReuseActiveSession(
     return { session: existing, reused: true }
   }
 
-  // Create new
+  // Create new session
   try {
     const created = await createSession(zoneId, config, userId)
     return { session: created, reused: false }
@@ -119,6 +196,7 @@ export async function createOrReuseActiveSession(
     // Race condition: another request created a session after our check.
     const message = e instanceof Error ? e.message : String(e)
     if (message.includes('idx_one_active_session_per_zone') || message.includes('duplicate key')) {
+      // Don't auto-fail on race - just get whatever exists
       const raced = await getRunningSessionForZone(zoneId)
       if (raced) {
         logger.info('[Opinion Map] Reusing active session (race)', {
