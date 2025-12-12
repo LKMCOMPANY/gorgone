@@ -1,7 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { useChat as useAIChat } from "ai/react";
+import { useChat as useAIChat } from "@ai-sdk/react";
+import { TextStreamChatTransport } from "ai";
 import { MessageSquare, Sparkles, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -37,25 +38,44 @@ export function DashboardChat({ zones, variant = "full" }: DashboardChatProps) {
     [zones, selectedZoneId]
   );
 
+  const chatId = `dashboard-chat-${activeZone?.id}`;
+
+  // Text-stream chat transport (server returns toTextStreamResponse()).
+  // Recreate when zone changes to ensure correct body and id.
+  const transport = React.useMemo(() => {
+    return new TextStreamChatTransport({
+      api: "/api/chat",
+      body: {
+        zoneId: activeZone?.id,
+      },
+    });
+  }, [activeZone?.id]);
+
   const {
     messages,
-    input,
-    handleInputChange,
-    handleSubmit,
-    isLoading,
-    append,
-    reload,
+    sendMessage,
+    regenerate,
+    status,
+    error,
+    clearError,
   } = useAIChat({
-    api: "/api/chat",
-    body: {
-      zoneId: activeZone?.id,
-    },
-    id: `dashboard-chat-${activeZone?.id}`,
-    streamProtocol: "text", // Stable: matches toTextStreamResponse()
+    id: chatId,
+    transport,
     onError: (error) => {
       console.error("[Chat] Error:", error);
     },
   });
+
+  const [input, setInput] = React.useState("");
+
+  // Reset input when switching zones (fresh context).
+  React.useEffect(() => {
+    setInput("");
+    // Clear any lingering error state on zone switch.
+    clearError();
+  }, [chatId, clearError]);
+
+  const isLoading = status === "submitted" || status === "streaming";
 
   // Common suggestions
   const suggestions = [
@@ -66,10 +86,23 @@ export function DashboardChat({ zones, variant = "full" }: DashboardChatProps) {
   ];
 
   const handleSuggestionClick = (suggestion: string) => {
-    append({
-      role: "user",
-      content: suggestion,
-    });
+    void sendMessage({ text: suggestion });
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setInput(e.target.value);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const text = input.trim();
+    if (!text || isLoading) return;
+    setInput("");
+    void sendMessage({ text });
+  };
+
+  const reload = () => {
+    void regenerate();
   };
 
   if (!activeZone) {
@@ -158,7 +191,7 @@ export function DashboardChat({ zones, variant = "full" }: DashboardChatProps) {
               messages={messages}
               isLoading={isLoading}
               reload={reload}
-              onQuickAction={(q) => append({ role: "user", content: q })}
+              onQuickAction={(q) => void sendMessage({ text: q })}
             />
           )}
         </Conversation>
