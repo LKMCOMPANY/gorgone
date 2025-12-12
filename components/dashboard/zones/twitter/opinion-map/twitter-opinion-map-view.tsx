@@ -45,6 +45,7 @@ const POLLING_INTERVAL_GENERATING = 3000 // 3s during generation
 export function TwitterOpinionMapView({ zoneId }: TwitterOpinionMapViewProps) {
   // State
   const [loading, setLoading] = useState(true)
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [session, setSession] = useState<TwitterOpinionSession | null>(null)
   const [projections, setProjections] = useState<EnrichedTwitterProjection[]>([])
   const [clusters, setClusters] = useState<TwitterOpinionCluster[]>([])
@@ -286,6 +287,7 @@ export function TwitterOpinionMapView({ zoneId }: TwitterOpinionMapViewProps) {
     end_date: string
     sample_size: number
   }) => {
+    setIsSubmitting(true)
     try {
       const response = await fetch('/api/twitter/opinion-map/generate', {
         method: 'POST',
@@ -343,6 +345,8 @@ export function TwitterOpinionMapView({ zoneId }: TwitterOpinionMapViewProps) {
       toast.error('Failed to start opinion map generation', {
         description: error instanceof Error ? error.message : 'Unknown error'
       })
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -418,6 +422,7 @@ export function TwitterOpinionMapView({ zoneId }: TwitterOpinionMapViewProps) {
       <div className="space-y-6">
         <TwitterOpinionMapControls
           session={session}
+          isSubmitting={isSubmitting}
           onGenerate={handleGenerate}
           onCancel={handleCancel}
         />
@@ -451,6 +456,7 @@ export function TwitterOpinionMapView({ zoneId }: TwitterOpinionMapViewProps) {
       <div className="space-y-6">
         <TwitterOpinionMapControls
           session={session}
+          isSubmitting={isSubmitting}
           onGenerate={handleGenerate}
           onCancel={handleCancel}
         />

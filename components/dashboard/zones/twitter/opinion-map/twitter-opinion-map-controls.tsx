@@ -19,6 +19,7 @@ import type { TwitterOpinionSession } from '@/types'
 
 interface TwitterOpinionMapControlsProps {
   session: TwitterOpinionSession | null
+  isSubmitting?: boolean
   onGenerate: (config: {
     start_date: string
     end_date: string
@@ -40,6 +41,7 @@ const PHASE_INFO = {
 
 export function TwitterOpinionMapControls({
   session,
+  isSubmitting = false,
   onGenerate,
   onCancel
 }: TwitterOpinionMapControlsProps) {
@@ -53,6 +55,10 @@ export function TwitterOpinionMapControls({
     'clustering',
     'labeling'
   ].includes(session.status))
+
+  // Button should be disabled and show loader if submitting or generating
+  const isButtonDisabled = isSubmitting || isGenerating
+  const showLoader = isSubmitting || isGenerating
 
   const handleGenerateClick = () => {
     const now = new Date()
@@ -106,7 +112,7 @@ export function TwitterOpinionMapControls({
                 <Select 
                   value={period} 
                   onValueChange={(v) => setPeriod(v as TimePeriod)}
-                  disabled={isGenerating}
+                  disabled={isButtonDisabled}
                 >
                   <SelectTrigger className="w-36 h-9">
                     <SelectValue />
@@ -131,7 +137,7 @@ export function TwitterOpinionMapControls({
                 <Select 
                   value={sampleSize.toString()} 
                   onValueChange={(v) => setSampleSize(parseInt(v))}
-                  disabled={isGenerating}
+                  disabled={isButtonDisabled}
                 >
                   <SelectTrigger className="w-36 h-9">
                     <SelectValue />
@@ -149,7 +155,7 @@ export function TwitterOpinionMapControls({
             </div>
 
             {/* Sample Size Warning */}
-            {sampleSize > 5000 && !isGenerating && (
+            {sampleSize > 5000 && !isButtonDisabled && (
               <div className="text-xs text-tactical-amber flex items-center gap-1.5">
                 <Clock className="size-3.5" />
                 <span>Large samples may take up to 15 minutes to process</span>
@@ -159,14 +165,14 @@ export function TwitterOpinionMapControls({
             {/* Generate Button */}
             <Button
               onClick={handleGenerateClick}
-              disabled={isGenerating}
+              disabled={isButtonDisabled}
               size="default"
               className="w-full sm:w-auto transition-all duration-[var(--transition-fast)]"
             >
-              {isGenerating ? (
+              {showLoader ? (
                 <>
                   <Loader2 className="mr-2 size-4 animate-spin" />
-                  Generating...
+                  {isSubmitting && !isGenerating ? 'Starting...' : 'Generating...'}
                 </>
               ) : (
                 <>
