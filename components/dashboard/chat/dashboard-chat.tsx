@@ -90,7 +90,7 @@ export function DashboardChat({ zones, variant = "full" }: DashboardChatProps) {
     { text: "Generate a complete opinion report", icon: <XIcon className="size-4" /> },
     { text: "Show top tweets by engagement (24h)", icon: <XIcon className="size-4" /> },
     { text: "Generate a media coverage report", icon: <Newspaper className="size-4" /> },
-    { text: "Show top influencers by engagement (24h)", icon: <Users className="size-4" /> },
+    { text: "Show top influencers in this zone", icon: <Users className="size-4" /> },
   ];
 
   const handleSuggestionClick = (suggestion: string) => {

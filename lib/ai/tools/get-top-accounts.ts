@@ -18,8 +18,8 @@ const parametersSchema = z.object({
     .describe("Which platform to analyze"),
   period: z
     .enum(["3h", "6h", "12h", "24h", "7d", "30d"])
-    .default("24h")
-    .describe("Time period for engagement calculation"),
+    .default("30d")
+    .describe("Time period for engagement calculation (default 30d for overall view)"),
   limit: z.number().min(1).max(50).default(10).describe("Number of accounts to return"),
   sort_by: z
     .enum(["engagement", "followers"])
