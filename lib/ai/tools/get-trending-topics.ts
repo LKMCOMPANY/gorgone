@@ -110,7 +110,7 @@ export const getTrendingTopicsTool: Tool<Parameters, Output> = {
       merged.sort((a, b) => b.total_count - a.total_count);
 
       // Map to output format (remove unique_users from output)
-      const topics: TrendingTopic[] = merged.slice(0, limit).map((t) => ({
+      const outputTopics: TrendingTopic[] = merged.slice(0, limit).map((t) => ({
         hashtag: t.hashtag,
         platforms: t.platforms,
         counts: t.counts,
@@ -121,7 +121,7 @@ export const getTrendingTopicsTool: Tool<Parameters, Output> = {
         _type: "trending_topics",
         platform,
         period,
-        topics,
+        topics: outputTopics,
         total_unique: merged.length,
       };
     } catch (error) {
