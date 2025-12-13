@@ -8,6 +8,7 @@ import type { TikTokVideoData } from "@/components/ui/tiktok-video-card";
 import type { ArticleData } from "@/components/ui/article-card";
 import type { AccountData } from "@/components/ui/account-card";
 import type { ChartConfig } from "@/components/ui/chart";
+import type { OpinionReportData } from "@/components/ui/opinion-report-view";
 
 // ============================================================================
 // Chart Node Types
@@ -68,6 +69,18 @@ export interface StatsCardNodeAttributes {
 }
 
 // ============================================================================
+// Opinion Report Node Types
+// ============================================================================
+
+export interface OpinionReportNodeAttributes {
+  /** Serialized JSON string of OpinionReportData */
+  reportData: string;
+}
+
+// Re-export for convenience
+export type { OpinionReportData };
+
+// ============================================================================
 // Union type for all embeddable content
 // ============================================================================
 
@@ -77,5 +90,6 @@ export type EmbeddableContent =
   | { type: "tiktok"; data: TikTokNodeAttributes }
   | { type: "article"; data: ArticleNodeAttributes }
   | { type: "account"; data: AccountNodeAttributes }
-  | { type: "stats"; data: StatsCardNodeAttributes };
+  | { type: "stats"; data: StatsCardNodeAttributes }
+  | { type: "opinionReport"; data: OpinionReportNodeAttributes };
 
