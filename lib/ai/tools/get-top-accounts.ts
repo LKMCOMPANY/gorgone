@@ -28,7 +28,33 @@ const parametersSchema = z.object({
 });
 
 type Parameters = z.infer<typeof parametersSchema>;
-type Output = Record<string, unknown>;
+
+/** Structured account for UI rendering */
+type AccountResult = {
+  platform: "twitter" | "tiktok";
+  username: string;
+  name: string;
+  nickname?: string;
+  verified: boolean;
+  followers: number;
+  avatar_url: string | null;
+  stats: {
+    post_count: number;
+    total_engagement: number;
+    avg_engagement: number;
+    total_views?: number;
+  };
+  profile_url: string;
+};
+
+type Output = {
+  _type: "top_accounts";
+  platform: string;
+  period: string;
+  sort_by: string;
+  accounts: AccountResult[];
+  total_accounts: number;
+};
 
 export const getTopAccountsTool: Tool<Parameters, Output> = {
   description:
@@ -50,7 +76,7 @@ export const getTopAccountsTool: Tool<Parameters, Output> = {
         sort_by,
       });
 
-      const accounts: Array<Record<string, unknown>> = [];
+      const accounts: AccountResult[] = [];
 
       if ((platform === "twitter" || platform === "all") && dataSources.twitter) {
         try {
@@ -115,15 +141,17 @@ export const getTopAccountsTool: Tool<Parameters, Output> = {
                 is_verified?: boolean;
                 is_blue_verified?: boolean;
                 followers_count?: number;
+                profile_picture_url?: string;
               };
               accounts.push({
                 platform: "twitter",
                 username: profile.username || "",
-                name: profile.name,
+                name: profile.name || profile.username || "Unknown",
                 verified: profile.is_verified || profile.is_blue_verified || false,
                 followers: profile.followers_count || 0,
+                avatar_url: profile.profile_picture_url || null,
                 stats: {
-                  tweet_count: stats.tweet_count,
+                  post_count: stats.tweet_count,
                   total_engagement: stats.total_engagement,
                   avg_engagement: stats.avg_engagement,
                 },
@@ -147,11 +175,13 @@ export const getTopAccountsTool: Tool<Parameters, Output> = {
             accounts.push({
               platform: "tiktok",
               username: profile.username,
+              name: profile.nickname || profile.username,
               nickname: profile.nickname,
               verified: profile.is_verified,
               followers: profile.follower_count,
+              avatar_url: profile.avatar_thumb || null,
               stats: {
-                video_count: profile.video_count_in_zone,
+                post_count: profile.video_count_in_zone,
                 total_views: profile.total_play_count,
                 total_engagement: profile.total_engagement,
                 avg_engagement: profile.avg_engagement_per_video,
@@ -175,20 +205,22 @@ export const getTopAccountsTool: Tool<Parameters, Output> = {
       }
 
       return {
+        _type: "top_accounts",
         platform,
         period,
         sort_by,
-        total_accounts: accounts.length,
         accounts: accounts.slice(0, limit),
+        total_accounts: accounts.length,
       };
     } catch (error) {
       logger.error("[AI Tool] get_top_accounts error", { error });
       return {
+        _type: "top_accounts",
         platform,
         period,
         sort_by,
-        error: "Failed to retrieve top accounts",
         accounts: [],
+        total_accounts: 0,
       };
     }
   },

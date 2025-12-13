@@ -24,7 +24,22 @@ const parametersSchema = z.object({
 });
 
 type Parameters = z.infer<typeof parametersSchema>;
-type Output = Record<string, unknown>;
+
+/** Merged topic result */
+type TrendingTopic = {
+  hashtag: string;
+  platforms: string[];
+  counts: Record<string, number>;
+  total_count: number;
+};
+
+type Output = {
+  _type: "trending_topics";
+  platform: string;
+  period: string;
+  topics: TrendingTopic[];
+  total_unique: number;
+};
 
 export const getTrendingTopicsTool: Tool<Parameters, Output> = {
   description:
@@ -45,7 +60,7 @@ export const getTrendingTopicsTool: Tool<Parameters, Output> = {
         limit,
       });
 
-      const topics: Array<{
+      const rawTopics: Array<{
         platform: string;
         hashtag: string;
         count: number;
@@ -62,7 +77,7 @@ export const getTrendingTopicsTool: Tool<Parameters, Output> = {
           });
 
           for (const hashtag of twitterHashtags) {
-            topics.push({
+            rawTopics.push({
               platform: "twitter",
               hashtag: hashtag.hashtag,
               count: hashtag.count,
@@ -79,7 +94,7 @@ export const getTrendingTopicsTool: Tool<Parameters, Output> = {
           const tiktokHashtags = await getTikTokHashtags(zoneId, limit);
 
           for (const hashtag of tiktokHashtags) {
-            topics.push({
+            rawTopics.push({
               platform: "tiktok",
               hashtag: hashtag.hashtag,
               count: hashtag.count,
@@ -90,23 +105,33 @@ export const getTrendingTopicsTool: Tool<Parameters, Output> = {
         }
       }
 
-      const merged = mergeDuplicateHashtags(topics);
+      const merged = mergeDuplicateHashtags(rawTopics);
 
       merged.sort((a, b) => b.total_count - a.total_count);
 
+      // Map to output format (remove unique_users from output)
+      const topics: TrendingTopic[] = merged.slice(0, limit).map((t) => ({
+        hashtag: t.hashtag,
+        platforms: t.platforms,
+        counts: t.counts,
+        total_count: t.total_count,
+      }));
+
       return {
+        _type: "trending_topics",
         platform,
         period,
-        total_unique_hashtags: merged.length,
-        trending_topics: merged.slice(0, limit),
+        topics,
+        total_unique: merged.length,
       };
     } catch (error) {
       logger.error("[AI Tool] get_trending_topics error", { error });
       return {
+        _type: "trending_topics",
         platform,
         period,
-        error: "Failed to retrieve trending topics",
-        trending_topics: [],
+        topics: [],
+        total_unique: 0,
       };
     }
   },

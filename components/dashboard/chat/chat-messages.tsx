@@ -11,6 +11,8 @@ import { ChatChart } from "./chat-chart";
 import { TweetCardList, type TweetData } from "@/components/ui/tweet-card";
 import { ArticleCardList, type ArticleData } from "@/components/ui/article-card";
 import { TikTokVideoCardList, type TikTokVideoData } from "@/components/ui/tiktok-video-card";
+import { AccountCardList, type AccountData } from "@/components/ui/account-card";
+import { TrendingTopicsList, type TrendingTopicData } from "@/components/ui/trending-topic-card";
 import { Badge } from "@/components/ui/badge";
 import { Copy, RefreshCw, TrendingUp, TrendingDown, Minus } from "lucide-react";
 
@@ -174,6 +176,45 @@ type MediaCoveragePayload = {
   message?: string;
 };
 
+/** Top accounts payload from get_top_accounts tool */
+type TopAccountsPayload = {
+  _type: "top_accounts";
+  platform: string;
+  period: string;
+  sort_by: string;
+  accounts: Array<{
+    platform: "twitter" | "tiktok";
+    username: string;
+    name: string;
+    nickname?: string;
+    verified: boolean;
+    followers: number;
+    avatar_url: string | null;
+    stats: {
+      post_count: number;
+      total_engagement: number;
+      avg_engagement: number;
+      total_views?: number;
+    };
+    profile_url: string;
+  }>;
+  total_accounts: number;
+};
+
+/** Trending topics payload from get_trending_topics tool */
+type TrendingTopicsPayload = {
+  _type: "trending_topics";
+  platform: string;
+  period: string;
+  topics: Array<{
+    hashtag: string;
+    platforms: string[];
+    counts: Record<string, number>;
+    total_count: number;
+  }>;
+  total_unique: number;
+};
+
 /**
  * Safely parse tool result that may be string or object
  * Handles SDK 5.x serialization edge cases and nested structures
@@ -289,6 +330,28 @@ function isValidMediaCoverage(obj: Record<string, unknown> | null): obj is Media
   return (
     obj._type === "media_coverage" &&
     typeof obj.topic === "string"
+  );
+}
+
+/**
+ * Check if a result is a valid top accounts payload
+ */
+function isValidTopAccounts(obj: Record<string, unknown> | null): obj is TopAccountsPayload {
+  if (!obj) return false;
+  return (
+    obj._type === "top_accounts" &&
+    Array.isArray(obj.accounts)
+  );
+}
+
+/**
+ * Check if a result is a valid trending topics payload
+ */
+function isValidTrendingTopics(obj: Record<string, unknown> | null): obj is TrendingTopicsPayload {
+  if (!obj) return false;
+  return (
+    obj._type === "trending_topics" &&
+    Array.isArray(obj.topics)
   );
 }
 
@@ -780,6 +843,128 @@ function MediaCoverageView({ coverage }: { coverage: MediaCoveragePayload }) {
   );
 }
 
+/**
+ * Convert TopAccountsPayload account to AccountData
+ */
+function toAccountData(account: TopAccountsPayload["accounts"][0]): AccountData {
+  return {
+    platform: account.platform,
+    username: account.username,
+    name: account.name,
+    nickname: account.nickname,
+    verified: account.verified,
+    followers: account.followers,
+    avatar_url: account.avatar_url,
+    stats: {
+      post_count: account.stats.post_count,
+      total_engagement: account.stats.total_engagement,
+      avg_engagement: account.stats.avg_engagement,
+      total_views: account.stats.total_views,
+    },
+    profile_url: account.profile_url,
+  };
+}
+
+/**
+ * Top Accounts View - Renders top influencers with AccountCards
+ */
+function TopAccountsView({ data }: { data: TopAccountsPayload }) {
+  const periodLabels: Record<string, string> = {
+    "3h": "Last 3 hours",
+    "6h": "Last 6 hours",
+    "12h": "Last 12 hours",
+    "24h": "Last 24 hours",
+    "7d": "Last 7 days",
+    "30d": "Last 30 days",
+  };
+
+  const sortLabels: Record<string, string> = {
+    engagement: "by Engagement",
+    followers: "by Followers",
+  };
+
+  if (data.accounts.length === 0) {
+    return (
+      <div className="rounded-xl border bg-card p-8 text-center">
+        <p className="text-muted-foreground">No accounts found for this period.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Header */}
+      <div className="rounded-xl border bg-card p-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold">Top Accounts</h3>
+          <div className="flex gap-2">
+            <Badge variant="secondary">{periodLabels[data.period] || data.period}</Badge>
+            <Badge variant="outline">{sortLabels[data.sort_by] || data.sort_by}</Badge>
+            <Badge variant="outline">{data.total_accounts} accounts</Badge>
+          </div>
+        </div>
+      </div>
+
+      {/* Account Cards */}
+      <AccountCardList accounts={data.accounts.map(toAccountData)} />
+    </div>
+  );
+}
+
+/**
+ * Convert TrendingTopicsPayload topic to TrendingTopicData
+ */
+function toTrendingTopicData(topic: TrendingTopicsPayload["topics"][0]): TrendingTopicData {
+  return {
+    hashtag: topic.hashtag,
+    platforms: topic.platforms,
+    counts: topic.counts,
+    total_count: topic.total_count,
+  };
+}
+
+/**
+ * Trending Topics View - Renders trending hashtags
+ */
+function TrendingTopicsView({ data }: { data: TrendingTopicsPayload }) {
+  const periodLabels: Record<string, string> = {
+    "3h": "Last 3 hours",
+    "6h": "Last 6 hours",
+    "12h": "Last 12 hours",
+    "24h": "Last 24 hours",
+    "7d": "Last 7 days",
+    "30d": "Last 30 days",
+  };
+
+  if (data.topics.length === 0) {
+    return (
+      <div className="rounded-xl border bg-card p-8 text-center">
+        <p className="text-muted-foreground">No trending topics found for this period.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Header */}
+      <div className="rounded-xl border bg-card p-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold">Trending Topics</h3>
+          <div className="flex gap-2">
+            <Badge variant="secondary">{periodLabels[data.period] || data.period}</Badge>
+            <Badge variant="outline">{data.total_unique} unique hashtags</Badge>
+          </div>
+        </div>
+      </div>
+
+      {/* Topics */}
+      <div className="rounded-xl border bg-card p-4">
+        <TrendingTopicsList topics={data.topics.map(toTrendingTopicData)} />
+      </div>
+    </div>
+  );
+}
+
 // Use the return type of useChat from ai/react
 interface ChatMessage {
   id: string;
@@ -947,7 +1132,14 @@ export function ChatMessages({
           const hasStructuredUI = toolInvocations.some((tool) => {
             const parsed = parseToolResult(tool.result);
             const hasOutput = tool.state === "result" || tool.state === "output-available";
-            return hasOutput && (isValidOpinionReport(parsed) || isValidTopContent(parsed) || isValidSearchResults(parsed) || isValidMediaCoverage(parsed));
+            return hasOutput && (
+              isValidOpinionReport(parsed) || 
+              isValidTopContent(parsed) || 
+              isValidSearchResults(parsed) || 
+              isValidMediaCoverage(parsed) ||
+              isValidTopAccounts(parsed) ||
+              isValidTrendingTopics(parsed)
+            );
           });
 
           // If structured UI rendered, only show minimal text (first paragraph or short intro)
@@ -1030,7 +1222,27 @@ export function ChatMessages({
                     );
                   }
 
-                  // Skip visualization/opinion report/top content/search/media tools from displaying as regular tools
+                  // Check if this is a top accounts result
+                  const hasTopAccounts = (tool.state === "result" || tool.state === "output-available") && isValidTopAccounts(parsedResult);
+                  if (hasTopAccounts) {
+                    return (
+                      <div key={idx} className="my-4 w-full">
+                        <TopAccountsView data={parsedResult} />
+                      </div>
+                    );
+                  }
+
+                  // Check if this is a trending topics result
+                  const hasTrendingTopics = (tool.state === "result" || tool.state === "output-available") && isValidTrendingTopics(parsedResult);
+                  if (hasTrendingTopics) {
+                    return (
+                      <div key={idx} className="my-4 w-full">
+                        <TrendingTopicsView data={parsedResult} />
+                      </div>
+                    );
+                  }
+
+                  // Skip visualization/opinion report/top content/search/media/accounts/topics tools from displaying as regular tools
                   const isCompletedVisualization = tool.toolName === "create_visualization" && (tool.state === "result" || tool.state === "output-available");
                   if (isCompletedVisualization) {
                     return null;
@@ -1049,6 +1261,14 @@ export function ChatMessages({
                   }
                   const isCompletedMediaCoverage = tool.toolName === "get_media_coverage" && (tool.state === "result" || tool.state === "output-available");
                   if (isCompletedMediaCoverage) {
+                    return null;
+                  }
+                  const isCompletedTopAccounts = tool.toolName === "get_top_accounts" && (tool.state === "result" || tool.state === "output-available");
+                  if (isCompletedTopAccounts) {
+                    return null;
+                  }
+                  const isCompletedTrendingTopics = tool.toolName === "get_trending_topics" && (tool.state === "result" || tool.state === "output-available");
+                  if (isCompletedTrendingTopics) {
                     return null;
                   }
 
