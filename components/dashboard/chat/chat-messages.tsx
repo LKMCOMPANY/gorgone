@@ -10,6 +10,7 @@ import { Actions, ActionButton } from "@/components/ai/actions";
 import { ChatChart } from "./chat-chart";
 import { TweetCardList, type TweetData } from "@/components/ui/tweet-card";
 import { ArticleCardList, type ArticleData } from "@/components/ui/article-card";
+import { TikTokVideoCardList, type TikTokVideoData } from "@/components/ui/tiktok-video-card";
 import { Badge } from "@/components/ui/badge";
 import { Copy, RefreshCw, TrendingUp, TrendingDown, Minus } from "lucide-react";
 
@@ -494,7 +495,23 @@ function topContentTweetToTweetData(tweet: TopContentTweet): TweetData {
 }
 
 /**
- * Top Content View - Renders top tweets with TweetCards
+ * Convert TopContentPayload video to TikTokVideoData
+ */
+function topContentVideoToTikTokData(video: TopContentPayload["videos"][0]): TikTokVideoData {
+  return {
+    video_id: video.video_id,
+    description: video.description,
+    author_username: video.author_username,
+    author_nickname: video.author_nickname,
+    author_verified: video.author_verified,
+    engagement: video.engagement,
+    video_url: video.video_url,
+    created_at: video.created_at,
+  };
+}
+
+/**
+ * Top Content View - Renders top tweets and TikTok videos
  */
 function TopContentView({ content }: { content: TopContentPayload }) {
   const periodLabels: Record<string, string> = {
@@ -521,9 +538,26 @@ function TopContentView({ content }: { content: TopContentPayload }) {
 
       {/* Tweets */}
       {content.tweets.length > 0 && (
-        <TweetCardList
-          tweets={content.tweets.map(topContentTweetToTweetData)}
-        />
+        <div className="space-y-2">
+          <div className="text-sm font-medium text-muted-foreground px-1">
+            Tweets ({content.tweets.length})
+          </div>
+          <TweetCardList
+            tweets={content.tweets.map(topContentTweetToTweetData)}
+          />
+        </div>
+      )}
+
+      {/* TikTok Videos */}
+      {content.videos.length > 0 && (
+        <div className="space-y-2">
+          <div className="text-sm font-medium text-muted-foreground px-1">
+            TikTok Videos ({content.videos.length})
+          </div>
+          <TikTokVideoCardList
+            videos={content.videos.map(topContentVideoToTikTokData)}
+          />
+        </div>
       )}
 
       {/* Empty state */}
@@ -565,31 +599,27 @@ function SearchResultsView({ results }: { results: SearchResultsPayload }) {
         </div>
       )}
 
+      {/* TikTok Videos */}
+      {results.videos.length > 0 && (
+        <div className="space-y-2">
+          <div className="text-sm font-medium text-muted-foreground px-1">
+            TikTok Videos ({results.videos.length})
+          </div>
+          <TikTokVideoCardList
+            videos={results.videos.map(searchResultVideoToTikTokData)}
+          />
+        </div>
+      )}
+
       {/* Articles */}
       {results.articles.length > 0 && (
         <div className="space-y-2">
           <div className="text-sm font-medium text-muted-foreground px-1">
             Articles ({results.articles.length})
           </div>
-          <div className="grid gap-3">
-            {results.articles.map((article) => (
-              <a
-                key={article.article_id}
-                href={article.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block rounded-xl border bg-card p-4 hover:bg-accent/50 transition-colors"
-              >
-                <div className="text-xs text-muted-foreground mb-1">
-                  {article.source}
-                </div>
-                <div className="font-medium line-clamp-2">{article.title}</div>
-                <div className="text-sm text-muted-foreground mt-1 line-clamp-2">
-                  {article.content}
-                </div>
-              </a>
-            ))}
-          </div>
+          <ArticleCardList
+            articles={results.articles.map(searchResultArticleToArticleData)}
+          />
         </div>
       )}
 
@@ -601,6 +631,38 @@ function SearchResultsView({ results }: { results: SearchResultsPayload }) {
       )}
     </div>
   );
+}
+
+/**
+ * Convert SearchResultsPayload video to TikTokVideoData
+ */
+function searchResultVideoToTikTokData(video: SearchResultsPayload["videos"][0]): TikTokVideoData {
+  return {
+    video_id: video.video_id,
+    description: video.description,
+    author_username: video.author_username,
+    author_nickname: video.author_nickname,
+    author_verified: video.author_verified,
+    engagement: video.engagement,
+    video_url: video.video_url,
+    created_at: video.created_at,
+  };
+}
+
+/**
+ * Convert SearchResultsPayload article to ArticleData
+ */
+function searchResultArticleToArticleData(article: SearchResultsPayload["articles"][0]): ArticleData {
+  return {
+    article_id: article.article_id,
+    title: article.title,
+    source: article.source,
+    body_preview: article.content,
+    sentiment: article.sentiment,
+    social_score: article.social_score,
+    published_at: article.published_at,
+    url: article.url,
+  };
 }
 
 /**
