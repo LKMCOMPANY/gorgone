@@ -60,6 +60,17 @@ export function selectActiveTools(args: {
     tools.add("get_top_accounts");
   }
 
+  // Influencers/accounts specifically.
+  if (
+    includesAny(t, [
+      "influencer", "influencers", "influenceur", "influenceurs",
+      "account", "accounts", "compte", "comptes", "user", "users",
+      "utilisateur", "utilisateurs", "profil", "profiles"
+    ])
+  ) {
+    tools.add("get_top_accounts");
+  }
+
   // Sentiment / SOV.
   if (includesAny(t, ["sentiment", "mood", "ton", "opinion", "sov", "share"])) {
     tools.add("analyze_sentiment");
