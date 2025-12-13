@@ -23,69 +23,14 @@ import { useReportEditorSafe } from "@/lib/contexts/report-editor-context";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import type { OpinionReportData } from "@/components/ui/opinion-report-view";
+import type { AccountData } from "@/components/ui/account-card";
+import type { TweetData } from "@/components/ui/tweet-card";
+import type { TikTokVideoData as TikTokData } from "@/components/ui/tiktok-video-card";
+import type { ArticleData } from "@/components/ui/article-card";
 
 // ============================================================================
 // Types for AI Response Content
 // ============================================================================
-
-interface TweetData {
-  tweet_id: string;
-  text: string;
-  author_username: string;
-  author_name: string;
-  author_verified?: boolean;
-  author_profile_picture_url?: string | null;
-  engagement: {
-    likes: number;
-    retweets: number;
-    replies: number;
-    views: number;
-  };
-  tweet_url?: string;
-}
-
-interface TikTokData {
-  video_id: string;
-  description: string;
-  author_username: string;
-  author_nickname: string;
-  author_verified?: boolean;
-  engagement: {
-    views: number;
-    likes: number;
-    comments: number;
-    shares: number;
-  };
-  video_url: string;
-}
-
-interface ArticleData {
-  article_id: string;
-  title: string;
-  source: string;
-  body_preview?: string;
-  sentiment?: number | null;
-  social_score?: number | null;
-  published_at?: string;
-  url: string;
-}
-
-interface AccountData {
-  platform: "twitter" | "tiktok";
-  username: string;
-  name?: string;
-  nickname?: string;
-  verified?: boolean;
-  followers?: number;
-  avatar_url?: string | null;
-  stats?: {
-    post_count: number;
-    total_engagement: number;
-    avg_engagement: number;
-    total_views?: number;
-  };
-  profile_url?: string;
-}
 
 interface ChartData {
   type: "line" | "bar" | "area";
