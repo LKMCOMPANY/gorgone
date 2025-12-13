@@ -47,9 +47,13 @@ export function selectActiveTools(args: {
     "detect_anomalies",
   ]);
 
-  // Trends/top content.
+  // Trends/top content/engagement.
   if (
-    includesAny(t, ["trend", "trending", "tendance", "overview", "quoi", "what"])
+    includesAny(t, [
+      "trend", "trending", "tendance", "overview", "quoi", "what",
+      "top", "best", "meilleur", "plus", "engagement", "viral", "popular",
+      "performing", "populaire"
+    ])
   ) {
     tools.add("get_trending_topics");
     tools.add("get_top_content");

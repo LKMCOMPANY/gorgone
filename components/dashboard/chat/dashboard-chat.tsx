@@ -80,9 +80,9 @@ export function DashboardChat({ zones, variant = "full" }: DashboardChatProps) {
   // Common suggestions (English only - UI language)
   const suggestions = [
     "Generate a complete opinion report",
+    "Show top tweets by engagement (24h)",
     "Analyze the latest trends in this zone",
     "Summarize sentiment for the last 24 hours",
-    "Identify key influencers discussing this topic",
   ];
 
   const handleSuggestionClick = (suggestion: string) => {

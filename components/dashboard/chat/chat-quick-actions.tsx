@@ -24,6 +24,11 @@ const QUICK_ACTIONS = [
     query: "Give me a complete overview of the zone activity",
   },
   {
+    icon: BarChart3,
+    label: "Top tweets",
+    query: "Show me the top tweets by engagement in the last 24 hours",
+  },
+  {
     icon: Users,
     label: "Top accounts",
     query: "Show me the top 10 accounts by engagement in the last 24 hours",
@@ -34,7 +39,7 @@ const QUICK_ACTIONS = [
     query: "What are the trending hashtags across all platforms?",
   },
   {
-    icon: BarChart3,
+    icon: TrendingUp,
     label: "Engagement chart",
     query: "Show me a chart of engagement trends over the last 7 days",
   },
