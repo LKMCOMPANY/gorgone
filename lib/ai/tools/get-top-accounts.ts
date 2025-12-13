@@ -83,9 +83,22 @@ export const getTopAccountsTool: Tool<Parameters, Output> = {
           const supabase = createAdminClient();
           const startDate = getStartDate(period);
 
+          // Use the FK relationship name for nested select
           const { data: tweets, error: twitterError } = await supabase
             .from("twitter_tweets")
-            .select("author_profile_id, total_engagement, author:twitter_profiles(id, username, name, is_verified, is_blue_verified, followers_count, profile_picture_url)")
+            .select(`
+              author_profile_id, 
+              total_engagement, 
+              twitter_profiles!author_profile_id (
+                id, 
+                username, 
+                name, 
+                is_verified, 
+                is_blue_verified, 
+                followers_count, 
+                profile_picture_url
+              )
+            `)
             .eq("zone_id", zoneId)
             .gte("twitter_created_at", startDate.toISOString())
             .not("author_profile_id", "is", null);
@@ -97,7 +110,7 @@ export const getTopAccountsTool: Tool<Parameters, Output> = {
           logger.info("[AI Tool] Twitter accounts query result", {
             zone_id: zoneId,
             tweets_count: tweets?.length || 0,
-            first_tweet_has_author: tweets?.[0]?.author ? true : false,
+            first_tweet_has_profile: tweets?.[0]?.twitter_profiles ? true : false,
           });
 
           if (tweets && tweets.length > 0) {
@@ -110,13 +123,13 @@ export const getTopAccountsTool: Tool<Parameters, Output> = {
             for (const tweet of tweets as unknown as Array<{
               author_profile_id: string;
               total_engagement: number;
-              author: Record<string, unknown>;
+              twitter_profiles: Record<string, unknown> | null;
             }>) {
-              if (!tweet.author) continue;
+              if (!tweet.twitter_profiles) continue;
 
               const profileId = tweet.author_profile_id;
               const existing = profileStats.get(profileId) || {
-                profile: tweet.author,
+                profile: tweet.twitter_profiles,
                 tweet_count: 0,
                 total_engagement: 0,
               };
