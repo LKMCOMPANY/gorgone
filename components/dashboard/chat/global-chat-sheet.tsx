@@ -1,11 +1,24 @@
 "use client";
 
+/**
+ * Global Chat Sheet
+ * 
+ * A floating chat overlay accessible from anywhere in the dashboard.
+ * Uses GlobalChatContext for centralized state management.
+ * 
+ * Features:
+ * - Keyboard shortcuts (Cmd+J, Cmd+K, Space)
+ * - Can be opened with a pre-filled prompt via context
+ * - Hidden on the main dashboard page (has its own chat)
+ */
+
 import * as React from "react";
 import { DashboardChat } from "./dashboard-chat";
 import { Sheet, SheetContent, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Keyboard, X } from "lucide-react";
 import { usePathname } from "next/navigation";
+import { useGlobalChat } from "@/lib/contexts/global-chat-context";
 import type { Zone } from "@/types";
 
 interface GlobalChatSheetProps {
@@ -13,7 +26,7 @@ interface GlobalChatSheetProps {
 }
 
 export function GlobalChatSheet({ zones }: GlobalChatSheetProps) {
-  const [isOpen, setIsOpen] = React.useState(false);
+  const { isOpen, open, close, toggle } = useGlobalChat();
   const pathname = usePathname();
 
   // Hide on the dedicated AI Monitoring page to avoid duplication
@@ -25,7 +38,7 @@ export function GlobalChatSheet({ zones }: GlobalChatSheetProps) {
       // Cmd+J or Cmd+K to toggle chat
       if ((e.metaKey || e.ctrlKey) && (e.key === "j" || e.key === "k")) {
         e.preventDefault();
-        setIsOpen((prev) => !prev);
+        toggle();
         return;
       }
 
@@ -39,14 +52,14 @@ export function GlobalChatSheet({ zones }: GlobalChatSheetProps) {
         
         if (!isInputField) {
           e.preventDefault();
-          setIsOpen(true);
+          open();
         }
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen]);
+  }, [isOpen, open, toggle]);
 
   if (isMonitoringPage) return null;
 
@@ -57,7 +70,7 @@ export function GlobalChatSheet({ zones }: GlobalChatSheetProps) {
         <Button
           size="icon"
           className="size-12 rounded-full shadow-xl bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-105 transition-all duration-300 group relative"
-          onClick={() => setIsOpen(true)}
+          onClick={open}
           title="Open AI Assistant (⌘J or Space)"
         >
           <Keyboard className="size-6" />
@@ -66,7 +79,7 @@ export function GlobalChatSheet({ zones }: GlobalChatSheetProps) {
       </div>
 
       {/* Chat Sheet Overlay */}
-      <Sheet open={isOpen} onOpenChange={setIsOpen} modal={false}>
+      <Sheet open={isOpen} onOpenChange={(open) => open ? undefined : close()} modal={false}>
         <SheetContent 
           side="right" 
           className="w-full sm:max-w-xl p-0 border-l border-white/10 shadow-2xl sm:rounded-l-2xl overflow-hidden bg-background/60 backdrop-blur-xl supports-[backdrop-filter]:bg-background/40 pointer-events-auto"
@@ -76,7 +89,7 @@ export function GlobalChatSheet({ zones }: GlobalChatSheetProps) {
             variant="ghost"
             size="icon"
             className="absolute right-4 top-4 z-50 h-8 w-8 rounded-full bg-background/20 hover:bg-background/40 backdrop-blur-md border border-white/10 text-muted-foreground hover:text-foreground transition-colors"
-            onClick={() => setIsOpen(false)}
+            onClick={close}
           >
             <X className="h-4 w-4" />
             <span className="sr-only">Close</span>
@@ -98,4 +111,3 @@ export function GlobalChatSheet({ zones }: GlobalChatSheetProps) {
     </>
   );
 }
-

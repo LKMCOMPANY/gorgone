@@ -4,6 +4,8 @@ import { DashboardSidebar } from "@/components/dashboard/sidebar";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { GlobalChatSheet } from "@/components/dashboard/chat/global-chat-sheet";
 import { ImpersonationBanner } from "@/components/dashboard/impersonation-banner";
+import { ReportEditorProvider } from "@/lib/contexts/report-editor-context";
+import { GlobalChatProvider } from "@/lib/contexts/global-chat-context";
 import { getCurrentUser } from "@/lib/auth/utils";
 import { getActiveZonesByClient } from "@/lib/data/zones";
 import { getImpersonationSession } from "@/lib/auth/impersonation";
@@ -47,36 +49,40 @@ export default async function DashboardLayout({
   }
 
   return (
-    <SidebarProvider defaultOpen={true}>
-      <DashboardSidebar
-        user={user}
-        userRole={user.role}
-        clientId={user.client_id}
-        zones={zones}
-      />
-      <SidebarInset className="flex flex-col w-full h-screen overflow-hidden relative">
-        {/* Impersonation Banner - inside Inset, above header */}
-        {impersonationSession && (
-          <ImpersonationBanner
-            adminEmail={impersonationSession.adminEmail}
-            clientName={clientName}
-          />
-        )}
-        
-        {/* Main content area - scrolls relative to Inset */}
-        <main className="flex-1 overflow-y-auto overflow-x-hidden w-full relative">
-          {/* Header - Fixed inside the scrollable area (Sticky) */}
-          <div className="sticky top-0 z-50 w-full">
-            <DashboardHeader user={user} />
-          </div>
-
-          {/* Content starts here */}
-          {children}
+    <GlobalChatProvider>
+      <ReportEditorProvider>
+        <SidebarProvider defaultOpen={true}>
+        <DashboardSidebar
+          user={user}
+          userRole={user.role}
+          clientId={user.client_id}
+          zones={zones}
+        />
+        <SidebarInset className="flex flex-col w-full h-screen overflow-hidden relative">
+          {/* Impersonation Banner - inside Inset, above header */}
+          {impersonationSession && (
+            <ImpersonationBanner
+              adminEmail={impersonationSession.adminEmail}
+              clientName={clientName}
+            />
+          )}
           
-          {/* Global Chat Overlay */}
-          {zones.length > 0 && <GlobalChatSheet zones={zones} />}
-        </main>
-      </SidebarInset>
-    </SidebarProvider>
+          {/* Main content area - scrolls relative to Inset */}
+          <main className="flex-1 overflow-y-auto overflow-x-hidden w-full relative">
+            {/* Header - Fixed inside the scrollable area (Sticky) */}
+            <div className="sticky top-0 z-50 w-full">
+              <DashboardHeader user={user} />
+            </div>
+
+            {/* Content starts here */}
+            {children}
+            
+            {/* Global Chat Overlay */}
+            {zones.length > 0 && <GlobalChatSheet zones={zones} />}
+          </main>
+        </SidebarInset>
+        </SidebarProvider>
+      </ReportEditorProvider>
+    </GlobalChatProvider>
   );
 }

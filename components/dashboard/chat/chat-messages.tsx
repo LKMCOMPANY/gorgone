@@ -15,6 +15,11 @@ import { AccountCardList, type AccountData } from "@/components/ui/account-card"
 import { TrendingTopicsList, type TrendingTopicData } from "@/components/ui/trending-topic-card";
 import { Badge } from "@/components/ui/badge";
 import { Copy, RefreshCw, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { OpinionReportView, type OpinionReportData } from "@/components/ui/opinion-report-view";
+import {
+  AddResponseToReport,
+  type ResponseContent,
+} from "@/components/ai/add-response-to-report";
 
 type VisualizationPayload = {
   _type: "visualization";
@@ -435,111 +440,7 @@ function toTweetData(tweet: TweetExample): TweetData {
   };
 }
 
-/**
- * Opinion Report View - Renders structured opinion report with TweetCards
- */
-function OpinionReportView({ report }: { report: OpinionReportPayload }) {
-  return (
-    <div className="space-y-6">
-      {/* Header Card */}
-      <div className="rounded-xl border bg-card p-5">
-        <h3 className="text-lg font-semibold mb-3">Opinion Report</h3>
-        <div className="grid grid-cols-3 gap-4 text-center">
-          <div>
-            <div className="text-2xl font-bold text-foreground">
-              {report.session.total_tweets_analyzed.toLocaleString()}
-            </div>
-            <div className="text-xs text-muted-foreground">Tweets Analyzed</div>
-          </div>
-          <div>
-            <div className="text-2xl font-bold text-foreground">
-              {report.session.total_clusters}
-            </div>
-            <div className="text-xs text-muted-foreground">Clusters</div>
-          </div>
-          <div>
-            <div className="text-sm font-medium text-foreground">
-              {report.session.data_period.display}
-            </div>
-            <div className="text-xs text-muted-foreground">Period</div>
-          </div>
-        </div>
-      </div>
-
-      {/* Sentiment Evolution Chart (if available) */}
-      {report.sentiment_evolution_chart && (
-        <div className="rounded-xl border bg-card p-5">
-          <ChatChart
-            type={report.sentiment_evolution_chart.chart_type}
-            title={report.sentiment_evolution_chart.title}
-            data={report.sentiment_evolution_chart.data}
-            config={report.sentiment_evolution_chart.config}
-          />
-        </div>
-      )}
-
-      {/* Clusters */}
-      {report.clusters.map((cluster, idx) => (
-        <div key={idx} className="rounded-xl border bg-card p-5 space-y-4">
-          {/* Cluster header */}
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex-1">
-              <div className="flex items-center gap-2 flex-wrap">
-                <h4 className="text-base font-semibold">{cluster.label}</h4>
-                <Badge variant="secondary" className="text-xs">
-                  {cluster.percentage}%
-                </Badge>
-                <Badge 
-                  variant="outline"
-                  className={
-                    cluster.sentiment_label === "positive" 
-                      ? "border-green-500/50 text-green-600 bg-green-500/10" 
-                      : cluster.sentiment_label === "negative"
-                      ? "border-red-500/50 text-red-600 bg-red-500/10"
-                      : "border-gray-500/50 text-gray-600 bg-gray-500/10"
-                  }
-                >
-                  {cluster.sentiment_label}
-                </Badge>
-              </div>
-            </div>
-          </div>
-
-          {/* Full Description - NOT summarized */}
-          {cluster.description && (
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              {cluster.description}
-            </p>
-          )}
-
-          {/* Keywords */}
-          {cluster.keywords && cluster.keywords.length > 0 && (
-            <div className="flex flex-wrap gap-1.5">
-              {cluster.keywords.slice(0, 8).map((kw, i) => (
-                <Badge key={i} variant="outline" className="text-xs font-normal">
-                  {kw}
-                </Badge>
-              ))}
-            </div>
-          )}
-
-          {/* Tweet examples using TweetCardList */}
-          {cluster.examples && cluster.examples.length > 0 && (
-            <div className="pt-2 border-t border-border/50">
-              <div className="text-xs text-muted-foreground mb-2 font-medium">
-                Representative Tweets
-              </div>
-              <TweetCardList
-                tweets={cluster.examples.map(toTweetData)}
-                compact
-              />
-            </div>
-          )}
-        </div>
-      ))}
-    </div>
-  );
-}
+// OpinionReportView is now imported from @/components/ui/opinion-report-view
 
 /**
  * Convert TopContentTweet to TweetData format
@@ -988,6 +889,106 @@ interface ChatMessagesProps {
   reload?: () => void;
 }
 
+/**
+ * Collect all content from a message for the "Add to Report" feature
+ * Extracts text, charts, tweets, TikToks, articles, and accounts
+ */
+function collectResponseContent(
+  textContent: string,
+  toolInvocations: Array<{
+    toolName: string;
+    args: Record<string, unknown>;
+    result?: unknown;
+    state: string;
+  }>
+): ResponseContent {
+  const content: ResponseContent = {};
+
+  // Add text content
+  if (textContent) {
+    content.text = textContent;
+  }
+
+  // Process tool results
+  for (const tool of toolInvocations) {
+    const hasOutput = tool.state === "result" || tool.state === "output-available";
+    if (!hasOutput) continue;
+
+    const parsed = parseToolResult(tool.result);
+    if (!parsed) continue;
+
+    // Visualization/Chart
+    if (isValidVisualization(parsed)) {
+      if (!content.charts) content.charts = [];
+      content.charts.push({
+        type: parsed.chart_type,
+        title: parsed.title,
+        data: parsed.data,
+        config: parsed.config,
+      });
+    }
+
+    // Top Content (tweets + videos)
+    if (isValidTopContent(parsed)) {
+      if (parsed.tweets && parsed.tweets.length > 0) {
+        if (!content.tweets) content.tweets = [];
+        content.tweets.push(...parsed.tweets.map(topContentTweetToTweetData));
+      }
+      if (parsed.videos && parsed.videos.length > 0) {
+        if (!content.tiktoks) content.tiktoks = [];
+        content.tiktoks.push(...parsed.videos.map(topContentVideoToTikTokData));
+      }
+    }
+
+    // Search Results
+    if (isValidSearchResults(parsed)) {
+      if (parsed.tweets && parsed.tweets.length > 0) {
+        if (!content.tweets) content.tweets = [];
+        content.tweets.push(...parsed.tweets.map(topContentTweetToTweetData));
+      }
+      if (parsed.videos && parsed.videos.length > 0) {
+        if (!content.tiktoks) content.tiktoks = [];
+        content.tiktoks.push(...parsed.videos.map(searchResultVideoToTikTokData));
+      }
+      if (parsed.articles && parsed.articles.length > 0) {
+        if (!content.articles) content.articles = [];
+        content.articles.push(...parsed.articles.map(searchResultArticleToArticleData));
+      }
+    }
+
+    // Media Coverage
+    if (isValidMediaCoverage(parsed)) {
+      if (parsed.articles && parsed.articles.length > 0) {
+        if (!content.articles) content.articles = [];
+        content.articles.push(...parsed.articles.map(toArticleData));
+      }
+    }
+
+    // Top Accounts
+    if (isValidTopAccounts(parsed)) {
+      if (parsed.accounts && parsed.accounts.length > 0) {
+        if (!content.accounts) content.accounts = [];
+        content.accounts.push(...parsed.accounts.map(toAccountData));
+      }
+    }
+
+    // Opinion Report - pass the FULL report to preserve structure
+    // This allows the report editor to render the complete analysis
+    // with clusters, percentages, sentiment badges, and tweets
+    if (isValidOpinionReport(parsed)) {
+      content.opinionReport = {
+        _type: "opinion_report",
+        available: parsed.available,
+        session: parsed.session,
+        clusters: parsed.clusters,
+        sentiment_evolution_chart: parsed.sentiment_evolution_chart,
+      };
+    }
+  }
+
+  return content;
+}
+
 // Helper to extract text content from message parts
 function getMessageText(message: ChatMessage): string {
   // Legacy: if message has content string, use it
@@ -1326,6 +1327,15 @@ export function ChatMessages({
                       </Actions>
                     )}
                   </>
+                )}
+
+                {/* Add entire response to Report - single button for all content */}
+                {message.role === "assistant" && !isLoading && (
+                  <div className="mt-3 pt-3 border-t border-border/30">
+                    <AddResponseToReport
+                      content={collectResponseContent(textContent, toolInvocations)}
+                    />
+                  </div>
                 )}
               </MessageContent>
             </Message>

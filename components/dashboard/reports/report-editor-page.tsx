@@ -1,0 +1,352 @@
+"use client";
+
+import * as React from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { type Editor } from "@tiptap/react";
+import {
+  ArrowLeft,
+  Download,
+  Send,
+  Archive,
+  Clock,
+  CheckCircle2,
+  PanelRightOpen,
+  PanelRightClose,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { PageContainer } from "@/components/dashboard/page-container";
+import { ReportEditor } from "./report-editor";
+import { ReportLibraryPanel } from "./report-library-panel";
+import { ReportContentPicker } from "./report-content-picker";
+import { exportReportToPDF } from "./report-pdf-export";
+import { useReportEditor } from "@/lib/contexts/report-editor-context";
+import type { TweetData } from "@/components/ui/tweet-card";
+import type { TikTokVideoData } from "@/components/ui/tiktok-video-card";
+import type { ArticleData } from "@/components/ui/article-card";
+import type { AccountData } from "@/components/ui/account-card";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+import {
+  updateReportAction,
+  updateReportStatusAction,
+} from "@/app/actions/reports";
+import type { ReportWithZone, TiptapDocument, ReportContent } from "@/types";
+
+interface ReportEditorPageProps {
+  report: ReportWithZone;
+}
+
+export function ReportEditorPage({ report }: ReportEditorPageProps) {
+  const router = useRouter();
+  const { registerEditor, unregisterEditor } = useReportEditor();
+  const [title, setTitle] = React.useState(report.title);
+  const [content, setContent] = React.useState<ReportContent>(report.content);
+  const [wordCount, setWordCount] = React.useState(
+    report.content.metadata.word_count || 0
+  );
+  const [isSaving, setIsSaving] = React.useState(false);
+  const [lastSaved, setLastSaved] = React.useState<Date | null>(null);
+  const [hasChanges, setHasChanges] = React.useState(false);
+  const [showLibrary, setShowLibrary] = React.useState(true);
+  const [isExporting, setIsExporting] = React.useState(false);
+  const [editor, setEditor] = React.useState<Editor | null>(null);
+  const editorContainerRef = React.useRef<HTMLDivElement>(null);
+  
+  // Content picker state (lifted to avoid TabsContent re-render issues)
+  const [pickerOpen, setPickerOpen] = React.useState(false);
+  const [pickerType, setPickerType] = React.useState<"tweet" | "tiktok" | "article" | "account">("tweet");
+
+  // Register editor in global context for chat "Add to Report" feature
+  React.useEffect(() => {
+    if (editor) {
+      registerEditor(editor, report.id, title);
+    }
+    return () => {
+      unregisterEditor();
+    };
+  }, [editor, report.id, title, registerEditor, unregisterEditor]);
+
+  // Auto-save with debounce
+  const saveTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  const performSave = React.useCallback(
+    async (newTitle: string, newContent: ReportContent) => {
+      setIsSaving(true);
+
+      const updatedContent: ReportContent = {
+        ...newContent,
+        metadata: {
+          ...newContent.metadata,
+          word_count: wordCount,
+          last_edited_at: new Date().toISOString(),
+        },
+      };
+
+      const result = await updateReportAction(report.id, {
+        title: newTitle,
+        content: updatedContent,
+      });
+
+      setIsSaving(false);
+
+      if (result.success) {
+        setLastSaved(new Date());
+        setHasChanges(false);
+      } else {
+        toast.error("Failed to save");
+      }
+    },
+    [report.id, wordCount]
+  );
+
+  // Debounced auto-save
+  React.useEffect(() => {
+    if (!hasChanges) return;
+
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+
+    saveTimeoutRef.current = setTimeout(() => {
+      performSave(title, content);
+    }, 2000); // 2 second debounce
+
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, [title, content, hasChanges, performSave]);
+
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setTitle(e.target.value);
+    setHasChanges(true);
+  };
+
+  const handleContentChange = (newDocument: TiptapDocument) => {
+    setContent({
+      ...content,
+      tiptap_document: newDocument,
+    });
+    setHasChanges(true);
+  };
+
+  const handleWordCountChange = (count: number) => {
+    setWordCount(count);
+  };
+
+  const handleEditorReady = React.useCallback((editorInstance: Editor) => {
+    setEditor(editorInstance);
+  }, []);
+
+  const handlePublish = async () => {
+    // Save first
+    await performSave(title, content);
+
+    const result = await updateReportStatusAction(report.id, "published");
+    if (result.success) {
+      toast.success("Report published");
+      router.refresh();
+    } else {
+      toast.error(result.error || "Failed to publish");
+    }
+  };
+
+  const handleUnpublish = async () => {
+    const result = await updateReportStatusAction(report.id, "draft");
+    if (result.success) {
+      toast.success("Report moved to drafts");
+      router.refresh();
+    } else {
+      toast.error(result.error || "Failed to update status");
+    }
+  };
+
+  const handleExportPDF = async () => {
+    if (!editorContainerRef.current) {
+      toast.error("Editor not ready");
+      return;
+    }
+
+    // Save first before export
+    await performSave(title, content);
+
+    setIsExporting(true);
+    toast.info("Generating PDF...");
+
+    try {
+      await exportReportToPDF({
+        report,
+        contentElement: editorContainerRef.current,
+      });
+      toast.success("PDF exported successfully");
+    } catch (error) {
+      console.error("PDF export error:", error);
+      toast.error("Failed to export PDF");
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  // Open content picker
+  const handleOpenPicker = (type: "tweet" | "tiktok" | "article" | "account") => {
+    setPickerType(type);
+    setPickerOpen(true);
+  };
+
+  // Handle content selection from picker
+  const handleContentSelect = (content: TweetData | TikTokVideoData | ArticleData | AccountData) => {
+    if (!editor) return;
+
+    // Determine content type and insert appropriate node
+    // Data must be stringified for proper Tiptap JSON serialization
+    if ("tweet_id" in content) {
+      editor.chain().focus().insertContent({
+        type: "tweetNode",
+        attrs: { tweet: JSON.stringify(content) },
+      }).run();
+    } else if ("video_id" in content) {
+      editor.chain().focus().insertContent({
+        type: "tiktokNode",
+        attrs: { video: JSON.stringify(content) },
+      }).run();
+    } else if ("article_id" in content) {
+      editor.chain().focus().insertContent({
+        type: "articleNode",
+        attrs: { article: JSON.stringify(content) },
+      }).run();
+    } else if ("platform" in content) {
+      editor.chain().focus().insertContent({
+        type: "accountNode",
+        attrs: { account: JSON.stringify(content) },
+      }).run();
+    }
+  };
+
+  return (
+    <PageContainer className="max-w-6xl">
+      <div className="animate-in space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex items-center gap-4 min-w-0 flex-1">
+            <Button variant="ghost" size="icon" asChild>
+              <Link href="/dashboard/reports">
+                <ArrowLeft className="size-4" />
+              </Link>
+            </Button>
+
+            <div className="min-w-0 flex-1 space-y-1">
+              <Input
+                value={title}
+                onChange={handleTitleChange}
+                className="h-auto text-xl font-bold border-none bg-transparent px-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                placeholder="Report title"
+              />
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <Badge
+                  variant={report.status === "published" ? "success" : "outline"}
+                  className="text-[10px] h-5"
+                >
+                  {report.status === "published" ? "Published" : "Draft"}
+                </Badge>
+                <span>•</span>
+                <span>{report.zone?.name}</span>
+                <span>•</span>
+                <span>{wordCount.toLocaleString()} words</span>
+                {lastSaved && (
+                  <>
+                    <span>•</span>
+                    <span className="flex items-center gap-1">
+                      <CheckCircle2 className="size-3 text-[var(--tactical-green)]" />
+                      Saved
+                    </span>
+                  </>
+                )}
+                {isSaving && (
+                  <>
+                    <span>•</span>
+                    <span className="flex items-center gap-1">
+                      <Clock className="size-3 animate-pulse" />
+                      Saving...
+                    </span>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowLibrary(!showLibrary)}
+              className="hidden lg:flex"
+            >
+              {showLibrary ? (
+                <PanelRightClose className="size-4" />
+              ) : (
+                <PanelRightOpen className="size-4" />
+              )}
+            </Button>
+
+            <Button variant="outline" size="sm" onClick={handleExportPDF} disabled={isExporting}>
+              <Download className={cn("size-4 mr-2", isExporting && "animate-pulse")} />
+              {isExporting ? "Exporting..." : "PDF"}
+            </Button>
+
+            {report.status === "draft" ? (
+              <Button size="sm" onClick={handlePublish}>
+                <Send className="size-4 mr-2" />
+                Publish
+              </Button>
+            ) : (
+              <Button variant="outline" size="sm" onClick={handleUnpublish}>
+                <Archive className="size-4 mr-2" />
+                Unpublish
+              </Button>
+            )}
+          </div>
+        </div>
+
+        {/* Editor with Library/AI Panel */}
+        <div className="flex gap-6">
+          {/* Main Editor */}
+          <div className="flex-1 min-w-0" ref={editorContainerRef}>
+            <ReportEditor
+              content={content.tiptap_document}
+              onContentChange={handleContentChange}
+              onWordCountChange={handleWordCountChange}
+              onEditorReady={handleEditorReady}
+            />
+          </div>
+
+          {/* Side Panel - Library (Desktop only) */}
+          {/* AI features are now integrated via the global chat with "Add to Report" buttons */}
+          {showLibrary && (
+            <div className="hidden lg:block w-80 shrink-0">
+              <div className="sticky top-24">
+                <ReportLibraryPanel
+                  zoneId={report.zone_id}
+                  editor={editor}
+                  onOpenPicker={handleOpenPicker}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Content Picker Dialog - Rendered at page level for proper portal behavior */}
+      <ReportContentPicker
+        open={pickerOpen}
+        onOpenChange={setPickerOpen}
+        zoneId={report.zone_id}
+        contentType={pickerType}
+        onSelect={handleContentSelect}
+      />
+    </PageContainer>
+  );
+}

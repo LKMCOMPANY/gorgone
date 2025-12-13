@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useCurrentZone } from "@/hooks/use-current-zone";
+import { useGlobalChatSafe } from "@/lib/contexts/global-chat-context";
 import { ChatMessages } from "./chat-messages";
 import { ChatInput } from "./chat-input";
 import { cn } from "@/lib/utils";
@@ -68,6 +69,14 @@ export function DashboardChat({ zones, variant = "full" }: DashboardChatProps) {
 
   const [input, setInput] = React.useState("");
 
+  // Get pending prompt from global chat context (if available)
+  const globalChat = useGlobalChatSafe();
+
+  const isLoading = status === "submitted" || status === "streaming";
+
+  // Track if we've already processed the current pending prompt (prevents double-send)
+  const pendingPromptHandledRef = React.useRef(false);
+
   // Reset input when switching zones (fresh context).
   React.useEffect(() => {
     setInput("");
@@ -75,7 +84,27 @@ export function DashboardChat({ zones, variant = "full" }: DashboardChatProps) {
     clearError();
   }, [chatId, clearError]);
 
-  const isLoading = status === "submitted" || status === "streaming";
+  // Handle pending prompts from the global chat context
+  // This allows other components to open the chat with a pre-filled prompt
+  React.useEffect(() => {
+    const pendingPrompt = globalChat?.pendingPrompt;
+    
+    // Only process once per prompt - use ref to prevent Strict Mode double-firing
+    if (pendingPrompt && !pendingPromptHandledRef.current) {
+      pendingPromptHandledRef.current = true;
+      
+      // Clear the prompt from context immediately
+      globalChat?.clearPendingPrompt();
+      
+      // Send the message
+      void sendMessage({ text: pendingPrompt });
+    }
+    
+    // Reset the ref when there's no pending prompt (ready for next one)
+    if (!pendingPrompt) {
+      pendingPromptHandledRef.current = false;
+    }
+  }, [globalChat?.pendingPrompt, globalChat, sendMessage]);
 
   // X (Twitter) icon component
   const XIcon = ({ className }: { className?: string }) => (

@@ -17,7 +17,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 
-const QUICK_ACTIONS = [
+export const QUICK_ACTIONS = [
   {
     icon: TrendingUp,
     label: "Zone overview",

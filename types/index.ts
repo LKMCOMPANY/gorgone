@@ -1084,3 +1084,117 @@ export interface AttilaOperation {
 // ============================================================================
 // END ATTILA AUTOMATION TYPES
 // ============================================================================
+
+// =====================================================
+// REPORTS TYPES
+// =====================================================
+
+export type ReportStatus = "draft" | "published";
+
+// Tiptap document structure
+export interface TiptapNode {
+  type: string;
+  attrs?: Record<string, unknown>;
+  content?: TiptapNode[];
+  text?: string;
+  marks?: Array<{ type: string; attrs?: Record<string, unknown> }>;
+}
+
+export interface TiptapDocument {
+  type: "doc";
+  content: TiptapNode[];
+}
+
+// Embedded items in reports
+export interface ReportEmbeddedPost {
+  id: string;
+  type: "twitter" | "tiktok" | "media";
+  postData: Record<string, unknown>;
+}
+
+export interface ReportEmbeddedChart {
+  id: string;
+  type: "line" | "bar" | "area";
+  title: string;
+  data: Array<{ timestamp: string; value: number; label?: string }>;
+  config?: Record<string, unknown>;
+}
+
+export interface ReportEmbeddedStat {
+  id: string;
+  label: string;
+  value: number | string;
+  change?: number;
+  changeType?: "positive" | "negative" | "neutral";
+}
+
+export interface ReportEmbeddedItems {
+  posts: ReportEmbeddedPost[];
+  charts: ReportEmbeddedChart[];
+  stats: ReportEmbeddedStat[];
+}
+
+// Report configuration
+export interface ReportConfig {
+  period: "3h" | "6h" | "12h" | "24h" | "7d" | "30d";
+  start_date: string;
+  end_date: string;
+  data_sources: ("twitter" | "tiktok" | "media")[];
+  ai_language?: string;
+}
+
+// Report metadata
+export interface ReportMetadata {
+  version: string;
+  word_count: number;
+  last_edited_at: string;
+  template_id?: string;
+}
+
+// Full report content structure (stored in JSONB)
+export interface ReportContent {
+  tiptap_document: TiptapDocument;
+  config: ReportConfig;
+  metadata: ReportMetadata;
+  embedded_items: ReportEmbeddedItems;
+  template_id?: string;
+}
+
+// Report entity
+export interface Report {
+  id: string;
+  zone_id: string;
+  client_id: string;
+  conversation_id: string | null;
+  title: string;
+  summary: string | null;
+  status: ReportStatus;
+  content: ReportContent;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// Report with zone information
+export interface ReportWithZone extends Report {
+  zone?: {
+    id: string;
+    name: string;
+  };
+}
+
+// Report list item (lightweight for listing)
+export interface ReportListItem {
+  id: string;
+  title: string;
+  status: ReportStatus;
+  zone_id: string;
+  zone_name?: string;
+  created_at: string;
+  updated_at: string;
+  word_count?: number;
+}
+
+// =====================================================
+// END REPORTS TYPES
+// =====================================================

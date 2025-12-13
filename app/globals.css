@@ -719,8 +719,8 @@
     background-color: oklch(from var(--muted) l c h / 0.2);
   }
 
-  /* SVG inline styles for chat visualizations */
-  .prose svg {
+  /* SVG inline styles for chat visualizations - excludes not-prose elements */
+  .prose :where(svg):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
     display: block;
     max-width: 100%;
     width: 100%;
@@ -728,32 +728,32 @@
     margin: 1rem auto;
   }
 
-  /* SVG text should use theme colors */
-  .prose svg text {
+  /* SVG text should use theme colors - excludes not-prose elements */
+  .prose :where(svg text):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
     fill: var(--foreground);
     font-family: var(--font-sans);
     font-size: 14px;
   }
 
-  .prose svg .chart-grid {
+  .prose :where(svg .chart-grid):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
     stroke: var(--border);
     stroke-dasharray: 3 3;
     opacity: 0.3;
   }
 
-  .prose svg .chart-axis {
+  .prose :where(svg .chart-axis):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
     stroke: var(--muted-foreground);
   }
 
-  .prose svg .chart-primary {
+  .prose :where(svg .chart-primary):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
     fill: var(--primary);
   }
 
-  .prose svg .chart-secondary {
+  .prose :where(svg .chart-secondary):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
     fill: var(--chart-2);
   }
 
-  .prose svg .chart-text-muted {
+  .prose :where(svg .chart-text-muted):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
     fill: var(--muted-foreground);
   }
 }

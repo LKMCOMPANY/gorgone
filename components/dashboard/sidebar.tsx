@@ -48,6 +48,7 @@ import {
   Settings,
   Bot,
   Eye,
+  FileText,
 } from "lucide-react";
 
 interface DashboardSidebarProps {
@@ -160,6 +161,22 @@ export function DashboardSidebar({
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
+
+              {/* Reports - Only visible when client is set */}
+              {clientId && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton 
+                    asChild 
+                    isActive={pathname.startsWith("/dashboard/reports")} 
+                    tooltip="Reports"
+                  >
+                    <Link href="/dashboard/reports">
+                      <FileText className="size-4" />
+                      <span>Reports</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
