@@ -8,6 +8,8 @@ import { Tool } from "@/components/ai/tool";
 import { Loader } from "@/components/ai/loader";
 import { Actions, ActionButton } from "@/components/ai/actions";
 import { ChatChart } from "./chat-chart";
+import { TweetCardList, type TweetData } from "@/components/ui/tweet-card";
+import { Badge } from "@/components/ui/badge";
 import { Copy, RefreshCw } from "lucide-react";
 
 type VisualizationPayload = {
@@ -17,6 +19,327 @@ type VisualizationPayload = {
   data: Array<{ timestamp: string; value: number; label: string }>;
   config: Record<string, { label: string; color?: string }>;
 };
+
+/** Opinion report tweet example */
+type TweetExample = {
+  tweet_id: string;
+  text: string;
+  author_username: string;
+  author_name: string;
+  author_verified: boolean;
+  author_profile_picture_url: string | null;
+  engagement: {
+    likes: number;
+    retweets: number;
+    replies: number;
+    views: number;
+  };
+  tweet_url: string;
+};
+
+/** Opinion report cluster */
+type ClusterData = {
+  label: string;
+  description: string | null;
+  percentage: string;
+  sentiment_label: string;
+  keywords: string[];
+  examples: TweetExample[];
+};
+
+/** Opinion report payload from generate_opinion_report tool */
+type OpinionReportPayload = {
+  _type: "opinion_report";
+  available: boolean;
+  session: {
+    data_period: { display: string };
+    total_tweets_analyzed: number;
+    total_clusters: number;
+  };
+  clusters: ClusterData[];
+  /** Sentiment evolution chart (optional - only if multiple sessions exist) */
+  sentiment_evolution_chart?: VisualizationPayload | null;
+  /** Raw sentiment evolution data */
+  sentiment_evolution?: Array<{
+    date: string;
+    avg_sentiment: number;
+    positive: number;
+    neutral: number;
+    negative: number;
+    total_tweets: number;
+  }>;
+};
+
+/**
+ * Safely parse tool result that may be string or object
+ * Handles SDK 5.x serialization edge cases and nested structures
+ */
+function parseToolResult(result: unknown): Record<string, unknown> | null {
+  if (!result) return null;
+  
+  let parsed: unknown = result;
+  
+  // String that needs parsing
+  if (typeof result === "string") {
+    try {
+      parsed = JSON.parse(result);
+    } catch {
+      return null;
+    }
+  }
+  
+  // Not an object
+  if (typeof parsed !== "object" || parsed === null) {
+    return null;
+  }
+  
+  const obj = parsed as Record<string, unknown>;
+  
+  // Check for nested result structure (SDK v5 sometimes wraps results)
+  if (obj.result && typeof obj.result === "object") {
+    return obj.result as Record<string, unknown>;
+  }
+  
+  // Check for content wrapper
+  if (obj.content && typeof obj.content === "object") {
+    return obj.content as Record<string, unknown>;
+  }
+  
+  return obj;
+}
+
+/**
+ * Validate if a parsed result is a valid visualization payload
+ */
+function isValidVisualization(obj: Record<string, unknown> | null): obj is VisualizationPayload {
+  if (!obj) return false;
+  
+  return (
+    obj._type === "visualization" &&
+    (obj.chart_type === "line" || obj.chart_type === "bar" || obj.chart_type === "area") &&
+    typeof obj.title === "string" &&
+    Array.isArray(obj.data)
+  );
+}
+
+/**
+ * Format tool name for display (snake_case → Title Case)
+ */
+function formatToolName(name: string): string {
+  return name
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
+/**
+ * Extract tool name from SDK v5 type format "tool-{toolName}"
+ */
+function extractToolNameFromType(type: string | undefined): string {
+  if (!type) return "";
+  if (type.startsWith("tool-")) {
+    return type.slice(5); // Remove "tool-" prefix
+  }
+  return "";
+}
+
+/**
+ * Check if a result is a valid opinion report
+ */
+function isValidOpinionReport(obj: Record<string, unknown> | null): obj is OpinionReportPayload {
+  if (!obj) return false;
+  return (
+    obj._type === "opinion_report" &&
+    obj.available === true &&
+    Array.isArray(obj.clusters)
+  );
+}
+
+/**
+ * Extract minimal intro text when opinion report is rendered
+ * This prevents the AI's verbose markdown from overriding the structured UI
+ */
+function extractMinimalIntro(text: string): string {
+  if (!text) return "";
+  
+  // Remove markdown headers that repeat report content
+  const lines = text.split("\n");
+  const filteredLines: string[] = [];
+  let skipSection = false;
+  
+  for (const line of lines) {
+    const trimmed = line.trim();
+    
+    // Skip empty lines at the start
+    if (filteredLines.length === 0 && !trimmed) continue;
+    
+    // Skip lines that look like they're repeating cluster data
+    if (trimmed.match(/^#+\s*(Cluster|Opinion|Report|Overview|Breakdown)/i)) {
+      skipSection = true;
+      continue;
+    }
+    
+    // Skip numbered cluster items
+    if (trimmed.match(/^\d+\.\s+\*\*/)) {
+      skipSection = true;
+      continue;
+    }
+    
+    // Skip description/sentiment/example lines
+    if (trimmed.match(/^-\s+\*\*(Description|Sentiment|Examples|Keywords)/i)) {
+      continue;
+    }
+    
+    // Stop skipping when we hit a synthesis/conclusion section
+    if (trimmed.match(/^#+\s*(Synthesis|Conclusion|Key Takeaways|Strategic|Recommendations)/i)) {
+      skipSection = false;
+      filteredLines.push(line);
+      continue;
+    }
+    
+    if (!skipSection) {
+      filteredLines.push(line);
+    }
+  }
+  
+  // Return only the cleaned text (intro + conclusion, no cluster details)
+  const result = filteredLines.join("\n").trim();
+  
+  // If too long, truncate to first and last sections
+  if (result.length > 1500) {
+    const paragraphs = result.split(/\n\n+/);
+    if (paragraphs.length > 3) {
+      return [paragraphs[0], "...", paragraphs[paragraphs.length - 1]].join("\n\n");
+    }
+  }
+  
+  return result;
+}
+
+/**
+ * Render opinion report with styled tweet cards
+ */
+/**
+ * Convert tool tweet format to TweetData format
+ */
+function toTweetData(tweet: TweetExample): TweetData {
+  return {
+    tweet_id: tweet.tweet_id,
+    text: tweet.text,
+    author_username: tweet.author_username,
+    author_name: tweet.author_name,
+    author_verified: tweet.author_verified,
+    author_profile_picture_url: tweet.author_profile_picture_url,
+    engagement: tweet.engagement,
+    tweet_url: tweet.tweet_url,
+  };
+}
+
+/**
+ * Opinion Report View - Renders structured opinion report with TweetCards
+ */
+function OpinionReportView({ report }: { report: OpinionReportPayload }) {
+  return (
+    <div className="space-y-6">
+      {/* Header Card */}
+      <div className="rounded-xl border bg-card p-5">
+        <h3 className="text-lg font-semibold mb-3">Opinion Report</h3>
+        <div className="grid grid-cols-3 gap-4 text-center">
+          <div>
+            <div className="text-2xl font-bold text-foreground">
+              {report.session.total_tweets_analyzed.toLocaleString()}
+            </div>
+            <div className="text-xs text-muted-foreground">Tweets Analyzed</div>
+          </div>
+          <div>
+            <div className="text-2xl font-bold text-foreground">
+              {report.session.total_clusters}
+            </div>
+            <div className="text-xs text-muted-foreground">Clusters</div>
+          </div>
+          <div>
+            <div className="text-sm font-medium text-foreground">
+              {report.session.data_period.display}
+            </div>
+            <div className="text-xs text-muted-foreground">Period</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Sentiment Evolution Chart (if available) */}
+      {report.sentiment_evolution_chart && (
+        <div className="rounded-xl border bg-card p-5">
+          <ChatChart
+            type={report.sentiment_evolution_chart.chart_type}
+            title={report.sentiment_evolution_chart.title}
+            data={report.sentiment_evolution_chart.data}
+            config={report.sentiment_evolution_chart.config}
+          />
+        </div>
+      )}
+
+      {/* Clusters */}
+      {report.clusters.map((cluster, idx) => (
+        <div key={idx} className="rounded-xl border bg-card p-5 space-y-4">
+          {/* Cluster header */}
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h4 className="text-base font-semibold">{cluster.label}</h4>
+                <Badge variant="secondary" className="text-xs">
+                  {cluster.percentage}%
+                </Badge>
+                <Badge 
+                  variant="outline"
+                  className={
+                    cluster.sentiment_label === "positive" 
+                      ? "border-green-500/50 text-green-600 bg-green-500/10" 
+                      : cluster.sentiment_label === "negative"
+                      ? "border-red-500/50 text-red-600 bg-red-500/10"
+                      : "border-gray-500/50 text-gray-600 bg-gray-500/10"
+                  }
+                >
+                  {cluster.sentiment_label}
+                </Badge>
+              </div>
+            </div>
+          </div>
+
+          {/* Full Description - NOT summarized */}
+          {cluster.description && (
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              {cluster.description}
+            </p>
+          )}
+
+          {/* Keywords */}
+          {cluster.keywords && cluster.keywords.length > 0 && (
+            <div className="flex flex-wrap gap-1.5">
+              {cluster.keywords.slice(0, 8).map((kw, i) => (
+                <Badge key={i} variant="outline" className="text-xs font-normal">
+                  {kw}
+                </Badge>
+              ))}
+            </div>
+          )}
+
+          {/* Tweet examples using TweetCardList */}
+          {cluster.examples && cluster.examples.length > 0 && (
+            <div className="pt-2 border-t border-border/50">
+              <div className="text-xs text-muted-foreground mb-2 font-medium">
+                Representative Tweets
+              </div>
+              <TweetCardList
+                tweets={cluster.examples.map(toTweetData)}
+                compact
+              />
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
 
 // Use the return type of useChat from ai/react
 interface ChatMessage {
@@ -110,20 +433,43 @@ function getToolInvocations(message: ChatMessage): Array<{
   state: string;
 }> {
   if (message.parts) {
-    return message.parts
-      .filter((part) => part.type === "tool-invocation" || part.type === "tool-result")
-      .map((part) => ({
-        toolName: part.toolName || "",
-        args: part.args || {},
-        result: part.result,
-        state: part.state || "pending",
-      }));
+    // SDK v5 uses "tool-${toolName}" as the type, e.g., "tool-generate_opinion_report"
+    const toolParts = message.parts
+      .filter((part) => {
+        const type = part.type;
+        return (
+          type === "tool-invocation" || 
+          type === "tool-result" ||
+          type === "dynamic-tool" ||
+          type?.startsWith("tool-")  // SDK v5 format: "tool-{toolName}"
+        );
+      });
+    
+    return toolParts.map((part) => {
+      // Extract tool name from type if not provided directly
+      const toolName = part.toolName || extractToolNameFromType(part.type);
+      // SDK v5 uses 'output' field, legacy uses 'result'
+      const partAny = part as any;
+      const result = partAny.output ?? part.result ?? partAny.input;
+      // SDK v5 states: input-streaming, input-available, output-available
+      // Map to our states: pending, partial-call, result
+      const state = part.state === "output-available" ? "result" 
+        : part.state === "input-available" ? "partial-call"
+        : part.state || "pending";
+      return {
+        toolName,
+        args: partAny.input || part.args || {},
+        result,
+        state,
+      };
+    });
   }
   
   // Legacy fallback for toolInvocations
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const legacyInvocations = (message as any).toolInvocations;
   if (Array.isArray(legacyInvocations)) {
+    console.log("[DEBUG] Using legacy toolInvocations:", legacyInvocations.length);
     return legacyInvocations;
   }
   
@@ -149,7 +495,7 @@ export function ChatMessages({
         {messages.map((message, i) => {
           const isLast = i === messages.length - 1;
           const rawTextContent = getMessageText(message);
-          const { visualization, cleanedText: textContent } =
+          const { visualization, cleanedText } =
             extractVisualizationFromText(rawTextContent);
           const toolInvocations = getToolInvocations(message);
           
@@ -157,6 +503,18 @@ export function ChatMessages({
           if (message.role === "data") {
             return null;
           }
+
+          // Check if any tool returned an opinion report (to suppress redundant text)
+          const hasOpinionReport = toolInvocations.some((tool) => {
+            const parsed = parseToolResult(tool.result);
+            const hasOutput = tool.state === "result" || tool.state === "output-available";
+            return hasOutput && isValidOpinionReport(parsed);
+          });
+
+          // If opinion report rendered, only show minimal text (first paragraph or short intro)
+          const textContent = hasOpinionReport 
+            ? extractMinimalIntro(cleanedText)
+            : cleanedText;
           
           return (
             <Message key={message.id} from={message.role as "user" | "assistant"}>
@@ -175,26 +533,49 @@ export function ChatMessages({
 
                 {/* Tool Invocations */}
                 {toolInvocations.map((tool, idx) => {
-                  // Visualization tools
-                  const toolResult = tool.result as Record<string, unknown> | undefined;
-                  if (tool.state === "result" && toolResult?._type === "visualization") {
+                  // Parse tool result (handles string/object edge cases)
+                  const parsedResult = parseToolResult(tool.result);
+                  
+                  // Check if this is a visualization result
+                  const hasVisualizationResult = (tool.state === "result" || tool.state === "output-available") && isValidVisualization(parsedResult);
+                  if (hasVisualizationResult) {
                     return (
                       <div key={idx} className="my-4 w-full">
                         <ChatChart
-                          type={toolResult.chart_type as "line" | "bar" | "area"}
-                          title={toolResult.title as string}
-                          data={toolResult.data as Array<{ timestamp: string; value: number; label: string }>}
-                          config={toolResult.config as { [key: string]: { label: string; color?: string } }}
+                          type={parsedResult.chart_type}
+                          title={parsedResult.title}
+                          data={parsedResult.data}
+                          config={parsedResult.config}
                         />
                       </div>
                     );
                   }
 
-                  // Regular tools
+                  // Check if this is an opinion report result
+                  const hasOpinionResult = (tool.state === "result" || tool.state === "output-available") && isValidOpinionReport(parsedResult);
+                  if (hasOpinionResult) {
+                    return (
+                      <div key={idx} className="my-4 w-full">
+                        <OpinionReportView report={parsedResult} />
+                      </div>
+                    );
+                  }
+
+                  // Skip visualization/opinion report tools from displaying as regular tools
+                  const isCompletedVisualization = tool.toolName === "create_visualization" && (tool.state === "result" || tool.state === "output-available");
+                  if (isCompletedVisualization) {
+                    return null;
+                  }
+                  const isCompletedOpinionReport = tool.toolName === "generate_opinion_report" && (tool.state === "result" || tool.state === "output-available");
+                  if (isCompletedOpinionReport) {
+                    return null;
+                  }
+
+                  // Regular tools - display collapsible details
                   return (
                     <div key={idx} className="my-2">
                       <Tool
-                        name={tool.toolName}
+                        name={formatToolName(tool.toolName)}
                         status={
                           tool.state === "result"
                             ? "complete"
@@ -206,11 +587,9 @@ export function ChatMessages({
                         }
                         input={tool.args}
                         output={
-                          tool.state === "result" ? (
-                             <pre className="text-xs overflow-x-auto whitespace-pre-wrap">
-                               {typeof tool.result === 'string' 
-                                 ? tool.result 
-                                 : JSON.stringify(tool.result, null, 2)}
+                          tool.state === "result" && parsedResult ? (
+                             <pre className="text-xs overflow-x-auto whitespace-pre-wrap max-h-48 overflow-y-auto">
+                               {JSON.stringify(parsedResult, null, 2)}
                              </pre>
                           ) : null
                         }

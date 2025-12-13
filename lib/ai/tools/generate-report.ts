@@ -8,6 +8,7 @@ import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logger } from "@/lib/logger";
 import { getToolContext } from "@/lib/ai/types";
+import { getStartDate } from "@/lib/ai/utils";
 
 const parametersSchema = z.object({
   period: z
@@ -35,7 +36,7 @@ type Output = Record<string, unknown>;
 
 export const generateReportTool: Tool<Parameters, Output> = {
   description:
-    "Generate a structured monitoring report (sections, citations, and limitations) for a chosen time window.",
+    "Generate a structured executive briefing/report covering multiple aspects: overview, top content, influencers, trends, sentiment, and anomalies. Use when users request 'create a report', 'briefing', 'executive summary', or 'formal note'. Returns data to format as professional document.",
 
   inputSchema: zodSchema(parametersSchema),
 
@@ -105,19 +106,14 @@ export const generateReportTool: Tool<Parameters, Output> = {
       };
     } catch (error) {
       logger.error("[AI Tool] generate_report error", { error });
-      throw new Error("Failed to generate report");
+      return {
+        _type: "report_request",
+        period,
+        error: "Failed to gather data for report",
+        instructions: "Unable to generate report due to data access issues",
+      };
     }
   },
 };
 
-function getStartDate(period: string): Date {
-  const hours: Record<string, number> = {
-    "3h": 3,
-    "6h": 6,
-    "12h": 12,
-    "24h": 24,
-    "7d": 168,
-    "30d": 720,
-  };
-  return new Date(Date.now() - (hours[period] || 24) * 60 * 60 * 1000);
-}
+// getStartDate imported from @/lib/ai/utils

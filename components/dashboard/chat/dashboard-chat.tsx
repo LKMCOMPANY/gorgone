@@ -2,8 +2,8 @@
 
 import * as React from "react";
 import { useChat as useAIChat } from "@ai-sdk/react";
-import { TextStreamChatTransport } from "ai";
-import { MessageSquare, Sparkles, ChevronDown } from "lucide-react";
+import { DefaultChatTransport } from "ai";
+import { Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -40,10 +40,10 @@ export function DashboardChat({ zones, variant = "full" }: DashboardChatProps) {
 
   const chatId = `dashboard-chat-${activeZone?.id}`;
 
-  // Text-stream chat transport (server returns toTextStreamResponse()).
-  // Recreate when zone changes to ensure correct body and id.
+  // Default chat transport with UI message support (server returns toUIMessageStreamResponse())
+  // This enables tool results (OpinionReportView, TweetCards, etc.) to be rendered
   const transport = React.useMemo(() => {
-    return new TextStreamChatTransport({
+    return new DefaultChatTransport({
       api: "/api/chat",
       body: {
         zoneId: activeZone?.id,
@@ -56,7 +56,7 @@ export function DashboardChat({ zones, variant = "full" }: DashboardChatProps) {
     sendMessage,
     regenerate,
     status,
-    error,
+    error: _error, // Used for error handling below
     clearError,
   } = useAIChat({
     id: chatId,
@@ -77,12 +77,12 @@ export function DashboardChat({ zones, variant = "full" }: DashboardChatProps) {
 
   const isLoading = status === "submitted" || status === "streaming";
 
-  // Common suggestions
+  // Common suggestions (English only - UI language)
   const suggestions = [
+    "Generate a complete opinion report",
     "Analyze the latest trends in this zone",
     "Summarize sentiment for the last 24 hours",
     "Identify key influencers discussing this topic",
-    "Compare engagement across platforms"
   ];
 
   const handleSuggestionClick = (suggestion: string) => {

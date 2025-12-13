@@ -21,7 +21,7 @@ type Output = Record<string, unknown>;
 
 export const detectAnomaliesTool: Tool<Parameters, Output> = {
   description:
-    "Detect abnormal spikes/viral concentration in zone activity (volume/engagement) at a chosen sensitivity.",
+    "Detect unusual activity patterns: volume spikes, viral content, and engagement anomalies. Use when asked 'anything unusual?', 'alerts', 'abnormal activity', or 'spikes'. Compares recent activity against 7-day baseline with adjustable sensitivity.",
 
   inputSchema: zodSchema(parametersSchema),
 
@@ -140,7 +140,12 @@ export const detectAnomaliesTool: Tool<Parameters, Output> = {
       };
     } catch (error) {
       logger.error("[AI Tool] detect_anomalies error", { error });
-      throw new Error("Failed to detect anomalies");
+      return {
+        sensitivity,
+        detected_at: new Date().toISOString(),
+        has_anomalies: false,
+        error: "Failed to detect anomalies - data unavailable",
+      };
     }
   },
 };

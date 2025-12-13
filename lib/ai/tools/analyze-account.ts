@@ -11,6 +11,7 @@ import { getProfilesWithStatsForZone } from "@/lib/data/tiktok/profiles-stats";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logger } from "@/lib/logger";
 import { getToolContext } from "@/lib/ai/types";
+import { getStartDate } from "@/lib/ai/utils";
 
 const parametersSchema = z.object({
   username: z.string().describe("Username to analyze (with or without @)"),
@@ -28,7 +29,7 @@ type Output = Record<string, unknown>;
 
 export const analyzeAccountTool: Tool<Parameters, Output> = {
   description:
-    "Deep-dive a specific account (profile + activity + engagement) over a time window.",
+    "Deep-dive analysis of a specific account: profile stats, activity history, engagement metrics, and influence score. Use when users ask about a specific @username like 'analyze @elonmusk' or 'tell me about this account'. Returns comprehensive profile data.",
 
   inputSchema: zodSchema(parametersSchema),
 
@@ -169,19 +170,13 @@ export const analyzeAccountTool: Tool<Parameters, Output> = {
       }
     } catch (error) {
       logger.error("[AI Tool] analyze_account error", { error });
-      throw new Error("Failed to analyze account");
+      return {
+        username,
+        platform,
+        error: "Failed to analyze account - profile may not exist in zone data",
+      };
     }
   },
 };
 
-function getStartDate(period: string): Date {
-  const hours: Record<string, number> = {
-    "3h": 3,
-    "6h": 6,
-    "12h": 12,
-    "24h": 24,
-    "7d": 168,
-    "30d": 720,
-  };
-  return new Date(Date.now() - (hours[period] || 24) * 60 * 60 * 1000);
-}
+// getStartDate imported from @/lib/ai/utils

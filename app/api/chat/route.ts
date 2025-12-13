@@ -24,6 +24,8 @@ import {
   getMediaCoverageTool,
   compareAccountsTool,
   generateReportTool,
+  // Opinion Analysis
+  generateOpinionReportTool,
   // Visualization
   createVisualizationTool,
 } from "@/lib/ai/tools";
@@ -158,6 +160,8 @@ export async function POST(request: Request) {
       get_media_coverage: getMediaCoverageTool,
       compare_accounts: compareAccountsTool,
       generate_report: generateReportTool,
+      // Opinion Analysis
+      generate_opinion_report: generateOpinionReportTool,
       // Visualization
       create_visualization: createVisualizationTool,
     };
@@ -185,7 +189,8 @@ export async function POST(request: Request) {
       stopWhen: stepCountIs(modelSettings.stepLimit),
       // Pass context to tools via experimental_context (SDK 5.x)
       experimental_context: toolContext,
-      providerOptions: modelSettings.providerOptions,
+      // Temperature for response consistency (government-grade reliability)
+      temperature: modelSettings.temperature,
       onStepFinish: ({ finishReason, toolCalls }) => {
         debugLog("[Chat API] Step finished:", finishReason);
         if (toolCalls && toolCalls.length > 0) {
@@ -195,7 +200,9 @@ export async function POST(request: Request) {
     });
 
     debugLog("[Chat API] Streaming response with tools...");
-    return result.toTextStreamResponse();
+    // Use toUIMessageStreamResponse to include tool results in structured format
+    // This enables the frontend to render OpinionReportView, TweetCards, etc.
+    return result.toUIMessageStreamResponse();
   } catch (error) {
     console.error("[Chat API] Error:", error);
     return new Response("Internal Server Error", { status: 500 });

@@ -12,7 +12,7 @@ interface ChatInputProps {
 }
 
 export function ChatInput({
-  zoneId,
+  zoneId: _zoneId, // Reserved for future per-zone context
   value,
   onChange,
   onSubmit,

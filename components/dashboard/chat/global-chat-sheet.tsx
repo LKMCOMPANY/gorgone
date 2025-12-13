@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { DashboardChat } from "./dashboard-chat";
-import { Sheet, SheetContent, SheetTitle, SheetDescription, SheetClose } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Keyboard, X } from "lucide-react";
 import { usePathname } from "next/navigation";

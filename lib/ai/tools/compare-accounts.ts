@@ -10,6 +10,7 @@ import { getProfileByUsername as getTikTokProfile } from "@/lib/data/tiktok/prof
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logger } from "@/lib/logger";
 import { getToolContext } from "@/lib/ai/types";
+import { getStartDate } from "@/lib/ai/utils";
 
 const parametersSchema = z.object({
   usernames: z
@@ -31,7 +32,7 @@ type Output = Record<string, unknown>;
 
 export const compareAccountsTool: Tool<Parameters, Output> = {
   description:
-    "Compare 2–5 accounts side-by-side on activity and engagement over a time window.",
+    "Side-by-side comparison of 2-5 accounts with metrics like followers, engagement rate, and activity volume. Use when users say 'compare @a vs @b', 'which account is more influential?', or 'benchmark these profiles'. Returns tabular comparison data.",
 
   inputSchema: zodSchema(parametersSchema),
 
@@ -138,19 +139,15 @@ export const compareAccountsTool: Tool<Parameters, Output> = {
       };
     } catch (error) {
       logger.error("[AI Tool] compare_accounts error", { error });
-      throw new Error("Failed to compare accounts");
+      return {
+        usernames,
+        platform,
+        period,
+        error: "Failed to compare accounts - some profiles may not exist in zone data",
+        accounts: [],
+      };
     }
   },
 };
 
-function getStartDate(period: string): Date {
-  const hours: Record<string, number> = {
-    "3h": 3,
-    "6h": 6,
-    "12h": 12,
-    "24h": 24,
-    "7d": 168,
-    "30d": 720,
-  };
-  return new Date(Date.now() - (hours[period] || 168) * 60 * 60 * 1000);
-}
+// getStartDate imported from @/lib/ai/utils

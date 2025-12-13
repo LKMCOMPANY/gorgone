@@ -11,6 +11,7 @@ import { getTrendingHashtags as getTikTokHashtags } from "@/lib/data/tiktok/enti
 import { getArticlesByZone } from "@/lib/data/media/articles";
 import { logger } from "@/lib/logger";
 import { getToolContext } from "@/lib/ai/types";
+import { getStartDate, buildResultMetadata } from "@/lib/ai/utils";
 
 const parametersSchema = z.object({
   period: z
@@ -24,7 +25,7 @@ type Output = Record<string, unknown>;
 
 export const getZoneOverviewTool: Tool<Parameters, Output> = {
   description:
-    "High-level zone overview (activity, top accounts/content, and key topics) for a given time window.",
+    "Get a comprehensive zone overview with activity metrics, top accounts, and trending topics across all enabled platforms. Use this as the FIRST tool when users ask general questions like 'what's happening?', 'give me an overview', or 'summary of activity'. Returns multi-platform data in a single call.",
 
   inputSchema: zodSchema(parametersSchema),
 
@@ -39,6 +40,10 @@ export const getZoneOverviewTool: Tool<Parameters, Output> = {
         period,
       });
 
+      // Track which sources we query for metadata
+      const sourcesQueried: string[] = [];
+      const limitations: string[] = [];
+
       const overview: Output = {
         period,
         generated_at: new Date().toISOString(),
@@ -46,6 +51,7 @@ export const getZoneOverviewTool: Tool<Parameters, Output> = {
 
       // Twitter stats (if enabled)
       if (dataSources.twitter) {
+        sourcesQueried.push("twitter");
         try {
           const supabase = createAdminClient();
           const startDate = getStartDate(period);
@@ -110,11 +116,13 @@ export const getZoneOverviewTool: Tool<Parameters, Output> = {
         } catch (error) {
           logger.error("[AI Tool] Twitter overview failed", { error });
           overview.twitter = { error: "Failed to fetch Twitter data" };
+          limitations.push("Twitter data unavailable");
         }
       }
 
       // TikTok stats (if enabled)
       if (dataSources.tiktok) {
+        sourcesQueried.push("tiktok");
         try {
           const trendingHashtags = await getTikTokHashtags(zoneId, 10);
 
@@ -127,11 +135,13 @@ export const getZoneOverviewTool: Tool<Parameters, Output> = {
         } catch (error) {
           logger.error("[AI Tool] TikTok overview failed", { error });
           overview.tiktok = { error: "Failed to fetch TikTok data" };
+          limitations.push("TikTok data unavailable");
         }
       }
 
       // Media stats (if enabled)
       if (dataSources.media) {
+        sourcesQueried.push("media");
         try {
           const startDate = getStartDate(period);
           const articles = await getArticlesByZone(zoneId, {
@@ -157,30 +167,33 @@ export const getZoneOverviewTool: Tool<Parameters, Output> = {
         } catch (error) {
           logger.error("[AI Tool] Media overview failed", { error });
           overview.media = { error: "Failed to fetch Media data" };
+          limitations.push("Media data unavailable");
         }
       }
+
+      // Add traceability metadata
+      overview._meta = buildResultMetadata({
+        period,
+        zoneId,
+        sources: sourcesQueried,
+        limitations: limitations.length > 0 ? limitations : undefined,
+      });
 
       return overview;
     } catch (error) {
       logger.error("[AI Tool] get_zone_overview error", { error });
-      throw new Error("Failed to generate zone overview");
+      // Return partial result instead of throwing
+      return {
+        period,
+        generated_at: new Date().toISOString(),
+        error: "Failed to generate complete zone overview",
+        partial: true,
+      };
     }
   },
 };
 
-// Helper functions
-function getStartDate(period: string): Date {
-  const hours: Record<string, number> = {
-    "3h": 3,
-    "6h": 6,
-    "12h": 12,
-    "24h": 24,
-    "7d": 168,
-    "30d": 720,
-  };
-  return new Date(Date.now() - (hours[period] || 24) * 60 * 60 * 1000);
-}
-
+// Helper function for media sources aggregation
 function getTopSources(articles: Array<{ source_title?: string | null }>): Array<{ source: string; count: number }> {
   const sourceCounts = new Map<string, number>();
 

@@ -19,7 +19,7 @@ type Output = Record<string, unknown>;
 
 export const getOpinionMapSummaryTool: Tool<Parameters, Output> = {
   description:
-    "Summarize the latest opinion-map clustering (top clusters, size, labels/keywords) for the zone.",
+    "Summarize opinion clustering from the latest UMAP analysis session: dominant clusters, themes, and polarization. Use for 'opinion landscape', 'what are the main narratives?', or 'polarization analysis'. Requires Opinion Map to be generated first.",
 
   inputSchema: zodSchema(parametersSchema),
 
@@ -97,7 +97,10 @@ export const getOpinionMapSummaryTool: Tool<Parameters, Output> = {
       };
     } catch (error) {
       logger.error("[AI Tool] get_opinion_map_summary error", { error });
-      throw new Error("Failed to get opinion map summary");
+      return {
+        error: "Failed to retrieve opinion map data",
+        note: "Opinion map may not be generated yet for this zone",
+      };
     }
   },
 };

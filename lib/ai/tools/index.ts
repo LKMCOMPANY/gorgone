@@ -24,6 +24,9 @@ export { getMediaCoverageTool } from "./get-media-coverage";
 export { compareAccountsTool } from "./compare-accounts";
 export { generateReportTool } from "./generate-report";
 
+// Opinion Analysis
+export { generateOpinionReportTool } from "./generate-opinion-report";
+
 // Visualization
 export { createVisualizationTool } from "./create-visualization";
 

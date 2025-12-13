@@ -60,8 +60,8 @@ const QUICK_ACTIONS = [
   },
   {
     icon: MessageCircle,
-    label: "Opinion analysis",
-    query: "What are the dominant opinions in the discussion?",
+    label: "Opinion report",
+    query: "Generate a complete opinion report with cluster analysis and tweet examples",
   },
   {
     icon: PieChart,

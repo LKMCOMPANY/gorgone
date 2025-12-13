@@ -8,6 +8,7 @@ import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logger } from "@/lib/logger";
 import { getToolContext } from "@/lib/ai/types";
+import { getStartDate } from "@/lib/ai/utils";
 
 const parametersSchema = z.object({
   topic: z.string().optional().describe("Specific topic to analyze (optional)"),
@@ -22,7 +23,7 @@ type Output = Record<string, unknown>;
 
 export const analyzeSentimentTool: Tool<Parameters, Output> = {
   description:
-    "Compute sentiment breakdown for the zone (optionally scoped to a topic) over a time window.",
+    "Analyze sentiment distribution (positive/neutral/negative) across zone content. Uses media article sentiment scores and engagement patterns. Use for questions like 'what's the mood?', 'is coverage positive or negative?', or 'sentiment analysis'.",
 
   inputSchema: zodSchema(parametersSchema),
 
@@ -125,19 +126,13 @@ export const analyzeSentimentTool: Tool<Parameters, Output> = {
       return result;
     } catch (error) {
       logger.error("[AI Tool] analyze_sentiment error", { error });
-      throw new Error("Failed to analyze sentiment");
+      return {
+        period,
+        topic: topic || "all content",
+        error: "Failed to analyze sentiment",
+      };
     }
   },
 };
 
-function getStartDate(period: string): Date {
-  const hours: Record<string, number> = {
-    "3h": 3,
-    "6h": 6,
-    "12h": 12,
-    "24h": 24,
-    "7d": 168,
-    "30d": 720,
-  };
-  return new Date(Date.now() - (hours[period] || 24) * 60 * 60 * 1000);
-}
+// getStartDate imported from @/lib/ai/utils

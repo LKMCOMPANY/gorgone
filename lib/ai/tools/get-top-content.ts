@@ -9,6 +9,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { getVideosByZone } from "@/lib/data/tiktok/videos";
 import { logger } from "@/lib/logger";
 import { getToolContext } from "@/lib/ai/types";
+import { getStartDate } from "@/lib/ai/utils";
 
 const parametersSchema = z.object({
   platform: z
@@ -27,7 +28,7 @@ type Output = Record<string, unknown>;
 
 export const getTopContentTool: Tool<Parameters, Output> = {
   description:
-    "Return top content ranked by engagement (tweets/videos) for a given time window and platform.",
+    "Retrieve the most engaging posts (tweets, TikTok videos) ranked by total engagement. Use when users ask 'what are the top posts?', 'most viral content', or 'best performing tweets'. Returns content with full engagement breakdown (likes, retweets, views, etc.).",
 
   inputSchema: zodSchema(parametersSchema),
 
@@ -180,19 +181,14 @@ export const getTopContentTool: Tool<Parameters, Output> = {
       return results;
     } catch (error) {
       logger.error("[AI Tool] get_top_content error", { error });
-      throw new Error("Failed to get top content");
+      return {
+        platform,
+        period,
+        error: "Failed to retrieve top content",
+        content: [],
+      };
     }
   },
 };
 
-function getStartDate(period: string): Date {
-  const hours: Record<string, number> = {
-    "3h": 3,
-    "6h": 6,
-    "12h": 12,
-    "24h": 24,
-    "7d": 168,
-    "30d": 720,
-  };
-  return new Date(Date.now() - (hours[period] || 24) * 60 * 60 * 1000);
-}
+// getStartDate imported from @/lib/ai/utils

@@ -27,7 +27,7 @@ type Output = Record<string, unknown>;
 
 export const searchContentTool: Tool<Parameters, Output> = {
   description:
-    "Cross-platform keyword search (Twitter/TikTok/Media) within the zone and optional date window.",
+    "Search for specific keywords, hashtags, or phrases across all platforms (Twitter, TikTok, Media). Use when users want to find content about a specific topic, person, or event. Supports date filtering and returns mixed results sorted by relevance.",
 
   inputSchema: zodSchema(parametersSchema),
 
@@ -212,7 +212,13 @@ export const searchContentTool: Tool<Parameters, Output> = {
       };
     } catch (error) {
       logger.error("[AI Tool] search_content error", { error });
-      throw new Error("Failed to search content");
+      return {
+        query,
+        platforms,
+        error: "Failed to search content",
+        results: [],
+        total_results: 0,
+      };
     }
   },
 };

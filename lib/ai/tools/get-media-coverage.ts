@@ -8,6 +8,7 @@ import { z } from "zod";
 import { getArticlesByZone } from "@/lib/data/media/articles";
 import { logger } from "@/lib/logger";
 import { getToolContext } from "@/lib/ai/types";
+import { getStartDate } from "@/lib/ai/utils";
 
 const parametersSchema = z.object({
   topic: z.string().describe("Topic or keyword to analyze"),
@@ -26,7 +27,7 @@ type Output = Record<string, unknown>;
 
 export const getMediaCoverageTool: Tool<Parameters, Output> = {
   description:
-    "Analyze media coverage for a topic (volume, sources, sentiment) over a time window.",
+    "Analyze news and press coverage for a specific topic: article count, source diversity, sentiment breakdown, and top articles. Use for 'media coverage on X', 'press reaction', or 'news about this topic'. Only available when Media data source is enabled.",
 
   inputSchema: zodSchema(parametersSchema),
 
@@ -118,16 +119,14 @@ export const getMediaCoverageTool: Tool<Parameters, Output> = {
       };
     } catch (error) {
       logger.error("[AI Tool] get_media_coverage error", { error });
-      throw new Error("Failed to get media coverage");
+      return {
+        topic,
+        period,
+        error: "Failed to retrieve media coverage data",
+        articles: [],
+      };
     }
   },
 };
 
-function getStartDate(period: string): Date {
-  const hours: Record<string, number> = {
-    "24h": 24,
-    "7d": 168,
-    "30d": 720,
-  };
-  return new Date(Date.now() - (hours[period] || 168) * 60 * 60 * 1000);
-}
+// getStartDate imported from @/lib/ai/utils

@@ -12,6 +12,12 @@ import {
 } from "@/lib/data/twitter/volume-analytics";
 import { logger } from "@/lib/logger";
 import { getToolContext } from "@/lib/ai/types";
+import {
+  getStartDate,
+  formatChartTimestamp,
+  getDataTypeLabel,
+  type DataType,
+} from "@/lib/ai/utils";
 
 const parametersSchema = z.object({
   chart_type: z
@@ -41,7 +47,7 @@ type Output = Record<string, unknown>;
 
 export const createVisualizationTool: Tool<Parameters, Output> = {
   description:
-    "Build a chart (line/bar/area) for trends or comparisons. Prefer this over manual SVG for standard charts.",
+    "Generate interactive charts (line, bar, or area) for volume trends, engagement evolution, or comparisons. Use when users ask for 'show me a graph', 'chart of activity', or 'visualize the trend'. Returns structured data rendered as Recharts component.",
 
   inputSchema: zodSchema(parametersSchema),
 
@@ -82,7 +88,7 @@ export const createVisualizationTool: Tool<Parameters, Output> = {
           data: chartData,
           config: {
             timestamp: { label: "Category" },
-            value: { label: getValueLabel(data_type), color: "var(--primary)" },
+            value: { label: getDataTypeLabel(data_type as DataType), color: "var(--primary)" },
           },
         };
       }
@@ -93,7 +99,7 @@ export const createVisualizationTool: Tool<Parameters, Output> = {
 
           for (const point of twitterData) {
             chartData.push({
-              timestamp: formatTimestamp(point.timestamp),
+              timestamp: formatChartTimestamp(point.timestamp),
               value: data_type === "volume" ? point.tweet_count : point.total_engagement,
               label: "Twitter",
             });
@@ -110,7 +116,7 @@ export const createVisualizationTool: Tool<Parameters, Output> = {
           if (chartData.length === 0) {
             for (const point of tiktokData) {
               chartData.push({
-                timestamp: formatTimestamp(point.timestamp),
+                timestamp: formatChartTimestamp(point.timestamp),
                 value: data_type === "volume" ? point.tweet_count : point.total_engagement,
                 label: "TikTok",
               });
@@ -127,7 +133,7 @@ export const createVisualizationTool: Tool<Parameters, Output> = {
 
           for (const point of mediaData) {
             chartData.push({
-              timestamp: formatTimestamp(point.timestamp),
+              timestamp: formatChartTimestamp(point.timestamp),
               value: data_type === "volume" ? point.tweet_count : point.total_engagement,
               label: "Media",
             });
@@ -144,42 +150,24 @@ export const createVisualizationTool: Tool<Parameters, Output> = {
         data: chartData,
         config: {
           timestamp: { label: "Time" },
-          value: { label: getValueLabel(data_type), color: "var(--primary)" },
+          value: { label: getDataTypeLabel(data_type as DataType), color: "var(--primary)" },
         },
       };
     } catch (error) {
       logger.error("[AI Tool] create_visualization error", { error });
-      throw new Error("Failed to create visualization");
+      return {
+        _type: "visualization",
+        chart_type,
+        title,
+        data: [],
+        error: "Failed to retrieve data for visualization",
+        config: {
+          timestamp: { label: "Time" },
+          value: { label: "Value", color: "var(--primary)" },
+        },
+      };
     }
   },
 };
 
-function getStartDate(period: string): Date {
-  const hours: Record<string, number> = {
-    "3h": 3,
-    "6h": 6,
-    "12h": 12,
-    "24h": 24,
-    "7d": 168,
-    "30d": 720,
-  };
-  return new Date(Date.now() - (hours[period] || 24) * 60 * 60 * 1000);
-}
-
-function formatTimestamp(timestamp: string): string {
-  const date = new Date(timestamp);
-  const hours = date.getHours().toString().padStart(2, "0");
-  const minutes = date.getMinutes().toString().padStart(2, "0");
-  return `${hours}:${minutes}`;
-}
-
-function getValueLabel(dataType: string): string {
-  const labels: Record<string, string> = {
-    volume: "Posts",
-    engagement: "Interactions",
-    growth: "Growth %",
-    comparison: "Value",
-    ranking: "Score",
-  };
-  return labels[dataType] || "Value";
-}
+// Local helpers removed - using shared utilities from @/lib/ai/utils

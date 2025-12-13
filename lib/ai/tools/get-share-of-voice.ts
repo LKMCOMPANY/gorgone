@@ -8,6 +8,7 @@ import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logger } from "@/lib/logger";
 import { getToolContext } from "@/lib/ai/types";
+import { getStartDate } from "@/lib/ai/utils";
 
 const parametersSchema = z.object({
   platform: z
@@ -25,7 +26,7 @@ type Output = Record<string, unknown>;
 
 export const getShareOfVoiceTool: Tool<Parameters, Output> = {
   description:
-    "Compute share-of-voice distribution by profile tags (volume + engagement) over a time window.",
+    "Calculate share of voice distribution across tagged profile categories (Attila, Ally, Adversary, etc.). Shows which groups dominate the conversation by volume and engagement. Requires profiles to be tagged in Settings > Tracked Profiles.",
 
   inputSchema: zodSchema(parametersSchema),
 
@@ -151,19 +152,14 @@ export const getShareOfVoiceTool: Tool<Parameters, Output> = {
       };
     } catch (error) {
       logger.error("[AI Tool] get_share_of_voice error", { error });
-      throw new Error("Failed to get share of voice");
+      return {
+        platform,
+        period,
+        error: "Failed to retrieve share of voice data",
+        share_of_voice: [],
+      };
     }
   },
 };
 
-function getStartDate(period: string): Date {
-  const hours: Record<string, number> = {
-    "3h": 3,
-    "6h": 6,
-    "12h": 12,
-    "24h": 24,
-    "7d": 168,
-    "30d": 720,
-  };
-  return new Date(Date.now() - (hours[period] || 24) * 60 * 60 * 1000);
-}
+// getStartDate imported from @/lib/ai/utils

@@ -18,6 +18,7 @@ export type ToolName =
   | "get_media_coverage"
   | "compare_accounts"
   | "generate_report"
+  | "generate_opinion_report"
   | "create_visualization";
 
 function normalize(input: string): string {
@@ -66,6 +67,12 @@ export function selectActiveTools(args: {
     tools.add("get_opinion_map_summary");
   }
 
+  // Opinion report (full analysis with examples).
+  if (includesAny(t, ["rapport d'opinion", "opinion report", "analyse des opinions", "cartographie", "narratives", "carto"])) {
+    tools.add("generate_opinion_report");
+    tools.add("create_visualization");
+  }
+
   // Account deep-dive / comparison.
   if (includesAny(t, ["@", "account", "profile", "compte"])) {
     tools.add("analyze_account");
@@ -90,6 +97,7 @@ export function selectActiveTools(args: {
     tools.delete("get_top_content");
     tools.delete("get_top_accounts");
     tools.delete("get_opinion_map_summary");
+    tools.delete("generate_opinion_report");
     tools.delete("get_share_of_voice");
     tools.delete("analyze_account");
     tools.delete("detect_anomalies");
@@ -115,6 +123,7 @@ export function selectActiveTools(args: {
     "analyze_sentiment",
     "detect_anomalies",
     "get_opinion_map_summary",
+    "generate_opinion_report",
     "search_content",
     "analyze_account",
     "compare_accounts",

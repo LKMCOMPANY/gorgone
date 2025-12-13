@@ -9,6 +9,7 @@ import { getTrendingHashtags as getTwitterHashtags } from "@/lib/data/twitter/en
 import { getTrendingHashtags as getTikTokHashtags } from "@/lib/data/tiktok/entities";
 import { logger } from "@/lib/logger";
 import { getToolContext } from "@/lib/ai/types";
+import { getStartDate } from "@/lib/ai/utils";
 
 const parametersSchema = z.object({
   platform: z
@@ -27,7 +28,7 @@ type Output = Record<string, unknown>;
 
 export const getTrendingTopicsTool: Tool<Parameters, Output> = {
   description:
-    "Return trending hashtags/topics in the zone for a given time window (counts + basic trend metadata).",
+    "Get trending hashtags and topics across platforms with usage counts. Use when users ask 'what hashtags are trending?', 'popular topics', or 'what are people talking about?'. Merges cross-platform hashtags for unified view.",
 
   inputSchema: zodSchema(parametersSchema),
 
@@ -44,7 +45,6 @@ export const getTrendingTopicsTool: Tool<Parameters, Output> = {
         limit,
       });
 
-      const periodHours = getPeriodHours(period);
       const topics: Array<{
         platform: string;
         hashtag: string;
@@ -54,7 +54,7 @@ export const getTrendingTopicsTool: Tool<Parameters, Output> = {
 
       if ((platform === "twitter" || platform === "all") && dataSources.twitter) {
         try {
-          const startDate = new Date(Date.now() - periodHours * 60 * 60 * 1000);
+          const startDate = getStartDate(period);
           const twitterHashtags = await getTwitterHashtags(zoneId, {
             startDate,
             endDate: new Date(),
@@ -102,22 +102,17 @@ export const getTrendingTopicsTool: Tool<Parameters, Output> = {
       };
     } catch (error) {
       logger.error("[AI Tool] get_trending_topics error", { error });
-      throw new Error("Failed to get trending topics");
+      return {
+        platform,
+        period,
+        error: "Failed to retrieve trending topics",
+        trending_topics: [],
+      };
     }
   },
 };
 
-function getPeriodHours(period: string): number {
-  const map: Record<string, number> = {
-    "3h": 3,
-    "6h": 6,
-    "12h": 12,
-    "24h": 24,
-    "7d": 168,
-    "30d": 720,
-  };
-  return map[period] || 24;
-}
+// getStartDate imported from @/lib/ai/utils
 
 interface TopicInput {
   platform: string;

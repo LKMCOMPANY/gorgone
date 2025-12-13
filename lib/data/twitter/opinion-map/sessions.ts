@@ -353,6 +353,103 @@ export async function markSessionFailed(
 }
 
 /**
+ * Sentiment evolution data point
+ */
+export interface SentimentEvolutionPoint {
+  session_id: string
+  created_at: string
+  total_tweets: number
+  avg_sentiment: number
+  positive_tweets: number
+  neutral_tweets: number
+  negative_tweets: number
+}
+
+/**
+ * Get sentiment evolution over multiple sessions for a zone
+ * Used for the opinion evolution chart in reports
+ * 
+ * @param zoneId - Zone ID
+ * @param limit - Maximum number of sessions to retrieve (default 10)
+ * @returns Array of sentiment evolution data points, ordered chronologically
+ */
+export async function getSentimentEvolution(
+  zoneId: string,
+  limit: number = 10
+): Promise<SentimentEvolutionPoint[]> {
+  const supabase = createAdminClient()
+
+  const { data, error } = await supabase
+    .rpc('get_sentiment_evolution', {
+      p_zone_id: zoneId,
+      p_limit: limit
+    })
+
+  if (error) {
+    // Fallback: direct query if RPC doesn't exist
+    logger.warn('[Opinion Map] RPC get_sentiment_evolution not found, using fallback', { error })
+    
+    const { data: sessions, error: sessionsError } = await supabase
+      .from('twitter_opinion_sessions')
+      .select('session_id, created_at, total_tweets')
+      .eq('zone_id', zoneId)
+      .eq('status', 'completed')
+      .order('created_at', { ascending: false })
+      .limit(limit)
+
+    if (sessionsError || !sessions) {
+      logger.error('[Opinion Map] Failed to get sessions for evolution', { error: sessionsError })
+      return []
+    }
+
+    // Get cluster data for each session
+    const evolution: SentimentEvolutionPoint[] = []
+    
+    for (const session of sessions) {
+      const { data: clusters } = await supabase
+        .from('twitter_opinion_clusters')
+        .select('avg_sentiment, tweet_count')
+        .eq('session_id', session.session_id)
+
+      if (clusters && clusters.length > 0) {
+        let positive = 0, neutral = 0, negative = 0
+        let totalSentiment = 0
+        let sentimentCount = 0
+
+        for (const c of clusters) {
+          const sentiment = parseFloat(String(c.avg_sentiment || 0))
+          const count = c.tweet_count || 0
+          
+          if (sentiment > 0.2) positive += count
+          else if (sentiment < -0.2) negative += count
+          else neutral += count
+
+          if (c.avg_sentiment !== null) {
+            totalSentiment += sentiment
+            sentimentCount++
+          }
+        }
+
+        evolution.push({
+          session_id: session.session_id,
+          created_at: session.created_at,
+          total_tweets: session.total_tweets || 0,
+          avg_sentiment: sentimentCount > 0 ? totalSentiment / sentimentCount : 0,
+          positive_tweets: positive,
+          neutral_tweets: neutral,
+          negative_tweets: negative
+        })
+      }
+    }
+
+    // Return in chronological order
+    return evolution.reverse()
+  }
+
+  return (data || []) as SentimentEvolutionPoint[]
+}
+
+/**
  * Cancel a running session
  * 
  * @param sessionId - Session ID

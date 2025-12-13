@@ -9,6 +9,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { getProfilesWithStatsForZone } from "@/lib/data/tiktok/profiles-stats";
 import { logger } from "@/lib/logger";
 import { getToolContext } from "@/lib/ai/types";
+import { getStartDate } from "@/lib/ai/utils";
 
 const parametersSchema = z.object({
   platform: z
@@ -31,7 +32,7 @@ type Output = Record<string, unknown>;
 
 export const getTopAccountsTool: Tool<Parameters, Output> = {
   description:
-    "Rank the most influential accounts in the zone (by engagement or followers) for a given time window.",
+    "Identify the most influential accounts active in this zone, ranked by engagement or follower count. Use for questions like 'who are the key influencers?', 'top accounts', or 'most active users'. Returns profile data with engagement metrics and profile URLs.",
 
   inputSchema: zodSchema(parametersSchema),
 
@@ -182,19 +183,15 @@ export const getTopAccountsTool: Tool<Parameters, Output> = {
       };
     } catch (error) {
       logger.error("[AI Tool] get_top_accounts error", { error });
-      throw new Error("Failed to get top accounts");
+      return {
+        platform,
+        period,
+        sort_by,
+        error: "Failed to retrieve top accounts",
+        accounts: [],
+      };
     }
   },
 };
 
-function getStartDate(period: string): Date {
-  const hours: Record<string, number> = {
-    "3h": 3,
-    "6h": 6,
-    "12h": 12,
-    "24h": 24,
-    "7d": 168,
-    "30d": 720,
-  };
-  return new Date(Date.now() - (hours[period] || 24) * 60 * 60 * 1000);
-}
+// getStartDate imported from @/lib/ai/utils
