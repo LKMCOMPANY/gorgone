@@ -23,7 +23,63 @@ const parametersSchema = z.object({
 });
 
 type Parameters = z.infer<typeof parametersSchema>;
-type Output = Record<string, unknown>;
+
+/** Structured tweet for UI rendering */
+type TweetResult = {
+  tweet_id: string;
+  text: string;
+  author_username: string;
+  author_name: string;
+  author_verified: boolean;
+  author_profile_picture_url: string | null;
+  engagement: {
+    likes: number;
+    retweets: number;
+    replies: number;
+    views: number;
+  };
+  tweet_url: string;
+  created_at: string;
+};
+
+/** Structured video for UI */
+type VideoResult = {
+  video_id: string;
+  description: string;
+  author_username: string;
+  author_nickname: string;
+  author_verified: boolean;
+  engagement: {
+    views: number;
+    likes: number;
+    comments: number;
+    shares: number;
+  };
+  video_url: string;
+  created_at: string;
+};
+
+/** Structured article for UI */
+type ArticleResult = {
+  article_id: string;
+  title: string;
+  source: string;
+  content: string;
+  sentiment: number | null;
+  social_score: number | null;
+  published_at: string;
+  url: string;
+};
+
+type Output = {
+  _type: "search_results";
+  query: string;
+  platforms: string[];
+  tweets: TweetResult[];
+  videos: VideoResult[];
+  articles: ArticleResult[];
+  total_results: number;
+};
 
 export const searchContentTool: Tool<Parameters, Output> = {
   description:
@@ -43,29 +99,22 @@ export const searchContentTool: Tool<Parameters, Output> = {
         platforms,
       });
 
-      const results: {
-        query: string;
-        platforms: string[];
-        results: Array<Record<string, unknown>>;
-        total_results?: number;
-      } = {
-        query,
-        platforms,
-        results: [],
-      };
+      const tweets: TweetResult[] = [];
+      const videos: VideoResult[] = [];
+      const articles: ArticleResult[] = [];
 
       const startDate = start_date ? new Date(start_date) : undefined;
       const endDate = end_date ? new Date(end_date) : undefined;
 
       if (platforms.includes("twitter") && dataSources.twitter) {
         try {
-          const tweets = await searchTweets(zoneId, query, {
+          const tweetRows = await searchTweets(zoneId, query, {
             limit: limit * 2,
           });
 
           const filtered =
             startDate || endDate
-              ? tweets
+              ? tweetRows
                   .filter((t: { twitter_created_at: string }) => {
                     const createdAt = new Date(t.twitter_created_at);
                     if (startDate && createdAt < startDate) return false;
@@ -73,7 +122,7 @@ export const searchContentTool: Tool<Parameters, Output> = {
                     return true;
                   })
                   .slice(0, limit)
-              : tweets;
+              : tweetRows;
 
           for (const tweet of filtered as Array<{
             tweet_id: string;
@@ -82,34 +131,34 @@ export const searchContentTool: Tool<Parameters, Output> = {
               name?: string;
               is_verified?: boolean;
               is_blue_verified?: boolean;
+              profile_picture_url?: string;
             };
             text: string;
             like_count: number;
             retweet_count: number;
             reply_count: number;
+            view_count?: number;
             total_engagement: number;
             twitter_created_at: string;
             twitter_url?: string;
             tweet_url?: string;
           }>) {
-            results.results.push({
-              platform: "twitter",
-              type: "tweet",
-              id: tweet.tweet_id,
-              author: {
-                username: tweet.author?.username,
-                name: tweet.author?.name,
-                verified: tweet.author?.is_verified || tweet.author?.is_blue_verified,
-              },
-              content: tweet.text,
+            const username = tweet.author?.username || "unknown";
+            tweets.push({
+              tweet_id: tweet.tweet_id,
+              text: tweet.text,
+              author_username: username,
+              author_name: tweet.author?.name || username,
+              author_verified: Boolean(tweet.author?.is_verified || tweet.author?.is_blue_verified),
+              author_profile_picture_url: tweet.author?.profile_picture_url || null,
               engagement: {
                 likes: tweet.like_count,
                 retweets: tweet.retweet_count,
                 replies: tweet.reply_count,
-                total: tweet.total_engagement,
+                views: tweet.view_count || 0,
               },
+              tweet_url: tweet.twitter_url || tweet.tweet_url || `https://x.com/${username}/status/${tweet.tweet_id}`,
               created_at: tweet.twitter_created_at,
-              url: tweet.twitter_url || tweet.tweet_url,
             });
           }
         } catch (error) {
@@ -119,11 +168,11 @@ export const searchContentTool: Tool<Parameters, Output> = {
 
       if (platforms.includes("tiktok") && dataSources.tiktok) {
         try {
-          const videos = await getVideosByZone(zoneId, {
+          const videoRows = await getVideosByZone(zoneId, {
             limit: limit * 2,
           });
 
-          let filtered = videos.filter((v) =>
+          let filtered = videoRows.filter((v) =>
             v.description?.toLowerCase().includes(query.toLowerCase())
           );
 
@@ -144,25 +193,20 @@ export const searchContentTool: Tool<Parameters, Output> = {
                 is_verified?: boolean;
               };
             };
-            results.results.push({
-              platform: "tiktok",
-              type: "video",
-              id: v.video_id,
-              author: {
-                username: v.author?.username,
-                nickname: v.author?.nickname,
-                verified: v.author?.is_verified,
-              },
-              content: v.description || undefined,
+            videos.push({
+              video_id: v.video_id,
+              description: v.description || "",
+              author_username: v.author?.username || "unknown",
+              author_nickname: v.author?.nickname || v.author?.username || "Unknown",
+              author_verified: Boolean(v.author?.is_verified),
               engagement: {
-                views: v.play_count,
-                likes: v.digg_count,
-                comments: v.comment_count,
-                shares: v.share_count,
-                total: Number(v.total_engagement),
+                views: v.play_count || 0,
+                likes: v.digg_count || 0,
+                comments: v.comment_count || 0,
+                shares: v.share_count || 0,
               },
+              video_url: v.share_url || "",
               created_at: v.tiktok_created_at,
-              url: v.share_url || undefined,
             });
           }
         } catch (error) {
@@ -172,21 +216,19 @@ export const searchContentTool: Tool<Parameters, Output> = {
 
       if (platforms.includes("media") && dataSources.media) {
         try {
-          const articles = await getArticlesByZone(zoneId, {
+          const articleRows = await getArticlesByZone(zoneId, {
             searchText: query,
             startDate,
             endDate,
             limit,
           });
 
-          for (const article of articles) {
-            results.results.push({
-              platform: "media",
-              type: "article",
-              id: article.article_uri,
-              source: article.source_title,
+          for (const article of articleRows) {
+            articles.push({
+              article_id: article.article_uri,
               title: article.title,
-              content: article.body?.substring(0, 200) + "...",
+              source: article.source_title || "Unknown Source",
+              content: article.body?.substring(0, 200) + "..." || "",
               sentiment: article.sentiment,
               social_score: article.social_score,
               published_at: article.published_at,
@@ -198,25 +240,24 @@ export const searchContentTool: Tool<Parameters, Output> = {
         }
       }
 
-      results.results.sort((a, b) => {
-        const scoreA =
-          (a.engagement as { total?: number })?.total || (a.social_score as number) || 0;
-        const scoreB =
-          (b.engagement as { total?: number })?.total || (b.social_score as number) || 0;
-        return scoreB - scoreA;
-      });
-
       return {
-        ...results,
-        total_results: results.results.length,
+        _type: "search_results",
+        query,
+        platforms,
+        tweets,
+        videos,
+        articles,
+        total_results: tweets.length + videos.length + articles.length,
       };
     } catch (error) {
       logger.error("[AI Tool] search_content error", { error });
       return {
+        _type: "search_results",
         query,
         platforms,
-        error: "Failed to search content",
-        results: [],
+        tweets: [],
+        videos: [],
+        articles: [],
         total_results: 0,
       };
     }

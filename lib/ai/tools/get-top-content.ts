@@ -24,7 +24,50 @@ const parametersSchema = z.object({
 });
 
 type Parameters = z.infer<typeof parametersSchema>;
-type Output = Record<string, unknown>;
+
+/** Structured tweet for UI rendering */
+type TweetResult = {
+  tweet_id: string;
+  text: string;
+  author_username: string;
+  author_name: string;
+  author_verified: boolean;
+  author_profile_picture_url: string | null;
+  engagement: {
+    likes: number;
+    retweets: number;
+    replies: number;
+    views: number;
+  };
+  tweet_url: string;
+  created_at: string;
+};
+
+/** Structured TikTok video for UI */
+type VideoResult = {
+  video_id: string;
+  description: string;
+  author_username: string;
+  author_nickname: string;
+  author_verified: boolean;
+  engagement: {
+    views: number;
+    likes: number;
+    comments: number;
+    shares: number;
+  };
+  video_url: string;
+  created_at: string;
+};
+
+type Output = {
+  _type: "top_content";
+  platform: string;
+  period: string;
+  tweets: TweetResult[];
+  videos: VideoResult[];
+  total_results: number;
+};
 
 export const getTopContentTool: Tool<Parameters, Output> = {
   description:
@@ -45,26 +88,19 @@ export const getTopContentTool: Tool<Parameters, Output> = {
         limit,
       });
 
-      const results: {
-        platform: string;
-        period: string;
-        content: Array<Record<string, unknown>>;
-      } = {
-        platform,
-        period,
-        content: [],
-      };
+      const tweets: TweetResult[] = [];
+      const videos: VideoResult[] = [];
 
       if ((platform === "twitter" || platform === "all") && dataSources.twitter) {
         try {
           const supabase = createAdminClient();
           const startDate = getStartDate(period);
 
-          // Direct query (robust): do not depend on materialized views that may not exist.
-          const { data: tweets, error } = await supabase
+          // Direct query with profile picture for TweetCard rendering
+          const { data: tweetRows, error } = await supabase
             .from("twitter_tweets")
             .select(
-              "tweet_id, text, like_count, retweet_count, reply_count, quote_count, total_engagement, twitter_created_at, twitter_url, tweet_url, author:twitter_profiles(username, name, is_verified, is_blue_verified)"
+              "tweet_id, text, like_count, retweet_count, reply_count, quote_count, view_count, total_engagement, twitter_created_at, twitter_url, tweet_url, author:twitter_profiles(username, name, is_verified, is_blue_verified, profile_picture_url)"
             )
             .eq("zone_id", zoneId)
             .gte("twitter_created_at", startDate.toISOString())
@@ -73,7 +109,7 @@ export const getTopContentTool: Tool<Parameters, Output> = {
 
           if (error) throw error;
 
-          for (const row of tweets || []) {
+          for (const row of tweetRows || []) {
             const t = row as unknown as {
               tweet_id: string;
               text: string;
@@ -81,6 +117,7 @@ export const getTopContentTool: Tool<Parameters, Output> = {
               retweet_count: number;
               reply_count: number;
               quote_count: number;
+              view_count: number | null;
               total_engagement: number;
               twitter_created_at: string;
               twitter_url?: string | null;
@@ -90,28 +127,26 @@ export const getTopContentTool: Tool<Parameters, Output> = {
                 name?: string | null;
                 is_verified?: boolean | null;
                 is_blue_verified?: boolean | null;
+                profile_picture_url?: string | null;
               } | null;
             };
 
-            results.content.push({
-              platform: "twitter",
-              type: "tweet",
-              id: t.tweet_id,
-              author: {
-                username: t.author?.username ?? undefined,
-                name: t.author?.name ?? undefined,
-                verified: Boolean(t.author?.is_verified || t.author?.is_blue_verified),
-              },
+            const username = t.author?.username || "unknown";
+            tweets.push({
+              tweet_id: t.tweet_id,
               text: t.text,
+              author_username: username,
+              author_name: t.author?.name || username,
+              author_verified: Boolean(t.author?.is_verified || t.author?.is_blue_verified),
+              author_profile_picture_url: t.author?.profile_picture_url || null,
               engagement: {
                 likes: t.like_count,
                 retweets: t.retweet_count,
                 replies: t.reply_count,
-                quotes: t.quote_count,
-                total: t.total_engagement,
+                views: t.view_count || 0,
               },
+              tweet_url: t.twitter_url || t.tweet_url || `https://x.com/${username}/status/${t.tweet_id}`,
               created_at: t.twitter_created_at,
-              url: (t.twitter_url || t.tweet_url) ?? undefined,
             });
           }
         } catch (error) {
@@ -122,12 +157,12 @@ export const getTopContentTool: Tool<Parameters, Output> = {
       if ((platform === "tiktok" || platform === "all") && dataSources.tiktok) {
         try {
           const startDate = getStartDate(period);
-          const videos = await getVideosByZone(zoneId, {
+          const videoRows = await getVideosByZone(zoneId, {
             limit: limit * 2,
             orderBy: "engagement",
           });
 
-          const filtered = videos.filter((v) => {
+          const filtered = videoRows.filter((v) => {
             const createdAt = new Date(v.tiktok_created_at);
             return createdAt >= startDate;
           });
@@ -144,25 +179,20 @@ export const getTopContentTool: Tool<Parameters, Output> = {
                 is_verified?: boolean;
               };
             };
-            results.content.push({
-              platform: "tiktok",
-              type: "video",
-              id: video.video_id,
-              author: {
-                username: video.author?.username,
-                nickname: video.author?.nickname,
-                verified: video.author?.is_verified,
-              },
-              description: video.description || undefined,
+            videos.push({
+              video_id: video.video_id,
+              description: video.description || "",
+              author_username: video.author?.username || "unknown",
+              author_nickname: video.author?.nickname || video.author?.username || "Unknown",
+              author_verified: Boolean(video.author?.is_verified),
               engagement: {
-                views: video.play_count,
-                likes: video.digg_count,
-                comments: video.comment_count,
-                shares: video.share_count,
-                total: Number(video.total_engagement),
+                views: video.play_count || 0,
+                likes: video.digg_count || 0,
+                comments: video.comment_count || 0,
+                shares: video.share_count || 0,
               },
+              video_url: video.share_url || "",
               created_at: video.tiktok_created_at,
-              url: video.share_url || undefined,
             });
           }
         } catch (error) {
@@ -170,25 +200,24 @@ export const getTopContentTool: Tool<Parameters, Output> = {
         }
       }
 
-      results.content.sort(
-        (a, b) =>
-          ((b.engagement as { total?: number })?.total || 0) -
-          ((a.engagement as { total?: number })?.total || 0)
-      );
-
-      results.content = results.content.slice(0, limit);
-
-      return results;
+      return {
+        _type: "top_content",
+        platform,
+        period,
+        tweets,
+        videos,
+        total_results: tweets.length + videos.length,
+      };
     } catch (error) {
       logger.error("[AI Tool] get_top_content error", { error });
       return {
+        _type: "top_content",
         platform,
         period,
-        error: "Failed to retrieve top content",
-        content: [],
+        tweets: [],
+        videos: [],
+        total_results: 0,
       };
     }
   },
 };
-
-// getStartDate imported from @/lib/ai/utils

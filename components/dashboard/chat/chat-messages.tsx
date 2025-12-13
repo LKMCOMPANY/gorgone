@@ -70,6 +70,81 @@ type OpinionReportPayload = {
   }>;
 };
 
+/** Top content result from get_top_content tool */
+type TopContentTweet = {
+  tweet_id: string;
+  text: string;
+  author_username: string;
+  author_name: string;
+  author_verified: boolean;
+  author_profile_picture_url: string | null;
+  engagement: {
+    likes: number;
+    retweets: number;
+    replies: number;
+    views: number;
+  };
+  tweet_url: string;
+  created_at: string;
+};
+
+type TopContentPayload = {
+  _type: "top_content";
+  platform: string;
+  period: string;
+  tweets: TopContentTweet[];
+  videos: Array<{
+    video_id: string;
+    description: string;
+    author_username: string;
+    author_nickname: string;
+    author_verified: boolean;
+    engagement: {
+      views: number;
+      likes: number;
+      comments: number;
+      shares: number;
+    };
+    video_url: string;
+    created_at: string;
+  }>;
+  total_results: number;
+};
+
+/** Search results payload from search_content tool */
+type SearchResultsPayload = {
+  _type: "search_results";
+  query: string;
+  platforms: string[];
+  tweets: TopContentTweet[];
+  videos: Array<{
+    video_id: string;
+    description: string;
+    author_username: string;
+    author_nickname: string;
+    author_verified: boolean;
+    engagement: {
+      views: number;
+      likes: number;
+      comments: number;
+      shares: number;
+    };
+    video_url: string;
+    created_at: string;
+  }>;
+  articles: Array<{
+    article_id: string;
+    title: string;
+    source: string;
+    content: string;
+    sentiment: number | null;
+    social_score: number | null;
+    published_at: string;
+    url: string;
+  }>;
+  total_results: number;
+};
+
 /**
  * Safely parse tool result that may be string or object
  * Handles SDK 5.x serialization edge cases and nested structures
@@ -152,6 +227,28 @@ function isValidOpinionReport(obj: Record<string, unknown> | null): obj is Opini
     obj._type === "opinion_report" &&
     obj.available === true &&
     Array.isArray(obj.clusters)
+  );
+}
+
+/**
+ * Check if a result is a valid top content payload
+ */
+function isValidTopContent(obj: Record<string, unknown> | null): obj is TopContentPayload {
+  if (!obj) return false;
+  return (
+    obj._type === "top_content" &&
+    Array.isArray(obj.tweets)
+  );
+}
+
+/**
+ * Check if a result is a valid search results payload
+ */
+function isValidSearchResults(obj: Record<string, unknown> | null): obj is SearchResultsPayload {
+  if (!obj) return false;
+  return (
+    obj._type === "search_results" &&
+    Array.isArray(obj.tweets)
   );
 }
 
@@ -341,6 +438,132 @@ function OpinionReportView({ report }: { report: OpinionReportPayload }) {
   );
 }
 
+/**
+ * Convert TopContentTweet to TweetData format
+ */
+function topContentTweetToTweetData(tweet: TopContentTweet): TweetData {
+  return {
+    tweet_id: tweet.tweet_id,
+    text: tweet.text,
+    author_username: tweet.author_username,
+    author_name: tweet.author_name,
+    author_verified: tweet.author_verified,
+    author_profile_picture_url: tweet.author_profile_picture_url,
+    engagement: tweet.engagement,
+    tweet_url: tweet.tweet_url,
+  };
+}
+
+/**
+ * Top Content View - Renders top tweets with TweetCards
+ */
+function TopContentView({ content }: { content: TopContentPayload }) {
+  const periodLabels: Record<string, string> = {
+    "3h": "Last 3 hours",
+    "6h": "Last 6 hours",
+    "12h": "Last 12 hours",
+    "24h": "Last 24 hours",
+    "7d": "Last 7 days",
+    "30d": "Last 30 days",
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Header */}
+      <div className="rounded-xl border bg-card p-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold">Top Content</h3>
+          <div className="flex gap-2">
+            <Badge variant="secondary">{periodLabels[content.period] || content.period}</Badge>
+            <Badge variant="outline">{content.total_results} results</Badge>
+          </div>
+        </div>
+      </div>
+
+      {/* Tweets */}
+      {content.tweets.length > 0 && (
+        <TweetCardList
+          tweets={content.tweets.map(topContentTweetToTweetData)}
+        />
+      )}
+
+      {/* Empty state */}
+      {content.tweets.length === 0 && content.videos.length === 0 && (
+        <div className="rounded-xl border bg-card p-8 text-center">
+          <p className="text-muted-foreground">No content found for this period.</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Search Results View - Renders search results with TweetCards
+ */
+function SearchResultsView({ results }: { results: SearchResultsPayload }) {
+  return (
+    <div className="space-y-4">
+      {/* Header */}
+      <div className="rounded-xl border bg-card p-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold">Search Results</h3>
+          <div className="flex gap-2">
+            <Badge variant="secondary">&quot;{results.query}&quot;</Badge>
+            <Badge variant="outline">{results.total_results} results</Badge>
+          </div>
+        </div>
+      </div>
+
+      {/* Tweets */}
+      {results.tweets.length > 0 && (
+        <div className="space-y-2">
+          <div className="text-sm font-medium text-muted-foreground px-1">
+            Tweets ({results.tweets.length})
+          </div>
+          <TweetCardList
+            tweets={results.tweets.map(topContentTweetToTweetData)}
+          />
+        </div>
+      )}
+
+      {/* Articles */}
+      {results.articles.length > 0 && (
+        <div className="space-y-2">
+          <div className="text-sm font-medium text-muted-foreground px-1">
+            Articles ({results.articles.length})
+          </div>
+          <div className="grid gap-3">
+            {results.articles.map((article) => (
+              <a
+                key={article.article_id}
+                href={article.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block rounded-xl border bg-card p-4 hover:bg-accent/50 transition-colors"
+              >
+                <div className="text-xs text-muted-foreground mb-1">
+                  {article.source}
+                </div>
+                <div className="font-medium line-clamp-2">{article.title}</div>
+                <div className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                  {article.content}
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Empty state */}
+      {results.tweets.length === 0 && results.videos.length === 0 && results.articles.length === 0 && (
+        <div className="rounded-xl border bg-card p-8 text-center">
+          <p className="text-muted-foreground">No results found for &quot;{results.query}&quot;.</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // Use the return type of useChat from ai/react
 interface ChatMessage {
   id: string;
@@ -504,15 +727,15 @@ export function ChatMessages({
             return null;
           }
 
-          // Check if any tool returned an opinion report (to suppress redundant text)
-          const hasOpinionReport = toolInvocations.some((tool) => {
+          // Check if any tool returned a structured UI (to suppress redundant text)
+          const hasStructuredUI = toolInvocations.some((tool) => {
             const parsed = parseToolResult(tool.result);
             const hasOutput = tool.state === "result" || tool.state === "output-available";
-            return hasOutput && isValidOpinionReport(parsed);
+            return hasOutput && (isValidOpinionReport(parsed) || isValidTopContent(parsed) || isValidSearchResults(parsed));
           });
 
-          // If opinion report rendered, only show minimal text (first paragraph or short intro)
-          const textContent = hasOpinionReport 
+          // If structured UI rendered, only show minimal text (first paragraph or short intro)
+          const textContent = hasStructuredUI 
             ? extractMinimalIntro(cleanedText)
             : cleanedText;
           
@@ -561,13 +784,41 @@ export function ChatMessages({
                     );
                   }
 
-                  // Skip visualization/opinion report tools from displaying as regular tools
+                  // Check if this is a top content result with tweets
+                  const hasTopContentResult = (tool.state === "result" || tool.state === "output-available") && isValidTopContent(parsedResult);
+                  if (hasTopContentResult) {
+                    return (
+                      <div key={idx} className="my-4 w-full">
+                        <TopContentView content={parsedResult} />
+                      </div>
+                    );
+                  }
+
+                  // Check if this is a search results with tweets
+                  const hasSearchResult = (tool.state === "result" || tool.state === "output-available") && isValidSearchResults(parsedResult);
+                  if (hasSearchResult) {
+                    return (
+                      <div key={idx} className="my-4 w-full">
+                        <SearchResultsView results={parsedResult} />
+                      </div>
+                    );
+                  }
+
+                  // Skip visualization/opinion report/top content/search tools from displaying as regular tools
                   const isCompletedVisualization = tool.toolName === "create_visualization" && (tool.state === "result" || tool.state === "output-available");
                   if (isCompletedVisualization) {
                     return null;
                   }
                   const isCompletedOpinionReport = tool.toolName === "generate_opinion_report" && (tool.state === "result" || tool.state === "output-available");
                   if (isCompletedOpinionReport) {
+                    return null;
+                  }
+                  const isCompletedTopContent = tool.toolName === "get_top_content" && (tool.state === "result" || tool.state === "output-available");
+                  if (isCompletedTopContent) {
+                    return null;
+                  }
+                  const isCompletedSearch = tool.toolName === "search_content" && (tool.state === "result" || tool.state === "output-available");
+                  if (isCompletedSearch) {
                     return null;
                   }
 
