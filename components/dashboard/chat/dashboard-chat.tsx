@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useChat as useAIChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
-import { Sparkles } from "lucide-react";
+import { Sparkles, Newspaper } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -77,12 +77,20 @@ export function DashboardChat({ zones, variant = "full" }: DashboardChatProps) {
 
   const isLoading = status === "submitted" || status === "streaming";
 
+  // X (Twitter) icon component
+  const XIcon = ({ className }: { className?: string }) => (
+    <svg viewBox="0 0 24 24" className={className} fill="currentColor">
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+    </svg>
+  );
+
   // Common suggestions (English only - UI language)
-  const suggestions = [
-    "Generate a complete opinion report",
-    "Show top tweets by engagement (24h)",
-    "Generate a media coverage report",
-    "Analyze the latest trends in this zone",
+  type SuggestionItem = { text: string; icon?: React.ReactNode };
+  const suggestions: SuggestionItem[] = [
+    { text: "Generate a complete opinion report", icon: <XIcon className="size-4" /> },
+    { text: "Show top tweets by engagement (24h)", icon: <XIcon className="size-4" /> },
+    { text: "Generate a media coverage report", icon: <Newspaper className="size-4" /> },
+    { text: "Analyze the latest trends in this zone" },
   ];
 
   const handleSuggestionClick = (suggestion: string) => {
@@ -177,10 +185,12 @@ export function DashboardChat({ zones, variant = "full" }: DashboardChatProps) {
                       key={i}
                       variant="outline"
                       className="justify-start h-auto py-4 px-4 text-left whitespace-normal bg-background/40 backdrop-blur-md hover:bg-background/60 border-white/10 transition-all shadow-sm"
-                      onClick={() => handleSuggestionClick(s)}
+                      onClick={() => handleSuggestionClick(s.text)}
                     >
-                      <Sparkles className="size-4 mr-3 text-primary shrink-0" />
-                      <span className="text-sm">{s}</span>
+                      <span className="mr-3 text-primary shrink-0">
+                        {s.icon || <Sparkles className="size-4" />}
+                      </span>
+                      <span className="text-sm">{s.text}</span>
                     </Button>
                   ))}
                 </div>
@@ -204,7 +214,7 @@ export function DashboardChat({ zones, variant = "full" }: DashboardChatProps) {
           {messages.length > 0 && !isLoading && (
              <div className="absolute -top-12 left-0 right-0 flex justify-center">
                <Suggestion 
-                 suggestions={suggestions.slice(0, 3)} 
+                 suggestions={suggestions.slice(0, 3).map(s => s.text)} 
                  onSelect={handleSuggestionClick}
                  className="max-w-full"
                />
