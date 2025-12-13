@@ -107,12 +107,6 @@ export const getTopAccountsTool: Tool<Parameters, Output> = {
             logger.error("[AI Tool] Twitter accounts query error", { error: twitterError });
           }
 
-          logger.info("[AI Tool] Twitter accounts query result", {
-            zone_id: zoneId,
-            tweets_count: tweets?.length || 0,
-            first_tweet_has_profile: tweets?.[0]?.twitter_profiles ? true : false,
-          });
-
           if (tweets && tweets.length > 0) {
             const profileStats = new Map<string, {
               profile: Record<string, unknown>;
@@ -187,7 +181,7 @@ export const getTopAccountsTool: Tool<Parameters, Output> = {
         }
       }
 
-      logger.info("[AI Tool] After Twitter, accounts count", { count: accounts.length });
+      const twitterCount = accounts.length;
 
       if ((platform === "tiktok" || platform === "all") && dataSources.tiktok) {
         try {
@@ -196,7 +190,10 @@ export const getTopAccountsTool: Tool<Parameters, Output> = {
             sort_by: sort_by === "engagement" ? "engagement" : "followers",
           });
 
-          logger.info("[AI Tool] TikTok profiles fetched", { count: profiles?.length || 0 });
+          logger.info("[AI Tool] get_top_accounts results", { 
+            twitter_accounts: twitterCount, 
+            tiktok_accounts: profiles?.length || 0 
+          });
 
           for (const profile of profiles) {
             accounts.push({
@@ -221,22 +218,31 @@ export const getTopAccountsTool: Tool<Parameters, Output> = {
         }
       }
 
-      if (sort_by === "engagement") {
-        accounts.sort(
-          (a, b) =>
-            ((b.stats as { total_engagement?: number })?.total_engagement || 0) -
-            ((a.stats as { total_engagement?: number })?.total_engagement || 0)
-        );
-      } else {
-        accounts.sort((a, b) => ((b.followers as number) || 0) - ((a.followers as number) || 0));
+      // When platform is "all", keep accounts from each platform (already limited per-platform)
+      // Don't re-sort across platforms as engagement scales differ drastically
+      // Only sort when single platform is requested
+      if (platform !== "all") {
+        if (sort_by === "engagement") {
+          accounts.sort(
+            (a, b) =>
+              ((b.stats as { total_engagement?: number })?.total_engagement || 0) -
+              ((a.stats as { total_engagement?: number })?.total_engagement || 0)
+          );
+        } else {
+          accounts.sort((a, b) => ((b.followers as number) || 0) - ((a.followers as number) || 0));
+        }
       }
+
+      // For "all" platform, return all collected accounts (already limited per-platform)
+      // For single platform, apply the limit
+      const finalAccounts = platform === "all" ? accounts : accounts.slice(0, limit);
 
       return {
         _type: "top_accounts",
         platform,
         period,
         sort_by,
-        accounts: accounts.slice(0, limit),
+        accounts: finalAccounts,
         total_accounts: accounts.length,
       };
     } catch (error) {
