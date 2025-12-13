@@ -73,7 +73,7 @@ interface ArticleData {
 interface AccountData {
   platform: "twitter" | "tiktok";
   username: string;
-  name: string;
+  name?: string;
   nickname?: string;
   verified?: boolean;
   followers?: number;
