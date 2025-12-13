@@ -23,11 +23,39 @@ const parametersSchema = z.object({
 });
 
 type Parameters = z.infer<typeof parametersSchema>;
-type Output = Record<string, unknown>;
+
+/** Structured article for UI rendering */
+type ArticleResult = {
+  article_id: string;
+  title: string;
+  source: string;
+  body_preview: string;
+  sentiment: number | null;
+  social_score: number | null;
+  published_at: string;
+  url: string;
+};
+
+type Output = {
+  _type: "media_coverage";
+  found: boolean;
+  topic: string;
+  period: string;
+  total_articles: number;
+  sentiment: {
+    average: number;
+    positive_percent: number;
+    negative_percent: number;
+    neutral_percent: number;
+  };
+  top_sources: Array<{ source: string; count: number }>;
+  articles: ArticleResult[];
+  message?: string;
+};
 
 export const getMediaCoverageTool: Tool<Parameters, Output> = {
   description:
-    "Analyze news and press coverage for a specific topic: article count, source diversity, sentiment breakdown, and top articles. Use for 'media coverage on X', 'press reaction', or 'news about this topic'. Only available when Media data source is enabled.",
+    "Generate a complete media coverage report: article count, source diversity, sentiment breakdown (positive/negative/neutral %), and top articles with engagement scores. Returns structured data for ArticleCards display. Use for 'media report', 'press coverage', 'news analysis', or 'media coverage on X'. Only available when Media data source is enabled.",
 
   inputSchema: zodSchema(parametersSchema),
 
@@ -50,7 +78,14 @@ export const getMediaCoverageTool: Tool<Parameters, Output> = {
 
       if (articles.length === 0) {
         return {
+          _type: "media_coverage",
           found: false,
+          topic,
+          period,
+          total_articles: 0,
+          sentiment: { average: 0, positive_percent: 0, negative_percent: 0, neutral_percent: 0 },
+          top_sources: [],
+          articles: [],
           message: `No media coverage found for "${topic}" in the last ${period}.`,
         };
       }
@@ -82,12 +117,15 @@ export const getMediaCoverageTool: Tool<Parameters, Output> = {
         .sort((a, b) => b.count - a.count)
         .slice(0, 5);
 
-      const topArticles = filtered
+      // Get top articles with full data for ArticleCards (up to 10)
+      const topArticles: ArticleResult[] = filtered
         .sort((a, b) => (b.social_score || 0) - (a.social_score || 0))
-        .slice(0, 5)
+        .slice(0, 10)
         .map((a) => ({
+          article_id: a.article_uri,
           title: a.title,
-          source: a.source_title,
+          source: a.source_title || "Unknown Source",
+          body_preview: a.body?.substring(0, 200) || "",
           sentiment: a.sentiment,
           social_score: a.social_score,
           published_at: a.published_at,
@@ -95,6 +133,7 @@ export const getMediaCoverageTool: Tool<Parameters, Output> = {
         }));
 
       return {
+        _type: "media_coverage",
         found: true,
         topic,
         period,
@@ -115,18 +154,21 @@ export const getMediaCoverageTool: Tool<Parameters, Output> = {
               : 0,
         },
         top_sources: topSources,
-        top_articles: topArticles,
+        articles: topArticles,
       };
     } catch (error) {
       logger.error("[AI Tool] get_media_coverage error", { error });
       return {
+        _type: "media_coverage",
+        found: false,
         topic,
         period,
-        error: "Failed to retrieve media coverage data",
+        total_articles: 0,
+        sentiment: { average: 0, positive_percent: 0, negative_percent: 0, neutral_percent: 0 },
+        top_sources: [],
         articles: [],
+        message: "Failed to retrieve media coverage data",
       };
     }
   },
 };
-
-// getStartDate imported from @/lib/ai/utils

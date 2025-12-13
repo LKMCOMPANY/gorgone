@@ -110,7 +110,7 @@ export function selectActiveTools(args: {
 
   if (!args.dataSources.media) {
     tools.delete("get_media_coverage");
-  } else if (includesAny(t, ["media", "press", "article", "coverage"])) {
+  } else if (includesAny(t, ["media", "press", "article", "coverage", "news", "journal", "rapport media", "presse", "couverture"])) {
     tools.add("get_media_coverage");
   }
 

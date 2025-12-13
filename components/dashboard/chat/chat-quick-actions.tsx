@@ -55,8 +55,8 @@ const QUICK_ACTIONS = [
   },
   {
     icon: Newspaper,
-    label: "Media coverage",
-    query: "Analyze media coverage on a specific topic",
+    label: "Media report",
+    query: "Generate a complete media coverage report for the zone",
   },
   {
     icon: GitCompare,

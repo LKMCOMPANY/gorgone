@@ -81,8 +81,8 @@ export function DashboardChat({ zones, variant = "full" }: DashboardChatProps) {
   const suggestions = [
     "Generate a complete opinion report",
     "Show top tweets by engagement (24h)",
+    "Generate a media coverage report",
     "Analyze the latest trends in this zone",
-    "Summarize sentiment for the last 24 hours",
   ];
 
   const handleSuggestionClick = (suggestion: string) => {

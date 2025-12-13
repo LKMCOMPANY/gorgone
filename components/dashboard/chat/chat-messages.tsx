@@ -9,8 +9,9 @@ import { Loader } from "@/components/ai/loader";
 import { Actions, ActionButton } from "@/components/ai/actions";
 import { ChatChart } from "./chat-chart";
 import { TweetCardList, type TweetData } from "@/components/ui/tweet-card";
+import { ArticleCardList, type ArticleData } from "@/components/ui/article-card";
 import { Badge } from "@/components/ui/badge";
-import { Copy, RefreshCw } from "lucide-react";
+import { Copy, RefreshCw, TrendingUp, TrendingDown, Minus } from "lucide-react";
 
 type VisualizationPayload = {
   _type: "visualization";
@@ -145,6 +146,33 @@ type SearchResultsPayload = {
   total_results: number;
 };
 
+/** Media coverage payload from get_media_coverage tool */
+type MediaCoveragePayload = {
+  _type: "media_coverage";
+  found: boolean;
+  topic: string;
+  period: string;
+  total_articles: number;
+  sentiment: {
+    average: number;
+    positive_percent: number;
+    negative_percent: number;
+    neutral_percent: number;
+  };
+  top_sources: Array<{ source: string; count: number }>;
+  articles: Array<{
+    article_id: string;
+    title: string;
+    source: string;
+    body_preview: string;
+    sentiment: number | null;
+    social_score: number | null;
+    published_at: string;
+    url: string;
+  }>;
+  message?: string;
+};
+
 /**
  * Safely parse tool result that may be string or object
  * Handles SDK 5.x serialization edge cases and nested structures
@@ -249,6 +277,17 @@ function isValidSearchResults(obj: Record<string, unknown> | null): obj is Searc
   return (
     obj._type === "search_results" &&
     Array.isArray(obj.tweets)
+  );
+}
+
+/**
+ * Check if a result is a valid media coverage payload
+ */
+function isValidMediaCoverage(obj: Record<string, unknown> | null): obj is MediaCoveragePayload {
+  if (!obj) return false;
+  return (
+    obj._type === "media_coverage" &&
+    typeof obj.topic === "string"
   );
 }
 
@@ -564,6 +603,121 @@ function SearchResultsView({ results }: { results: SearchResultsPayload }) {
   );
 }
 
+/**
+ * Convert MediaCoverage article to ArticleData
+ */
+function toArticleData(article: MediaCoveragePayload["articles"][0]): ArticleData {
+  return {
+    article_id: article.article_id,
+    title: article.title,
+    source: article.source,
+    body_preview: article.body_preview,
+    sentiment: article.sentiment,
+    social_score: article.social_score,
+    published_at: article.published_at,
+    url: article.url,
+  };
+}
+
+/**
+ * Media Coverage View - Renders media report with ArticleCards
+ */
+function MediaCoverageView({ coverage }: { coverage: MediaCoveragePayload }) {
+  const periodLabels: Record<string, string> = {
+    "24h": "Last 24 hours",
+    "7d": "Last 7 days",
+    "30d": "Last 30 days",
+  };
+
+  // Get sentiment icon and color
+  const getSentimentDisplay = () => {
+    if (coverage.sentiment.positive_percent > 60) {
+      return { icon: TrendingUp, color: "text-green-500", label: "Positive" };
+    }
+    if (coverage.sentiment.negative_percent > 30) {
+      return { icon: TrendingDown, color: "text-red-500", label: "Negative" };
+    }
+    return { icon: Minus, color: "text-muted-foreground", label: "Neutral" };
+  };
+
+  const sentimentDisplay = getSentimentDisplay();
+
+  if (!coverage.found || coverage.articles.length === 0) {
+    return (
+      <div className="rounded-xl border bg-card p-8 text-center">
+        <p className="text-muted-foreground">
+          {coverage.message || `No media coverage found for "${coverage.topic}".`}
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Header Card */}
+      <div className="rounded-xl border bg-card p-5">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold">Media Coverage Report</h3>
+          <div className="flex gap-2">
+            <Badge variant="secondary">{periodLabels[coverage.period] || coverage.period}</Badge>
+          </div>
+        </div>
+
+        {/* Stats Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="text-center p-3 rounded-lg bg-muted/30">
+            <div className="text-2xl font-bold text-foreground">{coverage.total_articles}</div>
+            <div className="text-xs text-muted-foreground">Total Articles</div>
+          </div>
+          <div className="text-center p-3 rounded-lg bg-muted/30">
+            <div className="flex items-center justify-center gap-1">
+              <sentimentDisplay.icon className={`size-5 ${sentimentDisplay.color}`} />
+              <span className="text-2xl font-bold text-foreground">
+                {coverage.sentiment.average.toFixed(2)}
+              </span>
+            </div>
+            <div className="text-xs text-muted-foreground">Avg Sentiment</div>
+          </div>
+          <div className="text-center p-3 rounded-lg bg-green-500/10">
+            <div className="text-2xl font-bold text-green-600">{coverage.sentiment.positive_percent}%</div>
+            <div className="text-xs text-muted-foreground">Positive</div>
+          </div>
+          <div className="text-center p-3 rounded-lg bg-red-500/10">
+            <div className="text-2xl font-bold text-red-600">{coverage.sentiment.negative_percent}%</div>
+            <div className="text-xs text-muted-foreground">Negative</div>
+          </div>
+        </div>
+
+        {/* Top Sources */}
+        {coverage.top_sources.length > 0 && (
+          <div className="mt-4 pt-4 border-t border-border/50">
+            <div className="text-sm font-medium text-muted-foreground mb-2">Top Sources</div>
+            <div className="flex flex-wrap gap-2">
+              {coverage.top_sources.map((source, idx) => (
+                <Badge key={idx} variant="outline" className="text-xs">
+                  {source.source} ({source.count})
+                </Badge>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Articles */}
+      {coverage.articles.length > 0 && (
+        <div className="space-y-2">
+          <div className="text-sm font-medium text-muted-foreground px-1">
+            Top Articles ({coverage.articles.length})
+          </div>
+          <ArticleCardList
+            articles={coverage.articles.map(toArticleData)}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
 // Use the return type of useChat from ai/react
 interface ChatMessage {
   id: string;
@@ -731,7 +885,7 @@ export function ChatMessages({
           const hasStructuredUI = toolInvocations.some((tool) => {
             const parsed = parseToolResult(tool.result);
             const hasOutput = tool.state === "result" || tool.state === "output-available";
-            return hasOutput && (isValidOpinionReport(parsed) || isValidTopContent(parsed) || isValidSearchResults(parsed));
+            return hasOutput && (isValidOpinionReport(parsed) || isValidTopContent(parsed) || isValidSearchResults(parsed) || isValidMediaCoverage(parsed));
           });
 
           // If structured UI rendered, only show minimal text (first paragraph or short intro)
@@ -804,7 +958,17 @@ export function ChatMessages({
                     );
                   }
 
-                  // Skip visualization/opinion report/top content/search tools from displaying as regular tools
+                  // Check if this is a media coverage result
+                  const hasMediaCoverage = (tool.state === "result" || tool.state === "output-available") && isValidMediaCoverage(parsedResult);
+                  if (hasMediaCoverage) {
+                    return (
+                      <div key={idx} className="my-4 w-full">
+                        <MediaCoverageView coverage={parsedResult} />
+                      </div>
+                    );
+                  }
+
+                  // Skip visualization/opinion report/top content/search/media tools from displaying as regular tools
                   const isCompletedVisualization = tool.toolName === "create_visualization" && (tool.state === "result" || tool.state === "output-available");
                   if (isCompletedVisualization) {
                     return null;
@@ -819,6 +983,10 @@ export function ChatMessages({
                   }
                   const isCompletedSearch = tool.toolName === "search_content" && (tool.state === "result" || tool.state === "output-available");
                   if (isCompletedSearch) {
+                    return null;
+                  }
+                  const isCompletedMediaCoverage = tool.toolName === "get_media_coverage" && (tool.state === "result" || tool.state === "output-available");
+                  if (isCompletedMediaCoverage) {
                     return null;
                   }
 

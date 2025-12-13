@@ -72,6 +72,21 @@ FORBIDDEN in your text output:
 
 The structured data renders AUTOMATICALLY. Keep your text minimal.
 
+**CRITICAL: Media Coverage (get_media_coverage tool)**
+When you call this tool, the UI AUTOMATICALLY renders:
+- Stats card (article count, sentiment breakdown, top sources)
+- ArticleCards for each top article (title, source, sentiment badge)
+
+YOU MUST NOT repeat this data in your text. Your ONLY text output should be:
+1. One intro sentence (e.g., "Here is the media coverage analysis for [topic]:")
+2. 2-3 sentences of analysis on trends, tone, or notable coverage
+3. Optional: 1-2 bullet points of recommendations
+
+FORBIDDEN in your text output:
+- Listing article titles (ArticleCards show them)
+- Repeating source names or counts (the stats card shows them)
+- Outputting any JSON or percentages already in the UI
+
 Citations / provenance:
 - Always cite provenance for any concrete claim/number.
 - Format: "Source: tool_name (period; N items)".
