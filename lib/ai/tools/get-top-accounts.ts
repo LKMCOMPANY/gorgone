@@ -83,12 +83,22 @@ export const getTopAccountsTool: Tool<Parameters, Output> = {
           const supabase = createAdminClient();
           const startDate = getStartDate(period);
 
-          const { data: tweets } = await supabase
+          const { data: tweets, error: twitterError } = await supabase
             .from("twitter_tweets")
-            .select("author_profile_id, total_engagement, author:twitter_profiles(*)")
+            .select("author_profile_id, total_engagement, author:twitter_profiles(id, username, name, is_verified, is_blue_verified, followers_count, profile_picture_url)")
             .eq("zone_id", zoneId)
             .gte("twitter_created_at", startDate.toISOString())
             .not("author_profile_id", "is", null);
+
+          if (twitterError) {
+            logger.error("[AI Tool] Twitter accounts query error", { error: twitterError });
+          }
+
+          logger.info("[AI Tool] Twitter accounts query result", {
+            zone_id: zoneId,
+            tweets_count: tweets?.length || 0,
+            first_tweet_has_author: tweets?.[0]?.author ? true : false,
+          });
 
           if (tweets && tweets.length > 0) {
             const profileStats = new Map<string, {
@@ -164,12 +174,16 @@ export const getTopAccountsTool: Tool<Parameters, Output> = {
         }
       }
 
+      logger.info("[AI Tool] After Twitter, accounts count", { count: accounts.length });
+
       if ((platform === "tiktok" || platform === "all") && dataSources.tiktok) {
         try {
           const profiles = await getProfilesWithStatsForZone(zoneId, {
             limit,
             sort_by: sort_by === "engagement" ? "engagement" : "followers",
           });
+
+          logger.info("[AI Tool] TikTok profiles fetched", { count: profiles?.length || 0 });
 
           for (const profile of profiles) {
             accounts.push({
