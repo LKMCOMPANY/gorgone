@@ -12,7 +12,7 @@
 import { type Tool, type ToolCallOptions, zodSchema } from "ai";
 import { z } from "zod";
 import { 
-  getLatestSession, 
+  getLatestCompletedSession, 
   getSentimentEvolution,
 } from "@/lib/data/twitter/opinion-map/sessions";
 import { getClusters } from "@/lib/data/twitter/opinion-map/clusters";
@@ -124,28 +124,19 @@ export const generateOpinionReportTool: Tool<Parameters, Output> = {
       });
 
       // ========================================
-      // STEP 1: Get latest completed session
+      // STEP 1: Get latest COMPLETED session
+      // (This ignores pending/failed sessions)
       // ========================================
-      const session = await getLatestSession(zoneId);
+      const session = await getLatestCompletedSession(zoneId);
 
       if (!session) {
         return {
           available: false,
           error: "no_opinion_map",
           message:
-            "No opinion map has been generated yet. Generate one from the Analysis page.",
+            "No completed opinion map is available. Generate one from the Analysis page.",
           suggestion:
             "Navigate to Analysis > Opinion Map and generate a new map first.",
-        };
-      }
-
-      if (session.status !== "completed") {
-        return {
-          available: false,
-          error: "opinion_map_in_progress",
-          status: session.status,
-          progress: session.progress,
-          message: `Opinion map is currently being generated (${session.progress}% - ${session.current_phase})`,
         };
       }
 

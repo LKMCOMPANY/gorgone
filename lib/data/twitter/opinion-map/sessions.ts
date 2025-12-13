@@ -240,6 +240,35 @@ export async function getLatestSession(
 }
 
 /**
+ * Get the latest COMPLETED session for a zone (for reports)
+ * Unlike getLatestSession, this ignores pending/failed sessions
+ * 
+ * @param zoneId - Zone ID
+ * @returns Latest completed session or null
+ */
+export async function getLatestCompletedSession(
+  zoneId: string
+): Promise<TwitterOpinionSession | null> {
+  const supabase = createAdminClient()
+
+  const { data, error } = await supabase
+    .from('twitter_opinion_sessions')
+    .select('*')
+    .eq('zone_id', zoneId)
+    .eq('status', 'completed')
+    .order('completed_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  if (error) {
+    logger.error('[Opinion Map] Failed to get latest completed session', { error })
+    return null
+  }
+
+  return data as TwitterOpinionSession | null
+}
+
+/**
  * Get session by session ID
  * Uses admin client to bypass RLS (for workers without user context)
  * 
