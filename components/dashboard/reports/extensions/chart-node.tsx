@@ -4,7 +4,7 @@
  * Tiptap Chart Node Extension
  * Embeds charts in reports - uses exact same component as chat
  * 
- * Uses `rendered: false` pattern for reliable JSON serialization
+ * Pattern for Tiptap 3.x: Empty string default + JSON.stringify for data
  */
 
 import { Node, mergeAttributes } from "@tiptap/core";
@@ -19,7 +19,7 @@ import type { ChartNodeAttributes } from "./types";
 // ============================================================================
 
 function parseChartData(data: unknown): ChartNodeAttributes | null {
-  if (!data || data === "") return null;
+  if (data === undefined || data === null || data === "") return null;
   if (typeof data === "string") {
     try {
       return JSON.parse(data) as ChartNodeAttributes;
@@ -81,10 +81,13 @@ export const ChartNode = Node.create({
 
   addAttributes() {
     return {
-      // CRITICAL: Use empty string as default, NOT null
-      // Tiptap only includes attrs in JSON if they differ from default
       chartData: {
-        default: "",
+        default: null,
+        parseHTML: (element: HTMLElement) => element.getAttribute('data-chart'),
+        renderHTML: (attributes: { chartData: string | null }) => {
+          if (!attributes.chartData) return {};
+          return { 'data-chart': attributes.chartData };
+        },
       },
     };
   },

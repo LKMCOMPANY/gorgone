@@ -70,39 +70,62 @@ export function ReportEditorPage({ report }: ReportEditorPageProps) {
   }, [editor, report.id, title, registerEditor, unregisterEditor]);
 
   // Auto-save with debounce
+  // Use refs to always have the latest values in the debounced callback (avoid stale closures)
   const saveTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+  const latestContentRef = React.useRef(content);
+  const latestTitleRef = React.useRef(title);
+  const latestWordCountRef = React.useRef(wordCount);
 
-  const performSave = React.useCallback(
-    async (newTitle: string, newContent: ReportContent) => {
-      setIsSaving(true);
+  // Keep refs in sync with state
+  React.useEffect(() => {
+    latestContentRef.current = content;
+  }, [content]);
 
-      const updatedContent: ReportContent = {
-        ...newContent,
-        metadata: {
-          ...newContent.metadata,
-          word_count: wordCount,
-          last_edited_at: new Date().toISOString(),
-        },
-      };
+  React.useEffect(() => {
+    latestTitleRef.current = title;
+  }, [title]);
 
-      const result = await updateReportAction(report.id, {
-        title: newTitle,
-        content: updatedContent,
-      });
+  React.useEffect(() => {
+    latestWordCountRef.current = wordCount;
+  }, [wordCount]);
 
-      setIsSaving(false);
+  const performSave = React.useCallback(async () => {
+    // Always use the latest values from refs
+    const currentTitle = latestTitleRef.current;
+    const currentContent = latestContentRef.current;
+    const currentWordCount = latestWordCountRef.current;
 
-      if (result.success) {
-        setLastSaved(new Date());
-        setHasChanges(false);
-      } else {
-        toast.error("Failed to save");
-      }
-    },
-    [report.id, wordCount]
-  );
+    setIsSaving(true);
 
-  // Debounced auto-save
+    const updatedContent: ReportContent = {
+      ...currentContent,
+      metadata: {
+        ...currentContent.metadata,
+        word_count: currentWordCount,
+        last_edited_at: new Date().toISOString(),
+      },
+    };
+
+    // Serialize content to JSON string for reliable Server Action transmission
+    // This prevents data loss with complex nested objects (Tiptap node attrs)
+    const serializedContent = JSON.stringify(updatedContent);
+    
+    const result = await updateReportAction(report.id, {
+      title: currentTitle,
+      contentJson: serializedContent,
+    });
+
+    setIsSaving(false);
+
+    if (result.success) {
+      setLastSaved(new Date());
+      setHasChanges(false);
+    } else {
+      toast.error("Failed to save");
+    }
+  }, [report.id]);
+
+  // Debounced auto-save - triggers on any change
   React.useEffect(() => {
     if (!hasChanges) return;
 
@@ -111,7 +134,7 @@ export function ReportEditorPage({ report }: ReportEditorPageProps) {
     }
 
     saveTimeoutRef.current = setTimeout(() => {
-      performSave(title, content);
+      performSave();
     }, 2000); // 2 second debounce
 
     return () => {
@@ -144,7 +167,7 @@ export function ReportEditorPage({ report }: ReportEditorPageProps) {
 
   const handlePublish = async () => {
     // Save first
-    await performSave(title, content);
+    await performSave();
 
     const result = await updateReportStatusAction(report.id, "published");
     if (result.success) {
@@ -172,7 +195,7 @@ export function ReportEditorPage({ report }: ReportEditorPageProps) {
     }
 
     // Save first before export
-    await performSave(title, content);
+    await performSave();
 
     setIsExporting(true);
     toast.info("Generating PDF...");

@@ -1,8 +1,14 @@
 /**
  * Tiptap Extensions Index
  * 
- * All custom node extensions use the `rendered: false` pattern for attributes,
- * ensuring proper JSON serialization without HTML attr interference.
+ * All custom node extensions use the same pattern for Tiptap 3.x:
+ * - `default: null` for proper JSON serialization (attrs != default are serialized)
+ * - `parseHTML` and `renderHTML` functions for HTML attribute mapping
+ * - Data stored as JSON-stringified strings in data-* attributes
+ * - Helper parse functions to handle both string and object formats
+ * 
+ * Content is serialized as JSON string before Server Action transmission
+ * to prevent data loss with complex nested objects (see report-editor-page.tsx)
  */
 
 // Node Extensions

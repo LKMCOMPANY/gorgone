@@ -4,9 +4,7 @@ import * as React from "react";
 import { useEditor, EditorContent, type Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
-import Underline from "@tiptap/extension-underline";
 import TextAlign from "@tiptap/extension-text-align";
-import Link from "@tiptap/extension-link";
 import Highlight from "@tiptap/extension-highlight";
 import { ReportToolbar } from "./report-toolbar";
 import { cn } from "@/lib/utils";
@@ -35,24 +33,27 @@ export function ReportEditor({
   const editor = useEditor({
     immediatelyRender: false, // Disable SSR rendering to avoid hydration mismatches
     extensions: [
+      // StarterKit in Tiptap 3.13.0 includes Link and Underline by default
+      // We configure them here to customize their behavior
       StarterKit.configure({
         heading: {
           levels: [1, 2, 3],
         },
+        // Configure Link within StarterKit
+        link: {
+          openOnClick: false,
+          HTMLAttributes: {
+            class: "text-primary underline underline-offset-2 hover:text-primary/80 transition-colors",
+          },
+        },
+        // Underline is included by default in StarterKit 3.x
       }),
       Placeholder.configure({
         placeholder: "Start writing your report...",
         emptyEditorClass: "is-editor-empty",
       }),
-      Underline,
       TextAlign.configure({
         types: ["heading", "paragraph"],
-      }),
-      Link.configure({
-        openOnClick: false,
-        HTMLAttributes: {
-          class: "text-primary underline underline-offset-2 hover:text-primary/80 transition-colors",
-        },
       }),
       Highlight.configure({
         multicolor: true,
@@ -94,16 +95,9 @@ export function ReportEditor({
     },
   });
 
-  // Update editor when external content changes
-  React.useEffect(() => {
-    if (editor && content && !editor.isDestroyed) {
-      const currentJSON = JSON.stringify(editor.getJSON());
-      const newJSON = JSON.stringify(content);
-      if (currentJSON !== newJSON) {
-        editor.commands.setContent(content);
-      }
-    }
-  }, [editor, content]);
+  // NOTE: We intentionally do NOT sync React state back to the editor.
+  // The editor is the source of truth. Content flows: Editor → React state → Database
+  // Syncing the other way would cause race conditions and overwrite user edits.
 
   // Notify parent when editor is ready
   React.useEffect(() => {

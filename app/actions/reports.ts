@@ -194,13 +194,18 @@ export async function createReportAction(
 
 /**
  * Update a report (auto-save)
+ * 
+ * Uses JSON string serialization for content to ensure complex nested objects
+ * (like Tiptap document with custom node attrs) are not corrupted during
+ * Server Action transmission. This is a best practice for rich document content.
  */
 export async function updateReportAction(
   id: string,
   updates: {
     title?: string;
     summary?: string;
-    content?: ReportContent;
+    contentJson?: string; // Serialized ReportContent - safer for Server Actions
+    content?: ReportContent; // Legacy support
   }
 ): Promise<{ success: boolean; report?: Report; error?: string }> {
   try {
@@ -213,12 +218,32 @@ export async function updateReportAction(
       return { success: false, error: "Insufficient permissions" };
     }
 
-    // Update metadata timestamp
-    if (updates.content) {
-      updates.content.metadata.last_edited_at = new Date().toISOString();
+    // Parse content from JSON string if provided
+    // Using JSON serialization ensures complex nested objects (Tiptap node attrs)
+    // are reliably transmitted through Server Actions
+    let parsedContent: ReportContent | undefined;
+    if (updates.contentJson) {
+      try {
+        parsedContent = JSON.parse(updates.contentJson) as ReportContent;
+      } catch (parseError) {
+        logger.error("Failed to parse report content JSON:", parseError);
+        return { success: false, error: "Invalid content format" };
+      }
+    } else if (updates.content) {
+      // Legacy support for direct content object
+      parsedContent = updates.content;
     }
 
-    const report = await updateReport(id, updates);
+    // Update metadata timestamp
+    if (parsedContent) {
+      parsedContent.metadata.last_edited_at = new Date().toISOString();
+    }
+
+    const report = await updateReport(id, {
+      title: updates.title,
+      summary: updates.summary,
+      content: parsedContent,
+    });
 
     // Don't revalidate on every auto-save to avoid performance issues
     // revalidatePath("/dashboard/reports");

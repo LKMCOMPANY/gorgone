@@ -912,6 +912,110 @@ Users are created manually by Super Admins via the Admin API:
    - Sentiment analysis (media + engagement-based)
    - Anomaly detection (volume spikes, viral content)
    - Comprehensive report generation
+13. ✅ **Report Builder**: Rich text reports with embedded visualizations
+   - Tiptap 3.x editor with custom node extensions
+   - 7 custom nodes (Charts, Stats, Tweets, TikTok, Articles, Accounts, Opinion Reports)
+   - AI tool integration ("Add to Report" from chatbot responses)
+   - Auto-save with debounce (2s delay)
+   - Library panel for quick content insertion
+   - Content picker for embedding zone data
+   - PDF export functionality
+   - JSON serialization for Server Actions (best practice for complex nested objects)
+
+### Report Builder Module
+
+**Overview**:
+Rich text report creation with embedded visualizations from monitoring data. Uses Tiptap 3.x as the WYSIWYG editor with custom node extensions for interactive content.
+
+**Features**:
+- ✅ **Tiptap 3.x Integration**: Modern rich text editor with React NodeViews
+- ✅ **7 Custom Node Extensions**: Charts, Stats Cards, Tweets, TikTok Videos, Articles, Accounts, Opinion Reports
+- ✅ **AI Integration**: "Add to Report" button on chatbot responses
+- ✅ **Auto-Save**: Debounced auto-save (2s delay) with visual feedback
+- ✅ **Library Panel**: Quick insertion of charts and stats
+- ✅ **Content Picker**: Embed tweets, videos, articles from zone monitoring
+- ✅ **PDF Export**: Export reports to PDF format
+- ✅ **Mobile Responsive**: Optimized for desktop and mobile
+
+**Architecture**:
+
+**Data Layer** (`lib/data/reports.ts`):
+- `getReportsByClient()` - List reports for a client
+- `getReportById()` - Get single report with zone info
+- `createReport()` - Create new report
+- `updateReport()` - Update report content/metadata
+- `updateReportStatus()` - Publish/unpublish report
+- `deleteReport()` - Soft delete report
+- `duplicateReport()` - Clone existing report
+
+**Server Actions** (`app/actions/reports.ts`):
+- `createReportAction()` - Create with zone assignment
+- `updateReportAction()` - Auto-save with JSON serialization
+- `updateReportStatusAction()` - Publish/draft toggle
+- `deleteReportAction()` - Delete with permission checks
+- `duplicateReportAction()` - Clone report
+
+**Tiptap Extensions** (`components/dashboard/reports/extensions/`):
+- `chart-node.tsx` - Line/Bar/Area charts (Recharts)
+- `stats-node.tsx` - Stats cards with trends
+- `tweet-node.tsx` - Twitter post embeds
+- `tiktok-node.tsx` - TikTok video embeds
+- `article-node.tsx` - Media article embeds
+- `account-node.tsx` - Profile/account cards
+- `opinion-report-node.tsx` - Opinion analysis embeds
+- `types.ts` - Shared type definitions
+
+**Extension Pattern** (Tiptap 3.x Best Practices):
+```typescript
+// All extensions follow this pattern:
+addAttributes() {
+  return {
+    dataAttr: {
+      default: null,  // null allows serialization of non-default values
+      parseHTML: (el) => el.getAttribute('data-attr'),
+      renderHTML: (attrs) => ({ 'data-attr': attrs.dataAttr }),
+    },
+  };
+}
+```
+
+**Server Action Serialization**:
+Complex nested objects (like Tiptap document with custom node attrs) must be serialized as JSON strings before Server Action transmission to prevent data loss:
+```typescript
+// Client: Serialize before sending
+const serializedContent = JSON.stringify(updatedContent);
+await updateReportAction(id, { contentJson: serializedContent });
+
+// Server: Parse after receiving
+const parsedContent = JSON.parse(updates.contentJson);
+```
+
+**UI Components** (`components/dashboard/reports/`):
+- `report-editor.tsx` - Main Tiptap editor wrapper
+- `report-editor-page.tsx` - Full page with toolbar and panels
+- `report-toolbar.tsx` - Formatting toolbar
+- `report-library-panel.tsx` - Quick insertion panel
+- `report-content-picker.tsx` - Zone content selection dialog
+- `report-pdf-export.ts` - PDF generation utility
+
+**Context** (`lib/contexts/report-editor-context.tsx`):
+- Provides global editor instance access
+- Enables "Add to Report" from AI chatbot
+- Manages editor registration/unregistration
+
+**Database Schema**:
+- `chat_reports` table in Supabase
+- JSONB `content` field stores:
+  - `tiptap_document`: Full editor JSON
+  - `config`: Report period and data sources
+  - `metadata`: Word count, last edited, etc.
+  - `embedded_items`: Cached embedded content
+
+**Performance Considerations**:
+- Auto-save uses debounce to prevent excessive API calls
+- Content serialized as JSON for reliable Server Action transmission
+- Skeleton loading for smooth UX
+- Editor state managed via refs to avoid stale closures
 
 ## Next Steps
 
@@ -985,6 +1089,8 @@ Users are created manually by Super Admins via the Admin API:
 
 ### Module Documentation
 - **`TWITTER_INTEGRATION.md`**: Twitter integration technical documentation
-- **`TIKTOK_INTEGRATION.md`**: TikTok integration technical documentation (NEW)
+- **`TIKTOK_INTEGRATION.md`**: TikTok integration technical documentation
 - **`ENGAGEMENT_EVOLUTION_FEATURE.md`**: Engagement charts and tracking status feature
 - **`LOADING_STATES.md`**: Loading states and skeleton patterns
+- **`CHATBOT_INTEGRATION.md`**: AI chatbot tools and integration
+- **Report Builder**: See "Report Builder Module" section in this file

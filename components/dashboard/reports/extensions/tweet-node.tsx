@@ -4,7 +4,7 @@
  * Tiptap Tweet Node Extension
  * Embeds tweet cards in reports - uses exact same component as chat
  * 
- * Uses `rendered: false` pattern for reliable JSON serialization
+ * Pattern for Tiptap 3.x: Empty string default + JSON.stringify for data
  */
 
 import { Node, mergeAttributes } from "@tiptap/core";
@@ -18,7 +18,7 @@ import { Trash2 } from "lucide-react";
 // ============================================================================
 
 function parseTweetData(data: unknown): TweetData | null {
-  if (!data || data === "") return null;
+  if (data === undefined || data === null || data === "") return null;
   if (typeof data === "string") {
     try {
       return JSON.parse(data) as TweetData;
@@ -75,10 +75,13 @@ export const TweetNode = Node.create({
 
   addAttributes() {
     return {
-      // CRITICAL: Use empty string as default, NOT null
-      // Tiptap only includes attrs in JSON if they differ from default
       tweet: {
-        default: "",
+        default: null,
+        parseHTML: (element: HTMLElement) => element.getAttribute('data-tweet'),
+        renderHTML: (attributes: { tweet: string | null }) => {
+          if (!attributes.tweet) return {};
+          return { 'data-tweet': attributes.tweet };
+        },
       },
     };
   },

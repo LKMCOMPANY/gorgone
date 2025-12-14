@@ -166,12 +166,18 @@ export function AddResponseToReport({
 
       // 7. Add complete Opinion Report (with clusters, analysis, tweets)
       if (content.opinionReport) {
+        const reportDataStr = JSON.stringify(content.opinionReport);
+        console.log("[AddToReport] OpinionReport data length:", reportDataStr.length);
+        console.log("[AddToReport] OpinionReport data preview:", reportDataStr.substring(0, 200));
         nodes.push({
           type: "opinionReportNode",
-          attrs: { reportData: JSON.stringify(content.opinionReport) },
+          attrs: { reportData: reportDataStr },
         });
         nodes.push({ type: "paragraph" });
       }
+
+      // Debug: Log nodes being inserted
+      console.log("[AddToReport] Nodes to insert:", JSON.stringify(nodes.map(n => ({ type: n.type, hasAttrs: !!n.attrs, attrsKeys: n.attrs ? Object.keys(n.attrs) : [] }))));
 
       // Insert all content
       const success = reportContext.insertContent(nodes);

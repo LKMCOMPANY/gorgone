@@ -4,7 +4,7 @@
  * Tiptap Article Node Extension
  * Embeds article cards in reports - uses exact same component as chat
  * 
- * Uses `rendered: false` pattern for reliable JSON serialization
+ * Pattern for Tiptap 3.x: Empty string default + JSON.stringify for data
  */
 
 import { Node, mergeAttributes } from "@tiptap/core";
@@ -18,7 +18,7 @@ import { Trash2 } from "lucide-react";
 // ============================================================================
 
 function parseArticleData(data: unknown): ArticleData | null {
-  if (!data || data === "") return null;
+  if (data === undefined || data === null || data === "") return null;
   if (typeof data === "string") {
     try {
       return JSON.parse(data) as ArticleData;
@@ -75,10 +75,13 @@ export const ArticleNode = Node.create({
 
   addAttributes() {
     return {
-      // CRITICAL: Use empty string as default, NOT null
-      // Tiptap only includes attrs in JSON if they differ from default
       article: {
-        default: "",
+        default: null,
+        parseHTML: (element: HTMLElement) => element.getAttribute('data-article'),
+        renderHTML: (attributes: { article: string | null }) => {
+          if (!attributes.article) return {};
+          return { 'data-article': attributes.article };
+        },
       },
     };
   },

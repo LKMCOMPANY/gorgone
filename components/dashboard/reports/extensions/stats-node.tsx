@@ -4,7 +4,7 @@
  * Tiptap Stats Card Node Extension
  * Embeds KPI/statistics cards in reports
  * 
- * Uses `rendered: false` pattern for reliable JSON serialization
+ * Pattern for Tiptap 3.x: Empty string default + JSON.stringify for data
  */
 
 import { Node, mergeAttributes } from "@tiptap/core";
@@ -21,7 +21,7 @@ import type { StatsCardNodeAttributes } from "./types";
 // ============================================================================
 
 function parseStatsData(data: unknown): StatsCardNodeAttributes | null {
-  if (!data || data === "") return null;
+  if (data === undefined || data === null || data === "") return null;
   if (typeof data === "string") {
     try {
       return JSON.parse(data) as StatsCardNodeAttributes;
@@ -130,10 +130,13 @@ export const StatsNode = Node.create({
 
   addAttributes() {
     return {
-      // CRITICAL: Use empty string as default, NOT null
-      // Tiptap only includes attrs in JSON if they differ from default
       statsData: {
-        default: "",
+        default: null,
+        parseHTML: (element: HTMLElement) => element.getAttribute('data-stats'),
+        renderHTML: (attributes: { statsData: string | null }) => {
+          if (!attributes.statsData) return {};
+          return { 'data-stats': attributes.statsData };
+        },
       },
     };
   },
