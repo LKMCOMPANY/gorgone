@@ -316,8 +316,13 @@ export function ReportEditorPage({ report }: ReportEditorPageProps) {
         {/* Header - Responsive */}
         <div className="flex flex-col gap-4">
           {/* Top row: Back + Title + Actions */}
-          <div className="flex items-start gap-3 md:gap-4">
-            <Button variant="ghost" size="icon" asChild className="shrink-0 mt-1">
+          <div className="flex items-center gap-3 md:gap-4">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              asChild 
+              className="shrink-0 transition-colors duration-[var(--transition-fast)]"
+            >
               <Link href="/dashboard/reports">
                 <ArrowLeft className="size-4" />
               </Link>
@@ -327,34 +332,36 @@ export function ReportEditorPage({ report }: ReportEditorPageProps) {
               <Input
                 value={title}
                 onChange={handleTitleChange}
-                className="h-auto text-lg md:text-xl font-bold border-none bg-transparent px-0 focus-visible:ring-0 focus-visible:ring-offset-0"
-                placeholder="Report title"
+                className="h-auto text-xl md:text-2xl font-semibold border-none bg-transparent px-0 focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/50"
+                placeholder="Untitled Report"
               />
               
               {/* Metadata row - Scrollable on mobile */}
-              <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1 overflow-x-auto scrollbar-hide">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1.5 overflow-x-auto scrollbar-hide">
                 <Badge
                   variant={report.status === "published" ? "success" : "outline"}
                   className="text-xs h-5 shrink-0"
                 >
                   {report.status === "published" ? "Published" : "Draft"}
                 </Badge>
-                <span className="shrink-0">•</span>
-                <span className="shrink-0 truncate max-w-[120px] md:max-w-none">{report.zone?.name}</span>
-                <span className="shrink-0">•</span>
+                <span className="shrink-0 text-muted-foreground/50">•</span>
+                <Badge variant="outline" className="text-xs h-5 shrink-0 font-normal">
+                  {report.zone?.name}
+                </Badge>
+                <span className="shrink-0 text-muted-foreground/50">•</span>
                 <span className="shrink-0 tabular-nums">{wordCount.toLocaleString()} words</span>
                 {lastSaved && (
                   <>
-                    <span className="shrink-0">•</span>
-                    <span className="flex items-center gap-1 shrink-0">
-                      <CheckCircle2 className="size-3 text-[var(--tactical-green)]" />
+                    <span className="shrink-0 text-muted-foreground/50">•</span>
+                    <span className="flex items-center gap-1 shrink-0 text-tactical-green">
+                      <CheckCircle2 className="size-3" />
                       <span className="hidden sm:inline">Saved</span>
                     </span>
                   </>
                 )}
                 {isSaving && (
                   <>
-                    <span className="shrink-0">•</span>
+                    <span className="shrink-0 text-muted-foreground/50">•</span>
                     <span className="flex items-center gap-1 shrink-0">
                       <Clock className="size-3 animate-pulse" />
                       <span className="hidden sm:inline">Saving...</span>
@@ -370,7 +377,11 @@ export function ReportEditorPage({ report }: ReportEditorPageProps) {
             {/* Mobile Library Button */}
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="outline" size="sm" className="lg:hidden">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="lg:hidden transition-all duration-[var(--transition-fast)]"
+                >
                   <Library className="size-4 mr-2" />
                   Library
                 </Button>
@@ -395,7 +406,7 @@ export function ReportEditorPage({ report }: ReportEditorPageProps) {
               variant="ghost"
               size="icon"
               onClick={() => setShowLibrary(!showLibrary)}
-              className="hidden lg:flex"
+              className="hidden lg:flex transition-colors duration-[var(--transition-fast)]"
             >
               {showLibrary ? (
                 <PanelRightClose className="size-4" />
@@ -409,25 +420,40 @@ export function ReportEditorPage({ report }: ReportEditorPageProps) {
               size="sm" 
               onClick={handleExportPDF} 
               disabled={isExporting}
+              className="transition-all duration-[var(--transition-fast)]"
             >
               <Download className={cn("size-4", isExporting && "animate-pulse")} />
               <span className="hidden sm:inline ml-2">{isExporting ? "Exporting..." : "PDF"}</span>
             </Button>
 
             {report.status === "draft" ? (
-              <Button size="sm" onClick={handlePublish}>
+              <Button 
+                size="sm" 
+                onClick={handlePublish}
+                className="transition-all duration-[var(--transition-fast)]"
+              >
                 <Send className="size-4" />
                 <span className="hidden sm:inline ml-2">Publish</span>
               </Button>
             ) : (
               <>
                 {report.share_token && (
-                  <Button variant="outline" size="sm" onClick={handleViewShareSettings}>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={handleViewShareSettings}
+                    className="transition-all duration-[var(--transition-fast)]"
+                  >
                     <KeyRound className="size-4" />
                     <span className="hidden sm:inline ml-2">Share</span>
                   </Button>
                 )}
-                <Button variant="ghost" size="sm" onClick={handleUnpublish}>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={handleUnpublish}
+                  className="transition-all duration-[var(--transition-fast)]"
+                >
                   <Archive className="size-4" />
                   <span className="hidden sm:inline ml-2">Unpublish</span>
                 </Button>
