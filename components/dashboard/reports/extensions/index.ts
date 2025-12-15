@@ -19,6 +19,7 @@ export { ArticleNode, createArticleNode } from "./article-node";
 export { AccountNode, createAccountNode } from "./account-node";
 export { StatsNode, createStatsNode } from "./stats-node";
 export { OpinionReportNode, createOpinionReportNode } from "./opinion-report-node";
+export { ImageNode, createImageNode } from "./image-node";
 
 // Types
 export type {
@@ -31,6 +32,7 @@ export type {
   OpinionReportNodeAttributes,
   EmbeddableContent,
 } from "./types";
+export type { ImageNodeAttributes } from "./image-node";
 
 // ============================================================================
 // All Custom Report Extensions Array (for easy import into editor)
@@ -43,6 +45,7 @@ import { ArticleNode } from "./article-node";
 import { AccountNode } from "./account-node";
 import { StatsNode } from "./stats-node";
 import { OpinionReportNode } from "./opinion-report-node";
+import { ImageNode } from "./image-node";
 
 export const reportExtensions = [
   ChartNode,
@@ -52,4 +55,5 @@ export const reportExtensions = [
   AccountNode,
   StatsNode,
   OpinionReportNode,
+  ImageNode,
 ];

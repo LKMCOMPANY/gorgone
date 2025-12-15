@@ -20,7 +20,11 @@ import {
   Highlighter,
   Undo,
   Redo,
+  ImageIcon,
+  Loader2,
 } from "lucide-react";
+import { toast } from "sonner";
+import { createImageNode } from "./extensions";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -74,6 +78,9 @@ function ToolbarButton({
 }
 
 export function ReportToolbar({ editor }: ReportToolbarProps) {
+  const [isUploading, setIsUploading] = React.useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
   const setLink = React.useCallback(() => {
     const previousUrl = editor.getAttributes("link").href;
     const url = window.prompt("URL", previousUrl);
@@ -87,6 +94,73 @@ export function ReportToolbar({ editor }: ReportToolbarProps) {
 
     editor.chain().focus().extendMarkRange("link").setLink({ href: url }).run();
   }, [editor]);
+
+  const handleImageUpload = React.useCallback(
+    async (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+
+      // Reset input for next upload
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+
+      // Validate client-side
+      const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+      if (!allowedTypes.includes(file.type)) {
+        toast.error("Invalid file type. Use JPEG, PNG, GIF, or WebP.");
+        return;
+      }
+
+      const maxSize = 5 * 1024 * 1024; // 5MB
+      if (file.size > maxSize) {
+        toast.error("File too large. Maximum size is 5MB.");
+        return;
+      }
+
+      setIsUploading(true);
+
+      try {
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const response = await fetch("/api/reports/upload-image", {
+          method: "POST",
+          body: formData,
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || "Upload failed");
+        }
+
+        // Get image dimensions for better rendering
+        const img = new window.Image();
+        img.src = URL.createObjectURL(file);
+        await new Promise((resolve) => {
+          img.onload = resolve;
+        });
+
+        // Insert image node into editor
+        const imageNode = createImageNode({
+          src: data.url,
+          alt: file.name.replace(/\.[^/.]+$/, ""),
+          width: img.naturalWidth,
+          height: img.naturalHeight,
+        });
+
+        editor.chain().focus().insertContent(imageNode).run();
+        toast.success("Image uploaded");
+      } catch (error) {
+        console.error("Image upload error:", error);
+        toast.error(error instanceof Error ? error.message : "Failed to upload image");
+      } finally {
+        setIsUploading(false);
+      }
+    },
+    [editor]
+  );
 
   return (
     <TooltipProvider delayDuration={300}>
@@ -233,6 +307,29 @@ export function ReportToolbar({ editor }: ReportToolbarProps) {
           tooltip="Add Link"
         >
           <LinkIcon className="size-4" />
+        </ToolbarButton>
+
+        <Separator orientation="vertical" className="mx-1 h-6" />
+
+        {/* Image Upload */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/gif,image/webp"
+          onChange={handleImageUpload}
+          className="hidden"
+          aria-label="Upload image"
+        />
+        <ToolbarButton
+          onClick={() => fileInputRef.current?.click()}
+          disabled={isUploading}
+          tooltip="Insert Image"
+        >
+          {isUploading ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <ImageIcon className="size-4" />
+          )}
         </ToolbarButton>
       </div>
     </TooltipProvider>
