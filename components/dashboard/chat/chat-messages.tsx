@@ -16,6 +16,7 @@ import { TrendingTopicsList, type TrendingTopicData } from "@/components/ui/tren
 import { Badge } from "@/components/ui/badge";
 import { Copy, RefreshCw, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { OpinionReportView, type OpinionReportData } from "@/components/ui/opinion-report-view";
+import type { SupportedLanguage } from "@/lib/constants/languages";
 import {
   AddResponseToReport,
   type ResponseContent,
@@ -887,6 +888,8 @@ interface ChatMessagesProps {
   isLoading: boolean;
   onQuickAction?: (query: string) => void;
   reload?: () => void;
+  /** Language for UI components (default: en) */
+  language?: SupportedLanguage;
 }
 
 /**
@@ -1105,6 +1108,7 @@ export function ChatMessages({
   messages,
   isLoading,
   reload,
+  language = "en",
 }: ChatMessagesProps) {
   if (messages.length === 0 && !isLoading) {
     return null;
@@ -1188,7 +1192,7 @@ export function ChatMessages({
                   if (hasOpinionResult) {
                     return (
                       <div key={idx} className="my-4 w-full">
-                        <OpinionReportView report={parsedResult} />
+                        <OpinionReportView report={parsedResult} language={language} />
                       </div>
                     );
                   }

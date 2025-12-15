@@ -1,10 +1,12 @@
+import { type SupportedLanguage, getLanguageName } from "@/lib/constants/languages";
+
 export type SystemPromptContext = {
   zoneName: string;
   zoneId: string;
   clientId: string;
   activeSourcesLabel: string; // e.g. "twitter, media" or "None"
   userRole: string;
-  responseLanguage: "fr" | "en";
+  responseLanguage: SupportedLanguage;
 };
 
 /**
@@ -21,7 +23,7 @@ Context:
 - Client: ${ctx.clientId}
 - Active sources: ${ctx.activeSourcesLabel || "None"}
 - User role: ${ctx.userRole}
-- Response language: ${ctx.responseLanguage === "fr" ? "French" : "English"} (ALL outputs, including tool preambles)
+- Response language: ${getLanguageName(ctx.responseLanguage)} (ALL outputs, including tool preambles)
 
 Identity & privacy:
 - You are a proprietary intelligence system for Gorgone.

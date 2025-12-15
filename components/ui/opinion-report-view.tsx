@@ -13,12 +13,20 @@
  * - Sentiment evolution chart (optional)
  * - Cluster cards with labels, percentages, descriptions, keywords
  * - Representative tweets per cluster
+ * 
+ * Supports i18n via optional `language` prop for static UI labels.
+ * Dynamic content (cluster labels, descriptions) are generated in the zone's
+ * configured language during Opinion Map creation.
  */
 
 import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { TweetCardList, type TweetData } from "@/components/ui/tweet-card";
 import { ChatChart } from "@/components/dashboard/chat/chat-chart";
+import {
+  type SupportedLanguage,
+  getOpinionReportLabels,
+} from "@/lib/constants/languages";
 
 // ============================================================================
 // Types
@@ -92,6 +100,25 @@ function toTweetData(tweet: OpinionTweetExample): TweetData {
   };
 }
 
+/**
+ * Get translated sentiment label
+ * The sentiment_label in data is in English (positive/neutral/negative)
+ * We translate it to the display language
+ */
+function getTranslatedSentimentLabel(
+  sentimentLabel: string,
+  labels: ReturnType<typeof getOpinionReportLabels>
+): string {
+  switch (sentimentLabel.toLowerCase()) {
+    case "positive":
+      return labels.positive;
+    case "negative":
+      return labels.negative;
+    default:
+      return labels.neutral;
+  }
+}
+
 // ============================================================================
 // Component
 // ============================================================================
@@ -102,6 +129,8 @@ interface OpinionReportViewProps {
   hideHeader?: boolean;
   /** Optional: limit number of clusters shown */
   maxClusters?: number;
+  /** Optional: language for UI labels (default: en) */
+  language?: SupportedLanguage;
   className?: string;
 }
 
@@ -109,11 +138,15 @@ export function OpinionReportView({
   report,
   hideHeader = false,
   maxClusters,
+  language = "en",
   className,
 }: OpinionReportViewProps) {
   const clusters = maxClusters
     ? report.clusters.slice(0, maxClusters)
     : report.clusters;
+
+  // Get translated labels for UI
+  const labels = getOpinionReportLabels(language);
 
   return (
     <div className={className}>
@@ -121,27 +154,31 @@ export function OpinionReportView({
         {/* Header Card */}
         {!hideHeader && (
           <div className="rounded-xl border bg-card p-5">
-            <h3 className="text-lg font-semibold mb-3">Opinion Report</h3>
+            <h3 className="text-lg font-semibold mb-3">{labels.title}</h3>
             <div className="grid grid-cols-3 gap-4 text-center">
               <div>
                 <div className="text-2xl font-bold text-foreground">
                   {report.session.total_tweets_analyzed.toLocaleString()}
                 </div>
                 <div className="text-xs text-muted-foreground">
-                  Tweets Analyzed
+                  {labels.tweetsAnalyzed}
                 </div>
               </div>
               <div>
                 <div className="text-2xl font-bold text-foreground">
                   {report.session.total_clusters}
                 </div>
-                <div className="text-xs text-muted-foreground">Clusters</div>
+                <div className="text-xs text-muted-foreground">
+                  {labels.clusters}
+                </div>
               </div>
               <div>
                 <div className="text-sm font-medium text-foreground">
                   {report.session.data_period.display}
                 </div>
-                <div className="text-xs text-muted-foreground">Period</div>
+                <div className="text-xs text-muted-foreground">
+                  {labels.period}
+                </div>
               </div>
             </div>
           </div>
@@ -152,7 +189,7 @@ export function OpinionReportView({
           <div className="rounded-xl border bg-card p-5">
             <ChatChart
               type={report.sentiment_evolution_chart.chart_type}
-              title={report.sentiment_evolution_chart.title}
+              title={labels.sentimentEvolution}
               data={report.sentiment_evolution_chart.data}
               config={report.sentiment_evolution_chart.config}
             />
@@ -180,7 +217,7 @@ export function OpinionReportView({
                           : "border-gray-500/50 text-gray-600 bg-gray-500/10"
                     }
                   >
-                    {cluster.sentiment_label}
+                    {getTranslatedSentimentLabel(cluster.sentiment_label, labels)}
                   </Badge>
                 </div>
               </div>
@@ -208,7 +245,7 @@ export function OpinionReportView({
             {cluster.examples && cluster.examples.length > 0 && (
               <div className="pt-2 border-t border-border/50">
                 <div className="text-xs text-muted-foreground mb-2 font-medium">
-                  Representative Tweets
+                  {labels.representativeTweets}
                 </div>
                 <TweetCardList tweets={cluster.examples.map(toTweetData)} compact />
               </div>
@@ -222,4 +259,3 @@ export function OpinionReportView({
 
 // Re-export types for consumers
 export type { TweetData };
-

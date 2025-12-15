@@ -18,6 +18,7 @@ import { ChatMessages } from "./chat-messages";
 import { ChatInput } from "./chat-input";
 import { cn } from "@/lib/utils";
 import type { Zone } from "@/types";
+import { getZoneLanguage } from "@/lib/ai/chat/language";
 import { Conversation, ConversationEmpty } from "@/components/ai/conversation";
 import { Suggestion } from "@/components/ai/suggestion";
 
@@ -231,6 +232,7 @@ export function DashboardChat({ zones, variant = "full" }: DashboardChatProps) {
               isLoading={isLoading}
               reload={reload}
               onQuickAction={(q) => void sendMessage({ text: q })}
+              language={getZoneLanguage(activeZone)}
             />
           )}
         </Conversation>

@@ -62,6 +62,19 @@ export interface ZoneDataSources {
   media: boolean;
 }
 
+// Re-export SupportedLanguage from constants for convenience
+export type { SupportedLanguage } from "@/lib/constants/languages";
+
+// Zone settings configuration
+export interface ZoneSettings {
+  /** Zone language for AI analysis and reports (ISO 639-1) */
+  language?: import("@/lib/constants/languages").SupportedLanguage;
+  /** Enable Attila automation features */
+  attila_enabled?: boolean;
+  /** Additional custom settings */
+  [key: string]: unknown;
+}
+
 // Zone type
 export interface Zone {
   id: string;
@@ -69,7 +82,7 @@ export interface Zone {
   client_id: string;
   operational_context: string | null;
   data_sources: ZoneDataSources;
-  settings: Record<string, unknown>;
+  settings: ZoneSettings;
   is_active: boolean;
   created_at: string;
   created_by: string | null;

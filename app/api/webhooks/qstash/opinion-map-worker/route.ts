@@ -27,6 +27,8 @@ import {
   saveProjections,
   saveClusters
 } from '@/lib/data/twitter/opinion-map'
+import { getZoneLanguage } from '@/lib/ai/chat/language'
+import type { Zone } from '@/types'
 
 export async function POST(request: NextRequest) {
   let sessionId: string | null = null
@@ -166,14 +168,15 @@ export async function POST(request: NextRequest) {
 
     const supabase = createAdminClient()
 
-    // Load zone for operational_context (for better AI labeling)
+    // Load zone for operational_context and language (for better AI labeling)
     const { data: zone } = await supabase
       .from('zones')
-      .select('operational_context')
+      .select('operational_context, settings')
       .eq('id', session.zone_id)
       .single()
 
     const operationalContext = zone?.operational_context || null
+    const zoneLanguage = getZoneLanguage(zone as Zone | null)
 
     // Fetch tweets using parallel batching for performance
     // - BATCH_SIZE: 100 (PostgREST IN clause limit)
@@ -421,7 +424,8 @@ export async function POST(request: NextRequest) {
     })
 
     logger.info('[Opinion Map Worker] Clusters to label', {
-      count: clusterTweets.size
+      count: clusterTweets.size,
+      language: zoneLanguage
     })
 
     // Generate labels for clusters in parallel batches
@@ -450,7 +454,7 @@ export async function POST(request: NextRequest) {
       // Process batch in parallel
       const batchResults = await Promise.all(
         batch.map(async ([clusterId, texts]) => {
-          const label = await generateClusterLabel(texts, clusterId, operationalContext)
+          const label = await generateClusterLabel(texts, clusterId, operationalContext, zoneLanguage)
           
           // Calculate centroid
           const projections = clusterProjections.get(clusterId)!

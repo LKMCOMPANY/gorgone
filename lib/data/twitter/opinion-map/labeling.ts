@@ -1,19 +1,22 @@
 /**
  * AI-powered cluster labeling - Enhanced with Context & Descriptions
  * 
- * Labels are ALWAYS generated in English (reference language for storage).
- * The Chat AI translates them dynamically based on user's language.
- * 
- * This approach ensures:
- * - Consistent storage format
- * - No language detection complexity
- * - Dynamic translation via chat (FR, ES, DE, etc.)
+ * Labels are generated in the zone's configured language.
+ * This ensures:
+ * - Consistent language across the zone's analysis and reports
+ * - No runtime translation needed
+ * - Direct usability in chat and reports
  */
 
 import { generateText } from 'ai'
 import { logger } from '@/lib/logger'
 import type { OpinionLabelingResult } from '@/types'
 import { getOpinionMapOpenAIProvider } from './openai-provider'
+import { 
+  type SupportedLanguage, 
+  getLanguageName,
+  DEFAULT_ZONE_LANGUAGE 
+} from '@/lib/constants/languages'
 
 const openaiProvider = getOpinionMapOpenAIProvider()
 
@@ -23,22 +26,64 @@ const BASE_RETRY_DELAY = 5000
 const LABELING_MODEL_ID = 'gpt-5.2'
 
 /**
+ * Fallback messages by language for when AI labeling fails
+ */
+const FALLBACK_MESSAGES: Record<SupportedLanguage, {
+  topicsRelated: string;
+  analysisUnavailable: string;
+}> = {
+  en: {
+    topicsRelated: "This cluster discusses topics related to",
+    analysisUnavailable: "Cluster analysis unavailable.",
+  },
+  fr: {
+    topicsRelated: "Ce cluster traite de sujets liés à",
+    analysisUnavailable: "Analyse du cluster non disponible.",
+  },
+  es: {
+    topicsRelated: "Este cluster discute temas relacionados con",
+    analysisUnavailable: "Análisis del cluster no disponible.",
+  },
+  pt: {
+    topicsRelated: "Este cluster discute tópicos relacionados a",
+    analysisUnavailable: "Análise do cluster não disponível.",
+  },
+  de: {
+    topicsRelated: "Dieser Cluster diskutiert Themen im Zusammenhang mit",
+    analysisUnavailable: "Cluster-Analyse nicht verfügbar.",
+  },
+  it: {
+    topicsRelated: "Questo cluster discute argomenti relativi a",
+    analysisUnavailable: "Analisi del cluster non disponibile.",
+  },
+  ar: {
+    topicsRelated: "تناقش هذه المجموعة موضوعات متعلقة بـ",
+    analysisUnavailable: "تحليل المجموعة غير متوفر.",
+  },
+};
+
+/**
  * Generate a descriptive label for a cluster using AI with operational context
  *
  * @param tweets - Array of tweet texts from the cluster
  * @param clusterId - Cluster identifier
  * @param operationalContext - Optional operational context for better analysis
+ * @param language - Target language for labels and descriptions (default: English)
  * @returns Label, keywords, sentiment analysis, and description
  */
 export async function generateClusterLabel(
   tweets: string[],
   clusterId: number,
-  operationalContext?: string | null
+  operationalContext?: string | null,
+  language: SupportedLanguage = DEFAULT_ZONE_LANGUAGE
 ): Promise<OpinionLabelingResult> {
+  const targetLanguage = getLanguageName(language)
+  
   logger.info('[Opinion Map] Generating cluster label', {
     cluster_id: clusterId,
     tweet_count: tweets.length,
-    has_context: Boolean(operationalContext)
+    has_context: Boolean(operationalContext),
+    language
   })
 
   // Sample tweets if too many
@@ -52,8 +97,7 @@ export async function generateClusterLabel(
     ? `\n\nOperational Context:\n${operationalContext}\n\nUse this context to better understand the significance of the posts and provide more relevant analysis.`
     : ''
 
-  // Labels are ALWAYS in English (reference language)
-  // The Chat AI translates dynamically based on user's language
+  // Generate labels in the zone's configured language
   const prompt = `You are an expert analyst identifying opinion clusters in social media data for a government-grade monitoring platform.
 
 Analyze these ${sampledTweets.length} social media posts and provide a detailed, operational analysis.${contextSection}
@@ -81,7 +125,7 @@ REQUIRED OUTPUT - You MUST provide ALL fields with substantial content:
    - 0.0 = neutral (factual, balanced)
    - +1.0 = strongly positive (praise, support, celebration)
 
-IMPORTANT: Output MUST be in English (reference language for storage).
+CRITICAL: Your entire output (label and description) MUST be written in ${targetLanguage}.
 
 Respond with ONLY a valid JSON object (no markdown, no explanation):
 {"label": "Specific Punchy Title", "description": "Detailed 2-4 sentence operational briefing about this cluster...", "sentiment": 0.0}`
@@ -152,16 +196,18 @@ Respond with ONLY a valid JSON object (no markdown, no explanation):
     }
   }
 
-  // Fallback: keyword-based label (always English)
-  logger.warn('[Opinion Map] Using fallback label', { cluster_id: clusterId })
+  // Fallback: keyword-based label in the target language
+  logger.warn('[Opinion Map] Using fallback label', { cluster_id: clusterId, language })
 
+  const fallbackMessages = FALLBACK_MESSAGES[language] ?? FALLBACK_MESSAGES.en
+  
   const fallbackLabel = keywords.length > 0
     ? keywords.slice(0, 3).join(', ')
     : `Cluster ${clusterId}`
 
   const fallbackDescription = keywords.length > 0
-    ? `This cluster discusses topics related to ${keywords.slice(0, 5).join(', ')}. Generated from keyword analysis.`
-    : 'Cluster analysis unavailable.'
+    ? `${fallbackMessages.topicsRelated} ${keywords.slice(0, 5).join(', ')}.`
+    : fallbackMessages.analysisUnavailable
 
   return {
     label: fallbackLabel,

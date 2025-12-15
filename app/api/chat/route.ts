@@ -5,7 +5,7 @@ import { getZoneById } from "@/lib/data/zones";
 import { buildSystemPrompt } from "@/lib/ai/chat/system-prompt";
 import { getChatModelSettings } from "@/lib/ai/chat/model-settings";
 import { selectActiveTools } from "@/lib/ai/chat/tool-selection";
-import { detectResponseLanguageFromMessages } from "@/lib/ai/chat/language";
+import { getEffectiveLanguage } from "@/lib/ai/chat/language";
 import {
   // Sprint 1: Essentials
   getZoneOverviewTool,
@@ -117,7 +117,8 @@ export async function POST(request: Request) {
       return text || "";
     })();
 
-    const responseLanguage = detectResponseLanguageFromMessages(rawMessages);
+    // Get effective language: zone configured language takes priority over detected
+    const responseLanguage = getEffectiveLanguage(zone, rawMessages);
 
     const systemPrompt = buildSystemPrompt({
       zoneName: zone.name,

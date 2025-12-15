@@ -4,7 +4,7 @@
  */
 
 import { createAdminClient } from "@/lib/supabase/admin";
-import { getLanguageName } from "@/lib/constants/languages";
+import { getISOLanguageName } from "@/lib/constants/languages";
 import { logger } from "@/lib/logger";
 import { redis } from "@/lib/cache/redis";
 
@@ -94,7 +94,7 @@ export async function getAvailableLanguages(
     const result: LanguageOption[] = Array.from(counts.entries())
       .map(([code, count]) => ({
         code,
-        name: getLanguageName(code, source),
+        name: getISOLanguageName(code),
         count,
       }))
       .sort((a, b) => b.count - a.count);

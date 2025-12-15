@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { Trash2 } from "lucide-react";
+import { Trash2, Globe } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,16 +12,28 @@ import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   updateZoneAction,
   deleteZoneAction,
   updateZoneDataSourcesAction,
 } from "@/app/actions/zones";
 import { toast } from "sonner";
-import type { Zone, UserRole, ZoneDataSources } from "@/types";
+import type { Zone, UserRole, ZoneDataSources, SupportedLanguage } from "@/types";
 import { canManageZones } from "@/lib/auth/permissions";
 import { TwitterSettingsTab } from "./twitter/twitter-settings-tab";
 import { TikTokSettingsTab } from "./tiktok/tiktok-settings-tab";
 import { MediaSettingsTab } from "./media/media-settings-tab";
+import { 
+  LANGUAGE_OPTIONS,
+  DEFAULT_ZONE_LANGUAGE,
+  isSupportedLanguage,
+} from "@/lib/constants/languages";
 
 interface ZoneSettingsFormProps {
   zone: Zone;
@@ -39,8 +51,12 @@ export function ZoneSettingsForm({ zone, userRole }: ZoneSettingsFormProps) {
     zone.data_sources
   );
   const [attilaEnabled, setAttilaEnabled] = useState(
-    (zone.settings as any)?.attila_enabled === true
+    zone.settings?.attila_enabled === true
   );
+  const [language, setLanguage] = useState<SupportedLanguage>(() => {
+    const zoneLang = zone.settings?.language;
+    return isSupportedLanguage(zoneLang) ? zoneLang : DEFAULT_ZONE_LANGUAGE;
+  });
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -169,6 +185,37 @@ export function ZoneSettingsForm({ zone, userRole }: ZoneSettingsFormProps) {
     }
   };
 
+  const handleLanguageChange = async (newLanguage: SupportedLanguage) => {
+    if (!canEdit) return;
+
+    const previousLanguage = language;
+    setLanguage(newLanguage);
+
+    const newSettings = {
+      ...zone.settings,
+      language: newLanguage,
+    };
+
+    try {
+      const result = await updateZoneAction(zone.id, {
+        settings: newSettings,
+      });
+
+      if (result.success) {
+        const langOption = LANGUAGE_OPTIONS.find((l) => l.code === newLanguage);
+        toast.success(`Language set to ${langOption?.nativeName || newLanguage}`);
+        router.refresh();
+      } else {
+        toast.error(result.error || "Failed to update language");
+        setLanguage(previousLanguage);
+      }
+    } catch (error) {
+      console.error("Error updating language:", error);
+      toast.error("An unexpected error occurred");
+      setLanguage(previousLanguage);
+    }
+  };
+
   const handleDelete = async () => {
     if (!canEdit) return;
 
@@ -288,6 +335,37 @@ export function ZoneSettingsForm({ zone, userRole }: ZoneSettingsFormProps) {
             />
             <p className="text-xs text-muted-foreground">
               Provide detailed context to help your team understand this zone&apos;s purpose and scope
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="zone-language" className="text-sm font-medium flex items-center gap-2">
+              <Globe className="size-4" />
+              Analysis Language
+            </Label>
+            <Select
+              value={language}
+              onValueChange={(value) => handleLanguageChange(value as SupportedLanguage)}
+              disabled={!canEdit}
+            >
+              <SelectTrigger id="zone-language" className="w-full sm:w-[280px]">
+                <SelectValue placeholder="Select language" />
+              </SelectTrigger>
+              <SelectContent>
+                {LANGUAGE_OPTIONS.map((lang) => (
+                  <SelectItem key={lang.code} value={lang.code}>
+                    <span className="flex items-center gap-2">
+                      <span>{lang.flag}</span>
+                      <span>{lang.nativeName}</span>
+                      <span className="text-muted-foreground">({lang.name})</span>
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              AI analysis, cluster labels, and chat responses will be generated in this language.
+              Regenerate Opinion Maps after changing to apply to existing analyses.
             </p>
           </div>
 
