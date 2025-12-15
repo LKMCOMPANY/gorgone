@@ -11,7 +11,7 @@ export function PageContainer({ children, className, fullWidth = false, ...props
   return (
     <div
       className={cn(
-        "flex-1 w-full h-full overflow-y-auto", 
+        "w-full", 
         !fullWidth && "p-4 sm:p-6 lg:p-8",
         className
       )}
