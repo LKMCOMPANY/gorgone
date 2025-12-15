@@ -1,13 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Building2, UserCog, Users, ArrowRight } from "lucide-react";
+import { Building2, UserCog, Users, Calendar, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import Link from "next/link";
 import type { ClientWithStats } from "@/types";
 import { getClientsAction } from "@/app/actions/clients";
 import { impersonateClientAction } from "@/app/actions/auth";
@@ -26,11 +25,10 @@ export function ClientsQuickAccess() {
   async function loadClients() {
     try {
       const data = await getClientsAction();
-      // Show only active clients, sorted by most recent
+      // Show all active clients, sorted by most recent
       const activeClients = data
         .filter((c) => c.is_active)
-        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-        .slice(0, 6); // Max 6 clients
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
       setClients(activeClients);
     } catch (error) {
       console.error("Failed to load clients:", error);
@@ -55,104 +53,97 @@ export function ClientsQuickAccess() {
 
   if (loading) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Building2 className="size-5" />
-            Clients
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {[1, 2, 3].map((i) => (
-            <Skeleton key={i} className="h-16 w-full" />
-          ))}
-        </CardContent>
-      </Card>
+      <div className="space-y-3">
+        {[1, 2, 3, 4].map((i) => (
+          <Skeleton 
+            key={i} 
+            className="h-20 w-full rounded-xl" 
+            style={{ animationDelay: `${i * 75}ms` }}
+          />
+        ))}
+      </div>
     );
   }
 
   if (clients.length === 0) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Building2 className="size-5" />
-            Clients
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground text-center py-8">
-            No active clients yet
-          </p>
-        </CardContent>
-      </Card>
+      <div className="py-16 text-center animate-in">
+        <div className="inline-flex items-center justify-center size-16 rounded-xl bg-muted/50 border border-border/50 mb-4">
+          <Building2 className="size-8 text-muted-foreground/50" />
+        </div>
+        <h3 className="text-lg font-semibold mb-2">No active clients</h3>
+        <p className="text-sm text-muted-foreground">
+          Create your first client to get started.
+        </p>
+      </div>
     );
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">Recent Clients</h2>
-        <Button variant="outline" size="sm" asChild className="h-8">
-          <Link href="/dashboard/clients" className="gap-2">
-            View All
-            <ArrowRight className="size-3.5" />
-          </Link>
-        </Button>
-      </div>
-
-      {/* Clients grid */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {clients.map((client) => (
-          <Card 
-            key={client.id}
-            className="group relative hover:shadow-md transition-all duration-200 overflow-hidden border-muted-foreground/20"
-          >
-            <CardContent className="p-5">
-              <div className="space-y-4">
-                {/* Client info */}
-                <div className="flex items-start gap-3">
-                  <div className="shrink-0 flex items-center justify-center size-10 rounded-md bg-primary/10 text-primary">
-                    <Building2 className="size-5" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <h3 className="font-semibold truncate leading-none mb-1.5">{client.name}</h3>
-                    <div className="flex items-center gap-1.5">
-                      <Badge variant="secondary" className="h-5 px-1.5 text-[10px] font-medium gap-1">
-                        <Users className="size-3" />
-                        {client.user_count}
-                      </Badge>
-                      {client.description && (
-                        <span className="text-xs text-muted-foreground truncate max-w-[120px]" title={client.description}>
-                          {client.description}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Action button */}
-                <Button
-                  onClick={() => handleViewAsClient(client.id, client.name)}
-                  disabled={impersonating === client.id}
-                  className="w-full h-9"
-                  size="sm"
-                  variant="secondary"
-                >
-                  {impersonating === client.id ? (
-                    'Switching...'
-                  ) : (
-                    <>
-                      <UserCog className="size-3.5 mr-2" />
-                      Access Dashboard
-                    </>
-                  )}
-                </Button>
+    <div className="space-y-3">
+      {clients.map((client, index) => (
+        <Card 
+          key={client.id}
+          className="card-interactive rounded-xl overflow-hidden animate-in"
+          style={{ animationDelay: `${index * 50}ms` }}
+        >
+          <CardContent className="p-4">
+            <div className="flex items-center gap-4">
+              {/* Icon */}
+              <div className="shrink-0 size-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Building2 className="size-6 text-primary" />
               </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+
+              {/* Client Info */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <h3 className="font-semibold text-base truncate">{client.name}</h3>
+                  <Badge variant="secondary" className="h-5 px-1.5 text-xs font-medium gap-1 shrink-0">
+                    <Users className="size-3" />
+                    {client.user_count}
+                  </Badge>
+                </div>
+                <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                  {client.description && (
+                    <span className="truncate max-w-[200px]" title={client.description}>
+                      {client.description}
+                    </span>
+                  )}
+                  <span className="flex items-center gap-1 shrink-0 tabular-nums">
+                    <Calendar className="size-3" />
+                    {new Date(client.created_at).toLocaleDateString("en-GB", {
+                      day: "2-digit",
+                      month: "short",
+                      year: "numeric",
+                    })}
+                  </span>
+                </div>
+              </div>
+
+              {/* Action Button */}
+              <Button
+                onClick={() => handleViewAsClient(client.id, client.name)}
+                disabled={impersonating === client.id}
+                className="h-10 px-4 shrink-0 transition-all duration-[var(--transition-fast)]"
+                variant="secondary"
+              >
+                {impersonating === client.id ? (
+                  <>
+                    <Loader2 className="size-4 mr-2 animate-spin" />
+                    Switching...
+                  </>
+                ) : (
+                  <>
+                    <UserCog className="size-4 mr-2" />
+                    <span className="hidden sm:inline">Access Dashboard</span>
+                    <span className="sm:hidden">Access</span>
+                  </>
+                )}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
     </div>
   );
 }

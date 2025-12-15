@@ -2,6 +2,8 @@ import { DashboardChat } from "@/components/dashboard/chat/dashboard-chat";
 import { ClientsQuickAccess } from "@/components/dashboard/clients/clients-quick-access";
 import { getActiveZonesByClientAction } from "@/app/actions/zones";
 import { getCurrentUser } from "@/lib/auth/utils";
+import { PageContainer } from "@/components/dashboard/page-container";
+import { Building2 } from "lucide-react";
 
 export default async function DashboardPage() {
   const user = await getCurrentUser();
@@ -9,24 +11,29 @@ export default async function DashboardPage() {
   // Super admin view: show clients quick access
   if (user?.role === "super_admin" && !user?.client_id) {
     return (
-      <div className="min-h-full bg-muted/10">
-        {/* Page header */}
-        <div className="border-b bg-background px-6 py-4">
-          <div className="max-w-6xl mx-auto">
-            <h1 className="text-2xl font-semibold tracking-tight">Admin Dashboard</h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              Overview of all active client environments
-            </p>
+      <PageContainer>
+        <div className="animate-in space-y-6">
+          {/* Header */}
+          <div className="space-y-1">
+            <div className="flex items-center gap-3">
+              <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                <Building2 className="size-5 text-primary" />
+              </div>
+              <div>
+                <h1 className="scroll-m-20 text-4xl font-extrabold tracking-tight">
+                  Admin Dashboard
+                </h1>
+                <p className="text-sm text-muted-foreground">
+                  Manage all client environments
+                </p>
+              </div>
+            </div>
           </div>
-        </div>
 
-        {/* Content */}
-        <div className="p-6">
-          <div className="max-w-6xl mx-auto space-y-8">
-            <ClientsQuickAccess />
-          </div>
+          {/* Clients List */}
+          <ClientsQuickAccess />
         </div>
-      </div>
+      </PageContainer>
     );
   }
   

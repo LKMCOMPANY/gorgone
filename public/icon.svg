@@ -1,5 +1,35 @@
 <svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="512" height="512" rx="128" fill="#7550ff"/>
-  <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="280" font-weight="bold" fill="white">G</text>
+  <!-- Background -->
+  <rect width="512" height="512" rx="96" fill="#0a0a0a"/>
+  
+  <!-- Gorgone Eye - Outer Ring -->
+  <ellipse cx="256" cy="256" rx="180" ry="100" stroke="url(#gradient1)" stroke-width="4" fill="none"/>
+  
+  <!-- Gorgone Eye - Middle Ring -->
+  <ellipse cx="256" cy="256" rx="130" ry="72" stroke="url(#gradient1)" stroke-width="3" fill="none" opacity="0.7"/>
+  
+  <!-- Gorgone Eye - Inner Core -->
+  <ellipse cx="256" cy="256" rx="70" ry="40" fill="url(#gradient1)"/>
+  
+  <!-- Gorgone Eye - Pupil -->
+  <ellipse cx="256" cy="256" rx="30" ry="18" fill="#0a0a0a"/>
+  
+  <!-- Highlight -->
+  <ellipse cx="270" cy="248" rx="8" ry="5" fill="white" opacity="0.6"/>
+  
+  <!-- Wing decorations - Left -->
+  <path d="M76 256 Q120 220 160 256 Q120 292 76 256" stroke="url(#gradient1)" stroke-width="3" fill="none"/>
+  <path d="M96 256 Q130 230 155 256 Q130 282 96 256" stroke="url(#gradient1)" stroke-width="2" fill="none" opacity="0.6"/>
+  
+  <!-- Wing decorations - Right -->
+  <path d="M436 256 Q392 220 352 256 Q392 292 436 256" stroke="url(#gradient1)" stroke-width="3" fill="none"/>
+  <path d="M416 256 Q382 230 357 256 Q382 282 416 256" stroke="url(#gradient1)" stroke-width="2" fill="none" opacity="0.6"/>
+  
+  <defs>
+    <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#a855f7"/>
+      <stop offset="50%" stop-color="#7c3aed"/>
+      <stop offset="100%" stop-color="#6366f1"/>
+    </linearGradient>
+  </defs>
 </svg>
-

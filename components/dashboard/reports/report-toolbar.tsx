@@ -59,7 +59,7 @@ function ToolbarButton({
           onClick={onClick}
           disabled={disabled}
           className={cn(
-            "size-8",
+            "size-8 shrink-0 transition-colors duration-[var(--transition-fast)]",
             isActive && "bg-muted text-foreground"
           )}
         >
@@ -91,7 +91,7 @@ export function ReportToolbar({ editor }: ReportToolbarProps) {
   return (
     <TooltipProvider delayDuration={300}>
       <div 
-        className="flex items-center gap-0.5 p-2 border-b border-border bg-muted/30 flex-wrap"
+        className="flex items-center gap-0.5 p-2 border-b border-border bg-muted/30 overflow-x-auto scrollbar-hide"
         data-pdf-exclude="true"
       >
         {/* History */}

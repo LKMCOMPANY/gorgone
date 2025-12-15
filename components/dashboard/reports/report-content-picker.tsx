@@ -311,43 +311,46 @@ export function ReportContentPicker({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[85vh] flex flex-col p-0">
-        <DialogHeader className="p-6 pb-0">
-          <DialogTitle className="flex items-center gap-2">
+      <DialogContent className="max-w-3xl max-h-[90vh] sm:max-h-[85vh] flex flex-col p-0">
+        <DialogHeader className="p-4 sm:p-6 pb-0">
+          <DialogTitle className="flex items-center gap-2 text-base sm:text-lg">
             {getTabIcon(contentType)}
             Select Content to Embed
           </DialogTitle>
         </DialogHeader>
 
-        <div className="p-6 pt-4 flex flex-col gap-4 flex-1 min-h-0">
-          {/* Search */}
-          <form onSubmit={handleSearch} className="flex gap-2">
+        <div className="p-4 sm:p-6 pt-4 flex flex-col gap-4 flex-1 min-h-0">
+          {/* Search - Stacked on mobile */}
+          <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-2">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
               <Input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search content by keyword..."
-                className="pl-9"
+                placeholder="Search content..."
+                className="pl-9 h-10"
               />
             </div>
-            <Button type="submit" disabled={isPending}>
+            <Button type="submit" disabled={isPending} className="shrink-0">
               {isPending ? (
                 <Loader2 className="size-4 animate-spin" />
               ) : (
-                "Search"
+                <>
+                  <Search className="size-4 sm:hidden" />
+                  <span className="hidden sm:inline">Search</span>
+                </>
               )}
             </Button>
           </form>
 
-          {/* Tabs */}
+          {/* Tabs - Responsive */}
           <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as ContentType)} className="flex-1 min-h-0 flex flex-col">
-            <TabsList className="w-full justify-start">
+            <TabsList className="w-full justify-start overflow-x-auto scrollbar-hide">
               {(["tweet", "tiktok", "article"] as ContentType[]).map((type) => (
-                <TabsTrigger key={type} value={type} className="gap-2">
+                <TabsTrigger key={type} value={type} className="gap-1 sm:gap-2 shrink-0">
                   {getTabIcon(type)}
-                  <span className="hidden sm:inline">{getTabLabel(type)}</span>
-                  <Badge variant="secondary" className="text-[10px] h-5 ml-1">
+                  <span className="hidden xs:inline sm:inline">{getTabLabel(type)}</span>
+                  <Badge variant="secondary" className="text-xs h-5 ml-0.5 sm:ml-1">
                     {getResultCount(type)}
                   </Badge>
                 </TabsTrigger>
@@ -427,10 +430,11 @@ function SelectableItem({
   return (
     <div className="group relative">
       <div className="pointer-events-none">{children}</div>
-      <div className="absolute inset-0 flex items-center justify-center bg-background/80 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg">
-        <Button onClick={onSelect} className="gap-2">
+      <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-[var(--transition-fast)] rounded-xl">
+        <Button onClick={onSelect} className="gap-2 shadow-lg">
           <Plus className="size-4" />
-          Insert in Report
+          <span className="hidden sm:inline">Insert in Report</span>
+          <span className="sm:hidden">Insert</span>
         </Button>
       </div>
     </div>
@@ -439,18 +443,20 @@ function SelectableItem({
 
 function LoadingState() {
   return (
-    <div className="flex items-center justify-center py-12 text-muted-foreground">
+    <div className="flex items-center justify-center py-12 text-muted-foreground animate-in">
       <Loader2 className="size-6 animate-spin mr-2" />
-      Loading content...
+      <span className="text-sm">Loading content...</span>
     </div>
   );
 }
 
 function EmptyState({ type }: { type: string }) {
   return (
-    <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-      <Search className="size-8 mb-2 opacity-50" />
-      <p>No {type} found</p>
+    <div className="flex flex-col items-center justify-center py-12 text-muted-foreground animate-in">
+      <div className="size-12 rounded-xl bg-muted/50 flex items-center justify-center mb-3">
+        <Search className="size-6 opacity-50" />
+      </div>
+      <p className="font-medium">No {type} found</p>
       <p className="text-xs mt-1">Try a different search term</p>
     </div>
   );

@@ -67,18 +67,18 @@ export function ReportEditor({
       attributes: {
         class: cn(
           "prose prose-sm dark:prose-invert max-w-none",
-          "min-h-[400px] p-6 focus:outline-none",
+          "min-h-[300px] sm:min-h-[400px] p-4 sm:p-6 focus:outline-none",
           "prose-headings:scroll-m-20 prose-headings:tracking-tight",
-          "prose-h1:text-3xl prose-h1:font-bold",
-          "prose-h2:text-2xl prose-h2:font-semibold prose-h2:mt-8",
-          "prose-h3:text-xl prose-h3:font-semibold prose-h3:mt-6",
+          "prose-h1:text-2xl sm:prose-h1:text-3xl prose-h1:font-bold",
+          "prose-h2:text-xl sm:prose-h2:text-2xl prose-h2:font-semibold prose-h2:mt-6 sm:prose-h2:mt-8",
+          "prose-h3:text-lg sm:prose-h3:text-xl prose-h3:font-semibold prose-h3:mt-4 sm:prose-h3:mt-6",
           "prose-p:leading-7 prose-p:mb-4",
           "prose-ul:my-4 prose-ul:ml-6 prose-ul:list-disc",
           "prose-ol:my-4 prose-ol:ml-6 prose-ol:list-decimal",
           "prose-li:mt-2",
-          "prose-blockquote:border-l-2 prose-blockquote:border-primary prose-blockquote:pl-6 prose-blockquote:italic",
+          "prose-blockquote:border-l-2 prose-blockquote:border-primary prose-blockquote:pl-4 sm:prose-blockquote:pl-6 prose-blockquote:italic",
           "prose-strong:font-semibold",
-          "prose-a:text-primary prose-a:underline"
+          "prose-a:text-primary prose-a:underline prose-a:underline-offset-2"
         ),
       },
     },
@@ -108,9 +108,9 @@ export function ReportEditor({
 
   if (!editor) {
     return (
-      <div className="animate-pulse">
-        <div className="h-12 bg-muted rounded-t-xl" />
-        <div className="h-[400px] bg-muted/50 rounded-b-xl" />
+      <div className="animate-pulse rounded-xl border border-border overflow-hidden">
+        <div className="h-11 sm:h-12 bg-muted/50 border-b border-border" />
+        <div className="h-[300px] sm:h-[400px] bg-muted/30" />
       </div>
     );
   }

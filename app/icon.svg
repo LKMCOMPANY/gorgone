@@ -1,0 +1,22 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Dark background with rounded corners -->
+  <rect width="32" height="32" rx="6" fill="#0a0a0a"/>
+  
+  <!-- Gorgone Eye - simplified for favicon -->
+  <!-- Outer ellipse -->
+  <ellipse cx="16" cy="16" rx="12" ry="7" stroke="#a855f7" stroke-width="1.5" fill="none"/>
+  
+  <!-- Inner filled ellipse -->
+  <ellipse cx="16" cy="16" rx="6" ry="3.5" fill="#a855f7"/>
+  
+  <!-- Pupil -->
+  <ellipse cx="16" cy="16" rx="2.5" ry="1.5" fill="#0a0a0a"/>
+  
+  <!-- Highlight -->
+  <circle cx="17.5" cy="15" r="0.8" fill="white" opacity="0.8"/>
+  
+  <!-- Wing hints -->
+  <path d="M3 16 Q6 13 9 16 Q6 19 3 16" stroke="#a855f7" stroke-width="1" fill="none" opacity="0.8"/>
+  <path d="M29 16 Q26 13 23 16 Q26 19 29 16" stroke="#a855f7" stroke-width="1" fill="none" opacity="0.8"/>
+</svg>
+

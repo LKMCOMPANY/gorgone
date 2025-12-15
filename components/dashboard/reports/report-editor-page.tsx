@@ -14,10 +14,18 @@ import {
   PanelRightOpen,
   PanelRightClose,
   KeyRound,
+  Library,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { PageContainer } from "@/components/dashboard/page-container";
 import { ReportEditor } from "./report-editor";
 import { ReportLibraryPanel } from "./report-library-panel";
@@ -304,49 +312,52 @@ export function ReportEditorPage({ report }: ReportEditorPageProps) {
 
   return (
     <PageContainer className="max-w-6xl">
-      <div className="animate-in space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          <div className="flex items-center gap-4 min-w-0 flex-1">
-            <Button variant="ghost" size="icon" asChild>
+      <div className="animate-in space-y-4 md:space-y-6">
+        {/* Header - Responsive */}
+        <div className="flex flex-col gap-4">
+          {/* Top row: Back + Title + Actions */}
+          <div className="flex items-start gap-3 md:gap-4">
+            <Button variant="ghost" size="icon" asChild className="shrink-0 mt-1">
               <Link href="/dashboard/reports">
                 <ArrowLeft className="size-4" />
               </Link>
             </Button>
 
-            <div className="min-w-0 flex-1 space-y-1">
+            <div className="min-w-0 flex-1">
               <Input
                 value={title}
                 onChange={handleTitleChange}
-                className="h-auto text-xl font-bold border-none bg-transparent px-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                className="h-auto text-lg md:text-xl font-bold border-none bg-transparent px-0 focus-visible:ring-0 focus-visible:ring-offset-0"
                 placeholder="Report title"
               />
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              
+              {/* Metadata row - Scrollable on mobile */}
+              <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1 overflow-x-auto scrollbar-hide">
                 <Badge
                   variant={report.status === "published" ? "success" : "outline"}
-                  className="text-[10px] h-5"
+                  className="text-xs h-5 shrink-0"
                 >
                   {report.status === "published" ? "Published" : "Draft"}
                 </Badge>
-                <span>•</span>
-                <span>{report.zone?.name}</span>
-                <span>•</span>
-                <span>{wordCount.toLocaleString()} words</span>
+                <span className="shrink-0">•</span>
+                <span className="shrink-0 truncate max-w-[120px] md:max-w-none">{report.zone?.name}</span>
+                <span className="shrink-0">•</span>
+                <span className="shrink-0 tabular-nums">{wordCount.toLocaleString()} words</span>
                 {lastSaved && (
                   <>
-                    <span>•</span>
-                    <span className="flex items-center gap-1">
+                    <span className="shrink-0">•</span>
+                    <span className="flex items-center gap-1 shrink-0">
                       <CheckCircle2 className="size-3 text-[var(--tactical-green)]" />
-                      Saved
+                      <span className="hidden sm:inline">Saved</span>
                     </span>
                   </>
                 )}
                 {isSaving && (
                   <>
-                    <span>•</span>
-                    <span className="flex items-center gap-1">
+                    <span className="shrink-0">•</span>
+                    <span className="flex items-center gap-1 shrink-0">
                       <Clock className="size-3 animate-pulse" />
-                      Saving...
+                      <span className="hidden sm:inline">Saving...</span>
                     </span>
                   </>
                 )}
@@ -354,7 +365,32 @@ export function ReportEditorPage({ report }: ReportEditorPageProps) {
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          {/* Actions row - Responsive */}
+          <div className="flex items-center gap-2 justify-end flex-wrap">
+            {/* Mobile Library Button */}
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="outline" size="sm" className="lg:hidden">
+                  <Library className="size-4 mr-2" />
+                  Library
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-[320px] sm:w-[380px] p-0">
+                <SheetHeader className="p-4 pb-0">
+                  <SheetTitle>Content Library</SheetTitle>
+                </SheetHeader>
+                <div className="p-4 h-[calc(100vh-80px)]">
+                  <ReportLibraryPanel
+                    zoneId={report.zone_id}
+                    editor={editor}
+                    onOpenPicker={handleOpenPicker}
+                    className="h-full"
+                  />
+                </div>
+              </SheetContent>
+            </Sheet>
+
+            {/* Desktop Library Toggle */}
             <Button
               variant="ghost"
               size="icon"
@@ -368,27 +404,32 @@ export function ReportEditorPage({ report }: ReportEditorPageProps) {
               )}
             </Button>
 
-            <Button variant="outline" size="sm" onClick={handleExportPDF} disabled={isExporting}>
-              <Download className={cn("size-4 mr-2", isExporting && "animate-pulse")} />
-              {isExporting ? "Exporting..." : "PDF"}
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleExportPDF} 
+              disabled={isExporting}
+            >
+              <Download className={cn("size-4", isExporting && "animate-pulse")} />
+              <span className="hidden sm:inline ml-2">{isExporting ? "Exporting..." : "PDF"}</span>
             </Button>
 
             {report.status === "draft" ? (
               <Button size="sm" onClick={handlePublish}>
-                <Send className="size-4 mr-2" />
-                Publish
+                <Send className="size-4" />
+                <span className="hidden sm:inline ml-2">Publish</span>
               </Button>
             ) : (
               <>
                 {report.share_token && (
                   <Button variant="outline" size="sm" onClick={handleViewShareSettings}>
-                    <KeyRound className="size-4 mr-2" />
-                    Share
+                    <KeyRound className="size-4" />
+                    <span className="hidden sm:inline ml-2">Share</span>
                   </Button>
                 )}
                 <Button variant="ghost" size="sm" onClick={handleUnpublish}>
-                  <Archive className="size-4 mr-2" />
-                  Unpublish
+                  <Archive className="size-4" />
+                  <span className="hidden sm:inline ml-2">Unpublish</span>
                 </Button>
               </>
             )}

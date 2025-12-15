@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Check, Copy, ExternalLink, Lock, Send, Loader2, KeyRound, RefreshCw } from "lucide-react";
+import { Check, Copy, ExternalLink, Lock, Send, Loader2, KeyRound, RefreshCw, Shield, AlertTriangle, Link2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -12,7 +12,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import type { PublishReportResult } from "@/types";
 
 interface PublishReportDialogProps {
@@ -88,7 +90,7 @@ export function PublishReportDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-w-[95vw]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             {isLoading ? (
@@ -103,7 +105,7 @@ export function PublishReportDialog({
               </>
             ) : (
               <>
-                <Send className="size-5 text-primary" />
+                <Send className="size-5 text-tactical-green" />
                 Report Published
               </>
             )}
@@ -119,14 +121,18 @@ export function PublishReportDialog({
         </DialogHeader>
 
         {isLoading ? (
-          <div className="py-8 flex justify-center">
-            <Loader2 className="size-8 animate-spin text-muted-foreground" />
+          <div className="py-10 flex flex-col items-center justify-center gap-3">
+            <div className="size-12 rounded-xl bg-primary/10 flex items-center justify-center">
+              <Loader2 className="size-6 animate-spin text-primary" />
+            </div>
+            <p className="text-sm text-muted-foreground">Please wait...</p>
           </div>
         ) : publishData ? (
-          <div className="space-y-4 py-2">
+          <div className="space-y-4">
             {/* Share Link */}
             <div className="space-y-2">
-              <Label htmlFor="share-url" className="text-sm font-medium">
+              <Label htmlFor="share-url" className="text-sm font-medium flex items-center gap-2">
+                <Link2 className="size-3.5 text-muted-foreground" />
                 Share Link
               </Label>
               <div className="flex gap-2">
@@ -134,17 +140,20 @@ export function PublishReportDialog({
                   id="share-url"
                   readOnly
                   value={`${typeof window !== 'undefined' ? window.location.origin : ''}${publishData.shareUrl}`}
-                  className="font-mono text-sm"
+                  className="font-mono text-sm h-10 bg-muted/30"
                 />
                 <Button
                   type="button"
                   variant="outline"
                   size="icon"
                   onClick={handleCopyUrl}
-                  className="shrink-0"
+                  className={cn(
+                    "shrink-0 h-10 w-10 transition-all duration-[var(--transition-fast)]",
+                    copiedUrl && "bg-tactical-green/10 border-tactical-green/30"
+                  )}
                 >
                   {copiedUrl ? (
-                    <Check className="size-4 text-[var(--tactical-green)]" />
+                    <Check className="size-4 text-tactical-green" />
                   ) : (
                     <Copy className="size-4" />
                   )}
@@ -152,11 +161,13 @@ export function PublishReportDialog({
               </div>
             </div>
 
+            <Separator />
+
             {/* Password Section */}
             {hasPassword ? (
               <div className="space-y-2">
                 <Label htmlFor="share-password" className="text-sm font-medium flex items-center gap-2">
-                  <Lock className="size-3.5" />
+                  <Lock className="size-3.5 text-muted-foreground" />
                   Access Password
                 </Label>
                 <div className="flex gap-2">
@@ -164,23 +175,27 @@ export function PublishReportDialog({
                     id="share-password"
                     readOnly
                     value={publishData.password}
-                    className="font-mono text-sm tracking-wider"
+                    className="font-mono text-sm tracking-widest h-10 bg-muted/30"
                   />
                   <Button
                     type="button"
                     variant="outline"
                     size="icon"
                     onClick={handleCopyPassword}
-                    className="shrink-0"
+                    className={cn(
+                      "shrink-0 h-10 w-10 transition-all duration-[var(--transition-fast)]",
+                      copiedPassword && "bg-tactical-green/10 border-tactical-green/30"
+                    )}
                   >
                     {copiedPassword ? (
-                      <Check className="size-4 text-[var(--tactical-green)]" />
+                      <Check className="size-4 text-tactical-green" />
                     ) : (
                       <Copy className="size-4" />
                     )}
                   </Button>
                 </div>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-muted-foreground flex items-start gap-1.5">
+                  <AlertTriangle className="size-3 shrink-0 mt-0.5 text-tactical-amber" />
                   {isViewMode 
                     ? "This is your new password. Save it securely."
                     : "Save this password securely. It will not be shown again."
@@ -188,18 +203,19 @@ export function PublishReportDialog({
                 </p>
               </div>
             ) : isViewMode && onRegeneratePassword ? (
-              <div className="space-y-3 py-2">
-                <div className="rounded-lg bg-amber-500/10 border border-amber-500/20 p-3">
-                  <p className="text-sm text-amber-600 dark:text-amber-400">
-                    <strong>Password not available</strong>
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    The password was only shown at publication time. Generate a new password if needed.
-                  </p>
+              <div className="space-y-3">
+                <div className="alert-banner alert-warning">
+                  <AlertTriangle className="size-4 shrink-0" />
+                  <div>
+                    <p className="text-sm font-medium">Password not available</p>
+                    <p className="text-xs opacity-80 mt-0.5">
+                      The password was only shown at publication time. Generate a new one if needed.
+                    </p>
+                  </div>
                 </div>
                 <Button
                   variant="outline"
-                  className="w-full"
+                  className="w-full h-10"
                   onClick={onRegeneratePassword}
                 >
                   <RefreshCw className="size-4 mr-2" />
@@ -208,21 +224,23 @@ export function PublishReportDialog({
               </div>
             ) : null}
 
+            <Separator />
+
             {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-2 pt-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               {hasPassword ? (
                 <Button
                   variant="outline"
-                  className="flex-1"
+                  className="flex-1 h-10"
                   onClick={handleCopyAll}
                 >
                   <Copy className="size-4 mr-2" />
-                  Copy Link & Password
+                  Copy All
                 </Button>
               ) : (
                 <Button
                   variant="outline"
-                  className="flex-1"
+                  className="flex-1 h-10"
                   onClick={handleCopyUrl}
                 >
                   <Copy className="size-4 mr-2" />
@@ -230,7 +248,7 @@ export function PublishReportDialog({
                 </Button>
               )}
               <Button
-                className="flex-1"
+                className="flex-1 h-10"
                 onClick={handleOpenReport}
               >
                 <ExternalLink className="size-4 mr-2" />
@@ -239,7 +257,8 @@ export function PublishReportDialog({
             </div>
 
             {/* Security Notice */}
-            <div className="rounded-lg bg-muted/50 border border-border/50 p-3 mt-4">
+            <div className="rounded-xl bg-muted/30 border border-border/50 p-3 flex items-start gap-3">
+              <Shield className="size-4 shrink-0 mt-0.5 text-muted-foreground" />
               <p className="text-xs text-muted-foreground">
                 <strong className="text-foreground">Security:</strong> This link is password-protected 
                 and will expire when unpublished. Only share with authorized recipients.

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Plus } from "lucide-react";
+import { Plus, FileText, Loader2, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -76,19 +76,25 @@ export function CreateReportDialog({ zones }: CreateReportDialogProps) {
           New Report
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-md max-w-[95vw]">
         <DialogHeader>
-          <DialogTitle>Create New Report</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            <FileText className="size-5 text-primary" />
+            Create New Report
+          </DialogTitle>
           <DialogDescription>
             Start a new intelligence report for a monitoring zone.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid gap-4 py-4">
+        <div className="grid gap-4 py-2">
           <div className="grid gap-2">
-            <Label htmlFor="zone">Zone</Label>
+            <Label htmlFor="zone" className="text-sm font-medium flex items-center gap-2">
+              <MapPin className="size-3.5 text-muted-foreground" />
+              Zone
+            </Label>
             <Select value={selectedZone} onValueChange={setSelectedZone}>
-              <SelectTrigger id="zone">
+              <SelectTrigger id="zone" className="h-10">
                 <SelectValue placeholder="Select a zone" />
               </SelectTrigger>
               <SelectContent>
@@ -102,12 +108,15 @@ export function CreateReportDialog({ zones }: CreateReportDialogProps) {
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="title">Title (optional)</Label>
+            <Label htmlFor="title" className="text-sm font-medium">
+              Title <span className="text-muted-foreground font-normal">(optional)</span>
+            </Label>
             <Input
               id="title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Intelligence Report - DD/MM/YYYY"
+              className="h-10"
             />
             <p className="text-xs text-muted-foreground">
               Leave empty for automatic date-based title.
@@ -115,16 +124,27 @@ export function CreateReportDialog({ zones }: CreateReportDialogProps) {
           </div>
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="gap-2 sm:gap-0">
           <Button
             variant="outline"
             onClick={() => setOpen(false)}
             disabled={isCreating}
+            className="h-10"
           >
             Cancel
           </Button>
-          <Button onClick={handleCreate} disabled={isCreating}>
-            {isCreating ? "Creating..." : "Create Report"}
+          <Button onClick={handleCreate} disabled={isCreating} className="h-10">
+            {isCreating ? (
+              <>
+                <Loader2 className="size-4 mr-2 animate-spin" />
+                Creating...
+              </>
+            ) : (
+              <>
+                <Plus className="size-4 mr-2" />
+                Create Report
+              </>
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -57,8 +57,8 @@ function StatsCardContent({ title, stats, period }: StatsCardNodeAttributes) {
                 : stat.trend === "down" ? TrendingDown
                 : Minus;
             const trendColor =
-              stat.trend === "up" ? "text-green-500"
-                : stat.trend === "down" ? "text-red-500"
+              stat.trend === "up" ? "text-tactical-green"
+                : stat.trend === "down" ? "text-tactical-red"
                 : "text-muted-foreground";
 
             return (
@@ -71,7 +71,7 @@ function StatsCardContent({ title, stats, period }: StatsCardNodeAttributes) {
                 </div>
                 <div className="text-xs text-muted-foreground mt-1">{stat.label}</div>
                 {stat.change !== undefined && (
-                  <div className={cn("text-xs mt-0.5 font-medium", stat.change >= 0 ? "text-green-500" : "text-red-500")}>
+                  <div className={cn("text-xs mt-0.5 font-medium", stat.change >= 0 ? "text-tactical-green" : "text-tactical-red")}>
                     {stat.change >= 0 ? "+" : ""}{stat.change}%
                   </div>
                 )}
@@ -108,7 +108,7 @@ function StatsNodeView({ node, deleteNode, selected }: NodeViewProps) {
     >
       <button
         onClick={deleteNode}
-        className="absolute -top-1.5 -right-1.5 z-10 size-5 rounded-full bg-destructive text-destructive-foreground opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center shadow-sm hover:bg-destructive/90"
+        className="absolute -top-1.5 -right-1.5 z-10 size-5 rounded-full bg-destructive text-destructive-foreground opacity-0 group-hover:opacity-100 transition-all duration-[var(--transition-fast)] flex items-center justify-center shadow-sm hover:bg-destructive/90 hover:scale-110"
         title="Remove"
       >
         <Trash2 className="size-2.5" />

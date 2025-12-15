@@ -157,9 +157,11 @@ export function ReportList({ reports }: ReportListProps) {
   if (reports.length === 0) {
     return (
       <div className="py-16 text-center">
-        <FileText className="mx-auto size-12 text-muted-foreground/50 mb-4" />
+        <div className="inline-flex items-center justify-center size-16 rounded-xl bg-muted/50 border border-border/50 mb-4">
+          <FileText className="size-8 text-muted-foreground/50" />
+        </div>
         <h3 className="text-lg font-semibold mb-2">No reports yet</h3>
-        <p className="text-sm text-muted-foreground mb-4">
+        <p className="text-sm text-muted-foreground">
           Create your first intelligence report to get started.
         </p>
       </div>
@@ -168,41 +170,70 @@ export function ReportList({ reports }: ReportListProps) {
 
   return (
     <>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {reports.map((report) => (
+      {/* Full-width list layout */}
+      <div className="space-y-3">
+        {reports.map((report, index) => (
           <Card
             key={report.id}
             className="group card-interactive overflow-hidden"
+            style={{ animationDelay: `${index * 50}ms` }}
           >
             <Link
               href={`/dashboard/reports/${report.id}`}
-              className="block p-4"
+              className="flex items-center gap-4 p-4"
             >
-              <div className="flex items-start justify-between gap-2 mb-3">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <FileText className="size-5 text-primary shrink-0" />
+              {/* Icon */}
+              <div className="shrink-0 size-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                <FileText className="size-5 text-primary" />
+              </div>
+
+              {/* Content */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <h3 className="font-semibold text-sm truncate group-hover:text-primary transition-colors duration-[var(--transition-fast)]">
+                    {report.title}
+                  </h3>
                   <Badge
                     variant={report.status === "published" ? "success" : "outline"}
-                    className="text-[10px] h-5"
+                    className="text-xs h-5 shrink-0"
                   >
                     {report.status === "published" ? "Published" : "Draft"}
                   </Badge>
                   {report.share_token && (
                     <Badge
                       variant="secondary"
-                      className="text-[10px] h-5 gap-1"
+                      className="text-xs h-5 gap-1 shrink-0"
                     >
                       <Link2 className="size-3" />
                       Shared
                     </Badge>
                   )}
                 </div>
+                <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                  <span className="truncate">{report.zone_name}</span>
+                  <span className="shrink-0 text-muted-foreground/60">•</span>
+                  <span className="shrink-0">
+                    {formatDistanceToNow(new Date(report.updated_at), { addSuffix: true })}
+                  </span>
+                  {report.word_count !== undefined && report.word_count > 0 && (
+                    <>
+                      <span className="shrink-0 text-muted-foreground/60">•</span>
+                      <span className="shrink-0 tabular-nums">
+                        {report.word_count.toLocaleString()} words
+                      </span>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="shrink-0 flex items-center gap-2">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="size-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="size-8 opacity-0 group-hover:opacity-100 transition-opacity duration-[var(--transition-fast)]"
                       onClick={(e) => e.preventDefault()}
                     >
                       <MoreHorizontal className="size-4" />
@@ -270,23 +301,6 @@ export function ReportList({ reports }: ReportListProps) {
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
-
-              <h3 className="font-semibold text-sm line-clamp-2 mb-2 group-hover:text-primary transition-colors">
-                {report.title}
-              </h3>
-
-              <div className="flex items-center justify-between text-xs text-muted-foreground">
-                <span className="truncate">{report.zone_name}</span>
-                <span className="shrink-0">
-                  {formatDistanceToNow(new Date(report.updated_at), { addSuffix: true })}
-                </span>
-              </div>
-
-              {report.word_count !== undefined && report.word_count > 0 && (
-                <div className="mt-2 text-[10px] text-muted-foreground/70">
-                  {report.word_count.toLocaleString()} words
-                </div>
-              )}
             </Link>
           </Card>
         ))}

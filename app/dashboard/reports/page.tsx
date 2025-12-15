@@ -28,7 +28,7 @@ export default async function ReportsPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="space-y-1">
-            <h1 className="scroll-m-20 text-3xl font-bold tracking-tight">
+            <h1 className="scroll-m-20 text-4xl font-extrabold tracking-tight">
               Reports
             </h1>
             <p className="text-sm text-muted-foreground">
@@ -52,8 +52,10 @@ async function ReportsListContent() {
 
   if (!reports) {
     return (
-      <div className="py-16 text-center">
-        <FileText className="mx-auto size-12 text-muted-foreground/50 mb-4" />
+      <div className="py-16 text-center animate-in">
+        <div className="inline-flex items-center justify-center size-16 rounded-xl bg-destructive/10 border border-destructive/20 mb-4">
+          <FileText className="size-8 text-destructive/50" />
+        </div>
         <h3 className="text-lg font-semibold mb-2">Unable to load reports</h3>
         <p className="text-sm text-muted-foreground">
           Please try again later.

@@ -53,7 +53,7 @@ function AccountNodeView({ node, deleteNode, selected }: NodeViewProps) {
     >
       <button
         onClick={deleteNode}
-        className="absolute -top-1.5 -right-1.5 z-10 size-5 rounded-full bg-destructive text-destructive-foreground opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center shadow-sm hover:bg-destructive/90"
+        className="absolute -top-1.5 -right-1.5 z-10 size-5 rounded-full bg-destructive text-destructive-foreground opacity-0 group-hover:opacity-100 transition-all duration-[var(--transition-fast)] flex items-center justify-center shadow-sm hover:bg-destructive/90 hover:scale-110"
         title="Remove"
       >
         <Trash2 className="size-2.5" />
