@@ -16,7 +16,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import type { ClientWithStats } from "@/types";
-import { getClientsAction, deleteClientAction } from "@/app/actions/clients";
+import { getClientsAction, hardDeleteClientAction } from "@/app/actions/clients";
 import { impersonateClientAction } from "@/app/actions/auth";
 import { formatDate } from "@/lib/utils";
 import { ClientsTableSkeleton } from "./clients-table-skeleton";
@@ -64,13 +64,13 @@ export function ClientsTable() {
   async function handleDelete(id: string, name: string) {
     if (
       !confirm(
-        `Are you sure you want to delete the client "${name}"? This will remove all associated users.`
+        `Are you sure you want to permanently delete the client "${name}"? This will remove all associated zones, users and data. This action cannot be undone.`
       )
     ) {
       return;
     }
 
-    const result = await deleteClientAction(id);
+    const result = await hardDeleteClientAction(id);
     if (result.success) {
       toast.success(`Client "${name}" deleted successfully`);
       loadClients();
