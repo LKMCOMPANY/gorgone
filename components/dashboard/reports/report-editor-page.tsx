@@ -311,7 +311,7 @@ export function ReportEditorPage({ report }: ReportEditorPageProps) {
   };
 
   return (
-    <PageContainer className="max-w-6xl">
+    <PageContainer className="max-w-7xl mx-auto">
       <div className="animate-in space-y-4 md:space-y-6">
         {/* Header - Responsive */}
         <div className="flex flex-col gap-4">

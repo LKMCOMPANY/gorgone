@@ -23,12 +23,12 @@ export default async function ReportsPage() {
   const zones = await getActiveZonesByClient(user.client_id);
 
   return (
-    <PageContainer>
+    <PageContainer className="max-w-5xl mx-auto">
       <div className="animate-in space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="space-y-1">
-            <h1 className="scroll-m-20 text-4xl font-extrabold tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
               Reports
             </h1>
             <p className="text-sm text-muted-foreground">
