@@ -1,11 +1,18 @@
 "use client";
 
+import * as React from "react";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
 // Shimmer skeleton component for elegant loading states
-function SkeletonShimmer({ className }: { className?: string }) {
-  return <div className={cn("skeleton-shimmer rounded", className)} />;
+function SkeletonShimmer({ 
+  className, 
+  style 
+}: { 
+  className?: string;
+  style?: React.CSSProperties;
+}) {
+  return <div className={cn("skeleton-shimmer rounded", className)} style={style} />;
 }
 
 export function ReportListSkeleton() {
@@ -70,7 +77,7 @@ export function ReportEditorSkeleton() {
               <SkeletonShimmer 
                 key={i} 
                 className="size-8" 
-                style={{ animationDelay: `${i * 30}ms` } as React.CSSProperties}
+                style={{ animationDelay: `${i * 30}ms` }}
               />
             ))}
           </div>
