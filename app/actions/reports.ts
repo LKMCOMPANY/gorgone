@@ -13,6 +13,12 @@ import {
   updateReportStatus,
   deleteReport,
   duplicateReport,
+  publishReport,
+  unpublishReport,
+  getPublishedReportByToken,
+  verifyReportPassword,
+  getReportShareInfo,
+  regenerateSharePassword,
 } from "@/lib/data/reports";
 import { getZoneById } from "@/lib/data/zones";
 import { getCurrentUser } from "@/lib/auth/utils";
@@ -24,6 +30,8 @@ import type {
   ReportListItem,
   ReportStatus,
   ReportWithZone,
+  PublishedReportData,
+  PublishReportResult,
 } from "@/types";
 
 /**
@@ -352,5 +360,156 @@ function getActiveDataSources(
   if (dataSources.tiktok) active.push("tiktok");
   if (dataSources.media) active.push("media");
   return active.length > 0 ? active : ["twitter"];
+}
+
+// ============================================================================
+// REPORT SHARING ACTIONS
+// ============================================================================
+
+/**
+ * Publish a report and generate shareable URL with password
+ */
+export async function publishReportAction(
+  id: string
+): Promise<{ success: boolean; data?: PublishReportResult; error?: string }> {
+  try {
+    const existing = await getReportById(id);
+    if (!existing) {
+      return { success: false, error: "Report not found" };
+    }
+
+    if (!(await canManageReports(existing.client_id))) {
+      return { success: false, error: "Insufficient permissions" };
+    }
+
+    const result = await publishReport(id);
+
+    revalidatePath("/dashboard/reports");
+    revalidatePath(`/dashboard/reports/${id}`);
+
+    return { success: true, data: result };
+  } catch (error) {
+    logger.error("Error in publishReportAction:", error);
+    return { success: false, error: "Failed to publish report" };
+  }
+}
+
+/**
+ * Unpublish a report (remove sharing access)
+ */
+export async function unpublishReportAction(
+  id: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const existing = await getReportById(id);
+    if (!existing) {
+      return { success: false, error: "Report not found" };
+    }
+
+    if (!(await canManageReports(existing.client_id))) {
+      return { success: false, error: "Insufficient permissions" };
+    }
+
+    await unpublishReport(id);
+
+    revalidatePath("/dashboard/reports");
+    revalidatePath(`/dashboard/reports/${id}`);
+
+    return { success: true };
+  } catch (error) {
+    logger.error("Error in unpublishReportAction:", error);
+    return { success: false, error: "Failed to unpublish report" };
+  }
+}
+
+/**
+ * Get published report by share token (public access)
+ * No authentication required
+ */
+export async function getPublishedReportAction(
+  shareToken: string
+): Promise<PublishedReportData | null> {
+  try {
+    // No auth check - this is a public action
+    return await getPublishedReportByToken(shareToken);
+  } catch (error) {
+    logger.error("Error in getPublishedReportAction:", error);
+    return null;
+  }
+}
+
+/**
+ * Verify password for a shared report (public access)
+ * No authentication required
+ */
+export async function verifyReportPasswordAction(
+  shareToken: string,
+  password: string
+): Promise<boolean> {
+  try {
+    // No auth check - this is a public action
+    return await verifyReportPassword(shareToken, password);
+  } catch (error) {
+    logger.error("Error in verifyReportPasswordAction:", error);
+    return false;
+  }
+}
+
+/**
+ * Get share info for a published report
+ */
+export async function getReportShareInfoAction(
+  id: string
+): Promise<{ shareToken: string; shareUrl: string; publishedAt: string } | null> {
+  try {
+    const existing = await getReportById(id);
+    if (!existing) {
+      return null;
+    }
+
+    if (!(await canAccessReports(existing.client_id))) {
+      return null;
+    }
+
+    return await getReportShareInfo(id);
+  } catch (error) {
+    logger.error("Error in getReportShareInfoAction:", error);
+    return null;
+  }
+}
+
+/**
+ * Regenerate password for a published report
+ * Keeps the same URL, generates a new password
+ */
+export async function regenerateSharePasswordAction(
+  id: string
+): Promise<{ success: boolean; data?: PublishReportResult; error?: string }> {
+  try {
+    const existing = await getReportById(id);
+    if (!existing) {
+      return { success: false, error: "Report not found" };
+    }
+
+    if (!(await canManageReports(existing.client_id))) {
+      return { success: false, error: "Insufficient permissions" };
+    }
+
+    if (existing.status !== "published") {
+      return { success: false, error: "Report is not published" };
+    }
+
+    const result = await regenerateSharePassword(id);
+
+    if (!result) {
+      return { success: false, error: "Failed to regenerate password" };
+    }
+
+    // Note: No revalidation needed as no visible data changes
+    return { success: true, data: result };
+  } catch (error) {
+    logger.error("Error in regenerateSharePasswordAction:", error);
+    return { success: false, error: "Failed to regenerate password" };
+  }
 }
 

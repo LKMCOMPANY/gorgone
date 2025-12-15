@@ -13,20 +13,11 @@ import {
   Video,
   Newspaper,
   ChevronRight,
-  Languages,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Collapsible,
   CollapsibleContent,
@@ -96,6 +87,7 @@ const EMBED_TYPES = [
 ];
 
 export function ReportLibraryPanel({
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   zoneId,
   editor,
   onOpenPicker,

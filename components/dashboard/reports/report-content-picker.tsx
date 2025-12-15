@@ -21,7 +21,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TweetCard, type TweetData } from "@/components/ui/tweet-card";
 import { TikTokVideoCard, type TikTokVideoData } from "@/components/ui/tiktok-video-card";
 import { ArticleCard, type ArticleData } from "@/components/ui/article-card";
-import { AccountCard, type AccountData } from "@/components/ui/account-card";
+import type { AccountData } from "@/components/ui/account-card";
 import {
   Search,
   Loader2,
@@ -30,9 +30,7 @@ import {
   Newspaper,
   Users,
   Plus,
-  X,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 type ContentType = "tweet" | "tiktok" | "article" | "account";
 
@@ -133,8 +131,8 @@ export function ReportContentPicker({
         });
 
         if (!response.ok) {
-          // Fallback: fetch latest content without search
-          await fetchLatestContent();
+          // Search endpoint not available, show empty results
+          setHasSearched(true);
           return;
         }
 
@@ -187,7 +185,7 @@ export function ReportContentPicker({
         setHasSearched(true);
       } catch (error) {
         console.error("Search failed:", error);
-        await fetchLatestContent();
+        setHasSearched(true);
       }
     });
   }, [zoneId]);

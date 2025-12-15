@@ -10,5 +10,6 @@ export { ReportListSkeleton, ReportEditorSkeleton } from "./report-skeleton";
 export { CreateReportDialog } from "./create-report-dialog";
 export { ReportEditorPage } from "./report-editor-page";
 export { ReportLibraryPanel } from "./report-library-panel";
+export { PublishReportDialog } from "./publish-report-dialog";
 export { exportReportToPDF } from "./report-pdf-export";
 

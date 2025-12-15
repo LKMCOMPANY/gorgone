@@ -1173,6 +1173,10 @@ export interface Report {
   created_by: string;
   created_at: string;
   updated_at: string;
+  // Sharing fields
+  share_token?: string | null;
+  share_password_hash?: string | null;
+  published_at?: string | null;
 }
 
 // Report with zone information
@@ -1193,6 +1197,26 @@ export interface ReportListItem {
   created_at: string;
   updated_at: string;
   word_count?: number;
+  share_token?: string | null;
+  published_at?: string | null;
+}
+
+// Published report data (for public viewing)
+export interface PublishedReportData {
+  id: string;
+  title: string;
+  content: ReportContent;
+  zone_name: string | null;
+  published_at: string;
+  has_password: boolean;
+}
+
+// Result from publishing a report
+export interface PublishReportResult {
+  report?: Report;
+  shareToken: string;
+  password: string;
+  shareUrl: string;
 }
 
 // =====================================================

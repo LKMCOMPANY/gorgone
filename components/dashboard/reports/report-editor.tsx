@@ -116,8 +116,12 @@ export function ReportEditor({
   }
 
   return (
-    <div className={cn("rounded-xl border border-border bg-background shadow-xs overflow-hidden", className)}>
-      <ReportToolbar editor={editor} />
+    <div className={cn(
+      "rounded-xl border border-border bg-background shadow-xs overflow-hidden",
+      !editable && "border-none shadow-none bg-transparent",
+      className
+    )}>
+      {editable && <ReportToolbar editor={editor} />}
       <EditorContent editor={editor} />
     </div>
   );

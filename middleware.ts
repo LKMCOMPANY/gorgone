@@ -74,7 +74,9 @@ export const config = {
      * - /api/tiktok/engagement/update (Vercel Cron - TikTok engagement)
      * - /api/media/polling (Vercel Cron - Media polling)
      * - /api/twitter/polling (Vercel Cron - Twitter polling)
+     * - /r/* (public shared report pages - password protected)
+     * - /api/reports/verify-password (public report password verification)
      */
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.svg|.*\\.png|.*\\.jpg|.*\\.jpeg|.*\\.gif|.*\\.webp|api/webhooks|api/tiktok/polling|api/tiktok/engagement/update|api/media/polling|api/twitter/polling).*)",
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.svg|.*\\.png|.*\\.jpg|.*\\.jpeg|.*\\.gif|.*\\.webp|api/webhooks|api/tiktok/polling|api/tiktok/engagement/update|api/media/polling|api/twitter/polling|r/|api/reports/verify-password).*)",
   ],
 };

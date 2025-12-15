@@ -90,7 +90,10 @@ export function ReportToolbar({ editor }: ReportToolbarProps) {
 
   return (
     <TooltipProvider delayDuration={300}>
-      <div className="flex items-center gap-0.5 p-2 border-b border-border bg-muted/30 flex-wrap">
+      <div 
+        className="flex items-center gap-0.5 p-2 border-b border-border bg-muted/30 flex-wrap"
+        data-pdf-exclude="true"
+      >
         {/* History */}
         <ToolbarButton
           onClick={() => editor.chain().focus().undo().run()}

@@ -2,6 +2,7 @@
  * Data layer for reports management
  */
 
+import crypto from "crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logger } from "@/lib/logger";
 import type {
@@ -10,6 +11,8 @@ import type {
   ReportListItem,
   ReportStatus,
   ReportWithZone,
+  PublishedReportData,
+  PublishReportResult,
 } from "@/types";
 
 /**
@@ -38,6 +41,8 @@ export async function getReportsByClient(
         created_at,
         updated_at,
         content,
+        share_token,
+        published_at,
         zones!inner(name)
       `
       )
@@ -64,15 +69,18 @@ export async function getReportsByClient(
 
     if (error) throw error;
 
-    return (data || []).map((row: any) => ({
+    // Map database rows to ReportListItem
+    return (data || []).map((row) => ({
       id: row.id,
       title: row.title,
-      status: row.status,
+      status: row.status as "draft" | "published",
       zone_id: row.zone_id,
-      zone_name: row.zones?.name,
+      zone_name: (row.zones as { name?: string } | null)?.name,
       created_at: row.created_at,
       updated_at: row.updated_at,
-      word_count: row.content?.metadata?.word_count,
+      word_count: (row.content as { metadata?: { word_count?: number } } | null)?.metadata?.word_count,
+      share_token: row.share_token,
+      published_at: row.published_at,
     }));
   } catch (error) {
     logger.error(`Error fetching reports for client ${clientId}:`, error);
@@ -297,6 +305,284 @@ export async function duplicateReport(
     return data as Report;
   } catch (error) {
     logger.error(`Error duplicating report ${id}:`, error);
+    throw error;
+  }
+}
+
+// ============================================================================
+// REPORT SHARING FUNCTIONS
+// ============================================================================
+
+/**
+ * Generate a cryptographically secure URL-safe token
+ * Uses Node.js crypto for maximum security
+ */
+function generateShareToken(): string {
+  // 16 bytes = 128 bits of entropy, base64url encoded = 22 characters
+  return crypto.randomBytes(16).toString("base64url");
+}
+
+/**
+ * Generate a human-readable password
+ * 8 alphanumeric characters for easy communication
+ */
+function generateSharePassword(): string {
+  // Generate random bytes and convert to alphanumeric string
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
+  const bytes = crypto.randomBytes(8);
+  let password = "";
+  for (let i = 0; i < 8; i++) {
+    password += chars[bytes[i] % chars.length];
+  }
+  return password;
+}
+
+/**
+ * Publish a report with secure sharing
+ * Generates a unique token and password, hashes the password in DB
+ */
+export async function publishReport(id: string): Promise<PublishReportResult> {
+  try {
+    const supabase = createAdminClient();
+
+    // Generate secure credentials
+    const shareToken = generateShareToken();
+    const plainPassword = generateSharePassword();
+
+    // Hash password using pgcrypto function in Supabase
+    const { data: hashResult, error: hashError } = await supabase.rpc(
+      "hash_report_password",
+      { p_password: plainPassword }
+    );
+
+    if (hashError) {
+      logger.error("Error hashing password:", hashError);
+      throw new Error("Failed to hash password");
+    }
+
+    const passwordHash = hashResult as string;
+
+    // Update report with sharing info
+    const { data, error } = await supabase
+      .from("chat_reports")
+      .update({
+        status: "published" as ReportStatus,
+        share_token: shareToken,
+        share_password_hash: passwordHash,
+        published_at: new Date().toISOString(),
+      })
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) {
+      // Handle unique constraint violation (token collision - extremely rare)
+      if (error.code === "23505") {
+        logger.warn("Share token collision, retrying...");
+        return publishReport(id); // Retry with new token
+      }
+      throw error;
+    }
+
+    logger.info(`Report published: ${id} with token ${shareToken.slice(0, 8)}...`);
+
+    return {
+      report: data as Report,
+      shareToken,
+      password: plainPassword,
+      shareUrl: `/r/${shareToken}`,
+    };
+  } catch (error) {
+    logger.error(`Error publishing report ${id}:`, error);
+    throw error;
+  }
+}
+
+/**
+ * Unpublish a report (remove sharing)
+ */
+export async function unpublishReport(id: string): Promise<Report> {
+  try {
+    const supabase = createAdminClient();
+
+    const { data, error } = await supabase
+      .from("chat_reports")
+      .update({
+        status: "draft" as ReportStatus,
+        share_token: null,
+        share_password_hash: null,
+        published_at: null,
+      })
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    logger.info(`Report unpublished: ${id}`);
+    return data as Report;
+  } catch (error) {
+    logger.error(`Error unpublishing report ${id}:`, error);
+    throw error;
+  }
+}
+
+/**
+ * Get published report by share token
+ * Uses the secure RPC function that never exposes password hash
+ */
+export async function getPublishedReportByToken(
+  shareToken: string
+): Promise<PublishedReportData | null> {
+  try {
+    const supabase = createAdminClient();
+
+    const { data, error } = await supabase.rpc("get_published_report", {
+      p_share_token: shareToken,
+    });
+
+    if (error) {
+      logger.error("Error fetching published report:", error);
+      return null;
+    }
+
+    // RPC returns an array, get first result
+    const result = Array.isArray(data) ? data[0] : data;
+    
+    if (!result) return null;
+
+    return {
+      id: result.id,
+      title: result.title,
+      content: result.content,
+      zone_name: result.zone_name,
+      published_at: result.published_at,
+      has_password: result.has_password,
+    };
+  } catch (error) {
+    logger.error(`Error fetching report by token:`, error);
+    return null;
+  }
+}
+
+/**
+ * Verify password for a shared report
+ * Uses secure pgcrypto comparison in database
+ */
+export async function verifyReportPassword(
+  shareToken: string,
+  password: string
+): Promise<boolean> {
+  try {
+    const supabase = createAdminClient();
+
+    const { data, error } = await supabase.rpc("verify_report_password", {
+      p_share_token: shareToken,
+      p_password: password,
+    });
+
+    if (error) {
+      logger.error("Error verifying password:", error);
+      return false;
+    }
+
+    return data === true;
+  } catch (error) {
+    logger.error("Error in verifyReportPassword:", error);
+    return false;
+  }
+}
+
+/**
+ * Get share info for a report (for UI display)
+ */
+export async function getReportShareInfo(
+  id: string
+): Promise<{ shareToken: string; shareUrl: string; publishedAt: string } | null> {
+  try {
+    const supabase = createAdminClient();
+
+    const { data, error } = await supabase
+      .from("chat_reports")
+      .select("share_token, published_at")
+      .eq("id", id)
+      .eq("status", "published")
+      .single();
+
+    if (error || !data?.share_token) return null;
+
+    return {
+      shareToken: data.share_token,
+      shareUrl: `/r/${data.share_token}`,
+      publishedAt: data.published_at,
+    };
+  } catch (error) {
+    logger.error(`Error getting share info for ${id}:`, error);
+    return null;
+  }
+}
+
+/**
+ * Regenerate password for a published report
+ * Keeps the same share token (URL stays the same)
+ * Generates a new password and updates the hash
+ */
+export async function regenerateSharePassword(
+  id: string
+): Promise<PublishReportResult | null> {
+  try {
+    const supabase = createAdminClient();
+
+    // First check if the report is published
+    const { data: existing, error: fetchError } = await supabase
+      .from("chat_reports")
+      .select("share_token, status")
+      .eq("id", id)
+      .single();
+
+    if (fetchError || !existing?.share_token || existing.status !== "published") {
+      logger.warn(`Cannot regenerate password for unpublished report ${id}`);
+      return null;
+    }
+
+    // Generate new password
+    const plainPassword = generateSharePassword();
+
+    // Hash password using pgcrypto function in Supabase
+    const { data: hashResult, error: hashError } = await supabase.rpc(
+      "hash_report_password",
+      { p_password: plainPassword }
+    );
+
+    if (hashError) {
+      logger.error("Error hashing password:", hashError);
+      throw new Error("Failed to hash password");
+    }
+
+    const passwordHash = hashResult as string;
+
+    // Update only the password hash
+    const { data, error } = await supabase
+      .from("chat_reports")
+      .update({
+        share_password_hash: passwordHash,
+      })
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    logger.info(`Password regenerated for report: ${id}`);
+
+    return {
+      report: data as Report,
+      shareToken: existing.share_token,
+      password: plainPassword,
+      shareUrl: `/r/${existing.share_token}`,
+    };
+  } catch (error) {
+    logger.error(`Error regenerating password for ${id}:`, error);
     throw error;
   }
 }

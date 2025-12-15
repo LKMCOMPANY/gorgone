@@ -13,6 +13,7 @@ import {
   CheckCircle2,
   PanelRightOpen,
   PanelRightClose,
+  KeyRound,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -29,11 +30,15 @@ import type { ArticleData } from "@/components/ui/article-card";
 import type { AccountData } from "@/components/ui/account-card";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { useTheme } from "next-themes";
 import {
   updateReportAction,
-  updateReportStatusAction,
+  publishReportAction,
+  unpublishReportAction,
+  regenerateSharePasswordAction,
 } from "@/app/actions/reports";
-import type { ReportWithZone, TiptapDocument, ReportContent } from "@/types";
+import { PublishReportDialog } from "./publish-report-dialog";
+import type { ReportWithZone, TiptapDocument, ReportContent, PublishReportResult } from "@/types";
 
 interface ReportEditorPageProps {
   report: ReportWithZone;
@@ -41,6 +46,7 @@ interface ReportEditorPageProps {
 
 export function ReportEditorPage({ report }: ReportEditorPageProps) {
   const router = useRouter();
+  const { resolvedTheme } = useTheme();
   const { registerEditor, unregisterEditor } = useReportEditor();
   const [title, setTitle] = React.useState(report.title);
   const [content, setContent] = React.useState<ReportContent>(report.content);
@@ -58,6 +64,13 @@ export function ReportEditorPage({ report }: ReportEditorPageProps) {
   // Content picker state (lifted to avoid TabsContent re-render issues)
   const [pickerOpen, setPickerOpen] = React.useState(false);
   const [pickerType, setPickerType] = React.useState<"tweet" | "tiktok" | "article" | "account">("tweet");
+  
+  // Publish dialog state
+  const [publishDialogOpen, setPublishDialogOpen] = React.useState(false);
+  const [isPublishing, setIsPublishing] = React.useState(false);
+  const [isRegenerating, setIsRegenerating] = React.useState(false);
+  const [publishData, setPublishData] = React.useState<PublishReportResult | null>(null);
+  const [dialogMode, setDialogMode] = React.useState<"publish" | "view">("publish");
 
   // Register editor in global context for chat "Add to Report" feature
   React.useEffect(() => {
@@ -169,19 +182,58 @@ export function ReportEditorPage({ report }: ReportEditorPageProps) {
     // Save first
     await performSave();
 
-    const result = await updateReportStatusAction(report.id, "published");
-    if (result.success) {
-      toast.success("Report published");
+    // Show dialog and start publishing
+    setDialogMode("publish");
+    setPublishDialogOpen(true);
+    setIsPublishing(true);
+    setPublishData(null);
+
+    const result = await publishReportAction(report.id);
+    
+    setIsPublishing(false);
+    
+    if (result.success && result.data) {
+      setPublishData(result.data);
       router.refresh();
     } else {
+      setPublishDialogOpen(false);
       toast.error(result.error || "Failed to publish");
     }
   };
 
+  const handleViewShareSettings = () => {
+    if (!report.share_token) return;
+    
+    setDialogMode("view");
+    setPublishData({
+      shareToken: report.share_token,
+      shareUrl: `/r/${report.share_token}`,
+      password: "", // Password not available - must regenerate
+    });
+    setIsPublishing(false);
+    setIsRegenerating(false);
+    setPublishDialogOpen(true);
+  };
+
+  const handleRegeneratePassword = async () => {
+    setIsRegenerating(true);
+
+    const result = await regenerateSharePasswordAction(report.id);
+    
+    setIsRegenerating(false);
+    
+    if (result.success && result.data) {
+      setPublishData(result.data);
+      toast.success("New password generated");
+    } else {
+      toast.error(result.error || "Failed to regenerate password");
+    }
+  };
+
   const handleUnpublish = async () => {
-    const result = await updateReportStatusAction(report.id, "draft");
+    const result = await unpublishReportAction(report.id);
     if (result.success) {
-      toast.success("Report moved to drafts");
+      toast.success("Report unpublished");
       router.refresh();
     } else {
       toast.error(result.error || "Failed to update status");
@@ -204,6 +256,7 @@ export function ReportEditorPage({ report }: ReportEditorPageProps) {
       await exportReportToPDF({
         report,
         contentElement: editorContainerRef.current,
+        theme: resolvedTheme === "dark" ? "dark" : "light",
       });
       toast.success("PDF exported successfully");
     } catch (error) {
@@ -326,10 +379,18 @@ export function ReportEditorPage({ report }: ReportEditorPageProps) {
                 Publish
               </Button>
             ) : (
-              <Button variant="outline" size="sm" onClick={handleUnpublish}>
-                <Archive className="size-4 mr-2" />
-                Unpublish
-              </Button>
+              <>
+                {report.share_token && (
+                  <Button variant="outline" size="sm" onClick={handleViewShareSettings}>
+                    <KeyRound className="size-4 mr-2" />
+                    Share
+                  </Button>
+                )}
+                <Button variant="ghost" size="sm" onClick={handleUnpublish}>
+                  <Archive className="size-4 mr-2" />
+                  Unpublish
+                </Button>
+              </>
             )}
           </div>
         </div>
@@ -369,6 +430,17 @@ export function ReportEditorPage({ report }: ReportEditorPageProps) {
         zoneId={report.zone_id}
         contentType={pickerType}
         onSelect={handleContentSelect}
+      />
+
+      {/* Publish Dialog */}
+      <PublishReportDialog
+        open={publishDialogOpen}
+        onOpenChange={setPublishDialogOpen}
+        publishData={publishData}
+        isPublishing={isPublishing}
+        mode={dialogMode}
+        onRegeneratePassword={handleRegeneratePassword}
+        isRegenerating={isRegenerating}
       />
     </PageContainer>
   );

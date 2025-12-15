@@ -12,6 +12,9 @@ import {
   Trash2,
   Send,
   Archive,
+  Link2,
+  ExternalLink,
+  KeyRound,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -34,13 +37,15 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
 import {
   deleteReportAction,
   duplicateReportAction,
-  updateReportStatusAction,
+  publishReportAction,
+  unpublishReportAction,
+  regenerateSharePasswordAction,
 } from "@/app/actions/reports";
-import type { ReportListItem, ReportStatus } from "@/types";
+import { PublishReportDialog } from "./publish-report-dialog";
+import type { ReportListItem, PublishReportResult } from "@/types";
 
 interface ReportListProps {
   reports: ReportListItem[];
@@ -50,6 +55,14 @@ export function ReportList({ reports }: ReportListProps) {
   const router = useRouter();
   const [deleteId, setDeleteId] = React.useState<string | null>(null);
   const [isDeleting, setIsDeleting] = React.useState(false);
+  
+  // Publish dialog state
+  const [publishDialogOpen, setPublishDialogOpen] = React.useState(false);
+  const [isPublishing, setIsPublishing] = React.useState(false);
+  const [isRegenerating, setIsRegenerating] = React.useState(false);
+  const [publishData, setPublishData] = React.useState<PublishReportResult | null>(null);
+  const [dialogMode, setDialogMode] = React.useState<"publish" | "view">("publish");
+  const [currentReportId, setCurrentReportId] = React.useState<string | null>(null);
 
   const handleDuplicate = async (id: string) => {
     const result = await duplicateReportAction(id);
@@ -61,14 +74,70 @@ export function ReportList({ reports }: ReportListProps) {
     }
   };
 
-  const handleStatusChange = async (id: string, status: ReportStatus) => {
-    const result = await updateReportStatusAction(id, status);
-    if (result.success) {
-      toast.success(status === "published" ? "Report published" : "Report moved to drafts");
+  const handlePublish = async (id: string) => {
+    setDialogMode("publish");
+    setPublishDialogOpen(true);
+    setIsPublishing(true);
+    setPublishData(null);
+
+    const result = await publishReportAction(id);
+    
+    setIsPublishing(false);
+    
+    if (result.success && result.data) {
+      setPublishData(result.data);
       router.refresh();
     } else {
-      toast.error(result.error || "Failed to update status");
+      setPublishDialogOpen(false);
+      toast.error(result.error || "Failed to publish report");
     }
+  };
+
+  const handleViewShareInfo = (reportId: string, shareToken: string) => {
+    // Show dialog with existing share info (no password available)
+    setCurrentReportId(reportId);
+    setDialogMode("view");
+    setPublishData({
+      shareToken,
+      shareUrl: `/r/${shareToken}`,
+      password: "", // Password not available - must regenerate
+    });
+    setIsPublishing(false);
+    setIsRegenerating(false);
+    setPublishDialogOpen(true);
+  };
+
+  const handleRegeneratePassword = async () => {
+    if (!currentReportId) return;
+    
+    setIsRegenerating(true);
+
+    const result = await regenerateSharePasswordAction(currentReportId);
+    
+    setIsRegenerating(false);
+    
+    if (result.success && result.data) {
+      setPublishData(result.data);
+      toast.success("New password generated");
+    } else {
+      toast.error(result.error || "Failed to regenerate password");
+    }
+  };
+
+  const handleUnpublish = async (id: string) => {
+    const result = await unpublishReportAction(id);
+    if (result.success) {
+      toast.success("Report unpublished");
+      router.refresh();
+    } else {
+      toast.error(result.error || "Failed to unpublish report");
+    }
+  };
+
+  const handleCopyShareLink = async (shareToken: string) => {
+    const fullUrl = `${window.location.origin}/r/${shareToken}`;
+    await navigator.clipboard.writeText(fullUrl);
+    toast.success("Share link copied to clipboard");
   };
 
   const handleDelete = async () => {
@@ -110,7 +179,7 @@ export function ReportList({ reports }: ReportListProps) {
               className="block p-4"
             >
               <div className="flex items-start justify-between gap-2 mb-3">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <FileText className="size-5 text-primary shrink-0" />
                   <Badge
                     variant={report.status === "published" ? "success" : "outline"}
@@ -118,6 +187,15 @@ export function ReportList({ reports }: ReportListProps) {
                   >
                     {report.status === "published" ? "Published" : "Draft"}
                   </Badge>
+                  {report.share_token && (
+                    <Badge
+                      variant="secondary"
+                      className="text-[10px] h-5 gap-1"
+                    >
+                      <Link2 className="size-3" />
+                      Shared
+                    </Badge>
+                  )}
                 </div>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -142,17 +220,45 @@ export function ReportList({ reports }: ReportListProps) {
                       Duplicate
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
+                    
+                    {/* Publish/Unpublish actions */}
                     {report.status === "draft" ? (
-                      <DropdownMenuItem onClick={() => handleStatusChange(report.id, "published")}>
+                      <DropdownMenuItem onClick={() => handlePublish(report.id)}>
                         <Send className="size-4 mr-2" />
-                        Publish
+                        Publish & Share
                       </DropdownMenuItem>
                     ) : (
-                      <DropdownMenuItem onClick={() => handleStatusChange(report.id, "draft")}>
-                        <Archive className="size-4 mr-2" />
-                        Move to Draft
-                      </DropdownMenuItem>
+                      <>
+                        {report.share_token && (
+                          <>
+                            <DropdownMenuItem onClick={() => handleViewShareInfo(report.id, report.share_token!)}>
+                              <KeyRound className="size-4 mr-2" />
+                              Share Settings
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleCopyShareLink(report.share_token!)}>
+                              <Link2 className="size-4 mr-2" />
+                              Copy Share Link
+                            </DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                              <a 
+                                href={`/r/${report.share_token}`} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                              >
+                                <ExternalLink className="size-4 mr-2" />
+                                Open Shared View
+                              </a>
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                          </>
+                        )}
+                        <DropdownMenuItem onClick={() => handleUnpublish(report.id)}>
+                          <Archive className="size-4 mr-2" />
+                          Unpublish
+                        </DropdownMenuItem>
+                      </>
                     )}
+                    
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
                       onClick={() => setDeleteId(report.id)}
@@ -186,6 +292,17 @@ export function ReportList({ reports }: ReportListProps) {
         ))}
       </div>
 
+      {/* Publish Dialog */}
+      <PublishReportDialog
+        open={publishDialogOpen}
+        onOpenChange={setPublishDialogOpen}
+        publishData={publishData}
+        isPublishing={isPublishing}
+        mode={dialogMode}
+        onRegeneratePassword={handleRegeneratePassword}
+        isRegenerating={isRegenerating}
+      />
+
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
@@ -210,4 +327,3 @@ export function ReportList({ reports }: ReportListProps) {
     </>
   );
 }
-
