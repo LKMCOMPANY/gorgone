@@ -23,19 +23,21 @@ export default async function ReportsPage() {
   const zones = await getActiveZonesByClient(user.client_id);
 
   return (
-    <PageContainer className="max-w-5xl mx-auto">
+    <PageContainer>
       <div className="animate-in space-y-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="space-y-1">
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
+        {/* Page Header */}
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="space-y-1.5">
+            <h1 className="scroll-m-20 text-3xl font-semibold tracking-tight">
               Reports
             </h1>
             <p className="text-sm text-muted-foreground">
               Create and manage intelligence reports with AI assistance.
             </p>
           </div>
-          <CreateReportDialog zones={zones} />
+          <div className="shrink-0">
+            <CreateReportDialog zones={zones} />
+          </div>
         </div>
 
         {/* Reports List */}
