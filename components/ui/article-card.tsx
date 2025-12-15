@@ -89,7 +89,8 @@ function formatNumber(num: number): string {
   return num.toString();
 }
 
-function getSourceInitials(source: string): string {
+function getSourceInitials(source: string | undefined | null): string {
+  if (!source) return "??";
   return source
     .split(/[\s.-]+/)
     .slice(0, 2)
@@ -137,7 +138,7 @@ export function ArticleCard({
             {article.source_logo_url ? (
               <img
                 src={article.source_logo_url}
-                alt={article.source}
+                alt={article.source || "Source"}
                 className="size-full object-cover rounded-lg"
               />
             ) : (
@@ -149,7 +150,7 @@ export function ArticleCard({
           <div className="flex-1 min-w-0">
             {/* Source & Date */}
             <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
-              <span className="font-medium truncate">{article.source}</span>
+              <span className="font-medium truncate">{article.source || "Unknown source"}</span>
               <span className="opacity-50">•</span>
               <span className="flex items-center gap-1">
                 <Calendar className="size-3" />

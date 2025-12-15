@@ -8,8 +8,6 @@ import {
   AreaChart,
   Sparkles,
   TrendingUp,
-  Users,
-  Video,
   Newspaper,
   ChevronRight,
   Library,
@@ -33,7 +31,7 @@ import type { ChartNodeAttributes, StatsCardNodeAttributes } from "./extensions/
 interface ReportLibraryPanelProps {
   zoneId: string;
   editor: Editor | null;
-  onOpenPicker?: (type: "tweet" | "tiktok" | "article" | "account") => void;
+  onOpenPicker?: (type: "tweet" | "tiktok" | "article" | "twitter_account" | "tiktok_account") => void;
   className?: string;
 }
 
@@ -71,13 +69,13 @@ const EMBED_TYPES: Array<{
   {
     id: "tweet",
     title: "Tweet",
-    description: "Embed a tweet",
+    description: "Embed X post",
     IconComponent: XLogo,
   },
   {
     id: "tiktok",
     title: "TikTok",
-    description: "Embed a video",
+    description: "Embed video",
     IconComponent: TikTokLogo,
   },
   {
@@ -87,10 +85,16 @@ const EMBED_TYPES: Array<{
     icon: Newspaper,
   },
   {
-    id: "account",
-    title: "Account",
-    description: "Influencer card",
-    icon: Users,
+    id: "twitter_account",
+    title: "X Account",
+    description: "X profile",
+    IconComponent: XLogo,
+  },
+  {
+    id: "tiktok_account",
+    title: "TikTok Account",
+    description: "TikTok profile",
+    IconComponent: TikTokLogo,
   },
 ];
 
@@ -172,7 +176,8 @@ export function ReportLibraryPanel({
     tweet: () => onOpenPicker?.("tweet"),
     tiktok: () => onOpenPicker?.("tiktok"),
     article: () => onOpenPicker?.("article"),
-    account: () => onOpenPicker?.("account"),
+    twitter_account: () => onOpenPicker?.("twitter_account"),
+    tiktok_account: () => onOpenPicker?.("tiktok_account"),
   };
 
   return (

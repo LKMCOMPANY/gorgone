@@ -29,7 +29,7 @@ import {
 import { PageContainer } from "@/components/dashboard/page-container";
 import { ReportEditor } from "./report-editor";
 import { ReportLibraryPanel } from "./report-library-panel";
-import { ReportContentPicker } from "./report-content-picker";
+import { ReportContentPicker, type ContentType } from "./report-content-picker";
 import { exportReportToPDF } from "./report-pdf-export";
 import { useReportEditor } from "@/lib/contexts/report-editor-context";
 import type { TweetData } from "@/components/ui/tweet-card";
@@ -71,7 +71,7 @@ export function ReportEditorPage({ report }: ReportEditorPageProps) {
   
   // Content picker state (lifted to avoid TabsContent re-render issues)
   const [pickerOpen, setPickerOpen] = React.useState(false);
-  const [pickerType, setPickerType] = React.useState<"tweet" | "tiktok" | "article" | "account">("tweet");
+  const [pickerType, setPickerType] = React.useState<ContentType>("tweet");
   
   // Publish dialog state
   const [publishDialogOpen, setPublishDialogOpen] = React.useState(false);
@@ -276,7 +276,7 @@ export function ReportEditorPage({ report }: ReportEditorPageProps) {
   };
 
   // Open content picker
-  const handleOpenPicker = (type: "tweet" | "tiktok" | "article" | "account") => {
+  const handleOpenPicker = (type: ContentType) => {
     setPickerType(type);
     setPickerOpen(true);
   };

@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import {
   Play,
@@ -127,7 +126,7 @@ export function TikTokVideoCard({
         target="_blank"
         rel="noopener noreferrer"
         className="absolute inset-0 z-10"
-        aria-label={`Watch: ${video.description.slice(0, 50)}`}
+        aria-label={`Watch: ${(video.description || "TikTok video").slice(0, 50)}`}
       />
       
       <CardContent className={cn("p-4", compact && "p-3")}>
