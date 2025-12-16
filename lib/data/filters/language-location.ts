@@ -60,19 +60,11 @@ export async function getAvailableLanguages(
       }
       rawData = result.data || [];
     } else if (source === "media") {
-      console.log("[DEBUG Media] Zone ID:", zoneId);
       const result = await supabase
         .from("media_articles")
         .select("lang")
         .eq("zone_id", zoneId)
         .not("lang", "is", null);
-      
-      console.log("[DEBUG Media] Result:", {
-        error: result.error,
-        count: result.count,
-        dataLength: result.data?.length,
-        firstItems: result.data?.slice(0, 3)
-      });
       
       if (result.error) {
         logger.error("Media languages query error:", result.error);

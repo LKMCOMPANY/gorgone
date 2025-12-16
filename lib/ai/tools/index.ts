@@ -29,4 +29,3 @@ export { generateOpinionReportTool } from "./generate-opinion-report";
 
 // Visualization
 export { createVisualizationTool } from "./create-visualization";
-

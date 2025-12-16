@@ -1,3 +1,12 @@
+/**
+ * Dynamic tool selection for AI chat
+ * 
+ * Philosophy: Let the model decide which tools to use, but:
+ * 1. Gate tools based on available data sources
+ * 2. Prioritize relevant tools based on query intent (for better model guidance)
+ * 3. No hard caps - the model should manage its own tool usage
+ */
+
 export type DataSources = {
   twitter: boolean;
   tiktok: boolean;
@@ -19,138 +28,215 @@ export type ToolName =
   | "compare_accounts"
   | "generate_report"
   | "generate_opinion_report"
-  | "create_visualization";
+  | "create_visualization"
+  | "web_search";
 
-function normalize(input: string): string {
-  return input.trim().toLowerCase();
+// Tool metadata for intelligent selection
+interface ToolMetadata {
+  name: ToolName;
+  /** Data sources this tool requires */
+  requires: ("twitter" | "tiktok" | "media")[];
+  /** Keywords that suggest this tool (for prioritization, not gating) */
+  keywords: string[];
+  /** Tool priority (1 = highest, always include if source available) */
+  priority: 1 | 2 | 3;
 }
 
-function includesAny(t: string, needles: string[]): boolean {
-  return needles.some((n) => t.includes(n));
+const TOOL_REGISTRY: ToolMetadata[] = [
+  // Priority 1: Core tools - always available
+  {
+    name: "get_zone_overview",
+    requires: [], // Works with any source
+    keywords: ["overview", "aperçu", "résumé", "summary", "situation", "état", "quoi de neuf", "what's new"],
+    priority: 1,
+  },
+  {
+    name: "search_content",
+    requires: [], // Works with any source
+    keywords: ["search", "cherche", "find", "trouve", "mention", "about", "sur", "concernant"],
+    priority: 1,
+  },
+  
+  // Priority 2: Analysis tools - require specific sources
+  {
+    name: "get_trending_topics",
+    requires: ["twitter"],
+    keywords: ["trend", "tendance", "hashtag", "viral", "buzz", "populaire"],
+    priority: 2,
+  },
+  {
+    name: "get_top_content",
+    requires: ["twitter"],
+    keywords: ["top", "best", "meilleur", "populaire", "engagement", "viral", "performing"],
+    priority: 2,
+  },
+  {
+    name: "get_top_accounts",
+    requires: ["twitter"],
+    keywords: ["account", "compte", "influencer", "influenceur", "profil", "user", "utilisateur", "who"],
+    priority: 2,
+  },
+  {
+    name: "analyze_sentiment",
+    requires: ["twitter"],
+    keywords: ["sentiment", "mood", "ton", "feeling", "perception", "positif", "négatif"],
+    priority: 2,
+  },
+  {
+    name: "detect_anomalies",
+    requires: ["twitter"],
+    keywords: ["anomaly", "anomalie", "spike", "pic", "unusual", "inhabituel", "alerte", "alert"],
+    priority: 2,
+  },
+  {
+    name: "get_media_coverage",
+    requires: ["media"],
+    keywords: ["media", "press", "presse", "article", "news", "coverage", "couverture", "journal"],
+    priority: 2,
+  },
+  
+  // Priority 3: Advanced/specialized tools
+  {
+    name: "get_share_of_voice",
+    requires: ["twitter"],
+    keywords: ["share of voice", "sov", "part de voix", "répartition", "distribution"],
+    priority: 3,
+  },
+  {
+    name: "get_opinion_map_summary",
+    requires: ["twitter"],
+    keywords: ["opinion", "cluster", "polarisation", "groupes", "narratives"],
+    priority: 3,
+  },
+  {
+    name: "generate_opinion_report",
+    requires: ["twitter"],
+    keywords: ["opinion report", "rapport opinion", "analyse opinion", "cartographie", "carto", "map"],
+    priority: 3,
+  },
+  {
+    name: "analyze_account",
+    requires: ["twitter"],
+    keywords: ["@", "profile", "profil", "account", "compte", "analyze", "analyse", "deep dive"],
+    priority: 3,
+  },
+  {
+    name: "compare_accounts",
+    requires: ["twitter"],
+    keywords: ["compare", "versus", "vs", "comparison", "comparaison", "différence"],
+    priority: 3,
+  },
+  {
+    name: "create_visualization",
+    requires: [], // Can work with any data
+    keywords: ["chart", "graph", "graphe", "courbe", "visualization", "visual", "plot"],
+    priority: 3,
+  },
+  {
+    name: "generate_report",
+    requires: [], // Aggregates from available sources
+    keywords: ["report", "rapport", "briefing", "note", "synthèse", "synthesis", "executive"],
+    priority: 3,
+  },
+  {
+    name: "web_search",
+    requires: [], // No data source required
+    keywords: ["search web", "google", "news", "actualité", "context", "background", "who is", "what is", "external", "latest"],
+    priority: 3,
+  },
+];
+
+/**
+ * Normalize text for keyword matching
+ */
+function normalize(text: string): string {
+  return text
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "") // Remove accents
+    .trim();
 }
 
 /**
- * Restrict the tool universe (GPT‑5.2 best practice):
- * - smaller allowed set => more predictable + cheaper + less drift.
- * - also prevents calling tools for disabled data sources.
+ * Check if text contains any of the keywords
+ */
+function matchesKeywords(text: string, keywords: string[]): boolean {
+  const normalizedText = normalize(text);
+  return keywords.some((k) => normalizedText.includes(normalize(k)));
+}
+
+/**
+ * Select active tools based on:
+ * 1. Available data sources (hard filter)
+ * 2. Query intent (soft prioritization)
+ * 
+ * Returns ALL relevant tools - let the model decide which to actually use.
  */
 export function selectActiveTools(args: {
   userText: string;
   dataSources: DataSources;
 }): ToolName[] {
-  const t = normalize(args.userText);
+  const { userText, dataSources } = args;
 
-  // Always allow a minimal baseline for monitoring.
-  const tools = new Set<ToolName>([
-    "get_zone_overview",
-    "search_content",
-    "detect_anomalies",
-  ]);
+  // Filter tools based on data source availability
+  const availableTools = TOOL_REGISTRY.filter((tool) => {
+    // If tool requires specific sources, check if at least one is available
+    if (tool.requires.length === 0) return true;
+    return tool.requires.some((source) => dataSources[source]);
+  });
 
-  // Trends/top content/engagement.
-  if (
-    includesAny(t, [
-      "trend", "trending", "tendance", "overview", "quoi", "what",
-      "top", "best", "meilleur", "plus", "engagement", "viral", "popular",
-      "performing", "populaire"
-    ])
-  ) {
-    tools.add("get_trending_topics");
-    tools.add("get_top_content");
-    tools.add("get_top_accounts");
-  }
+  // Score and sort tools by relevance to the query
+  const scoredTools = availableTools.map((tool) => {
+    let score = 0;
+    
+    // Base score by priority
+    score += (4 - tool.priority) * 10; // Priority 1 = 30, 2 = 20, 3 = 10
+    
+    // Bonus for keyword match
+    if (matchesKeywords(userText, tool.keywords)) {
+      score += 50;
+    }
+    
+    return { tool, score };
+  });
 
-  // Influencers/accounts specifically.
-  if (
-    includesAny(t, [
-      "influencer", "influencers", "influenceur", "influenceurs",
-      "account", "accounts", "compte", "comptes", "user", "users",
-      "utilisateur", "utilisateurs", "profil", "profiles"
-    ])
-  ) {
-    tools.add("get_top_accounts");
-  }
-
-  // Sentiment / SOV.
-  if (includesAny(t, ["sentiment", "mood", "ton", "opinion", "sov", "share"])) {
-    tools.add("analyze_sentiment");
-    tools.add("get_share_of_voice");
-  }
-
-  // Opinion map.
-  if (includesAny(t, ["opinion map", "cluster", "clustering", "polarisation", "polarisation"])) {
-    tools.add("get_opinion_map_summary");
-  }
-
-  // Opinion report (full analysis with examples).
-  if (includesAny(t, ["rapport d'opinion", "opinion report", "analyse des opinions", "cartographie", "narratives", "carto"])) {
-    tools.add("generate_opinion_report");
-    tools.add("create_visualization");
-  }
-
-  // Account deep-dive / comparison.
-  if (includesAny(t, ["@", "account", "profile", "compte"])) {
-    tools.add("analyze_account");
-  }
-  if (includesAny(t, ["compare", "versus", "vs", "compar"])) {
-    tools.add("compare_accounts");
-  }
-
-  // Report/briefing.
-  if (includesAny(t, ["report", "briefing", "note", "synthese", "synthèse"])) {
-    tools.add("generate_report");
-  }
-
-  // Visualization (only when user asks explicitly for chart/graph/visualize).
-  if (includesAny(t, ["chart", "graph", "plot", "visual", "courbe", "graphe"])) {
-    tools.add("create_visualization");
-  }
-
-  // Platform gating
-  if (!args.dataSources.twitter) {
-    tools.delete("get_trending_topics");
-    tools.delete("get_top_content");
-    tools.delete("get_top_accounts");
-    tools.delete("get_opinion_map_summary");
-    tools.delete("generate_opinion_report");
-    tools.delete("get_share_of_voice");
-    tools.delete("analyze_account");
-    tools.delete("detect_anomalies");
-    tools.delete("analyze_sentiment");
-  }
-
-  if (!args.dataSources.media) {
-    tools.delete("get_media_coverage");
-  } else if (includesAny(t, ["media", "press", "article", "coverage", "news", "journal", "rapport media", "presse", "couverture"])) {
-    tools.add("get_media_coverage");
-  }
-
-  if (!args.dataSources.tiktok) {
-    // No TikTok-specific tools today, but keep structure for future.
-  }
-
-  // Hard cap to keep calls predictable.
-  const orderedUniverse = [
-    "get_zone_overview",
-    "get_trending_topics",
-    "get_top_content",
-    "get_top_accounts",
-    "analyze_sentiment",
-    "detect_anomalies",
-    "get_opinion_map_summary",
-    "generate_opinion_report",
-    "search_content",
-    "analyze_account",
-    "compare_accounts",
-    "get_share_of_voice",
-    "get_media_coverage",
-    "create_visualization",
-    "generate_report",
-  ] as const satisfies readonly ToolName[];
-
-  const ordered = orderedUniverse.filter((name): name is ToolName => tools.has(name));
-
-  return ordered.slice(0, 6);
+  // Sort by score (highest first) and extract tool names
+  scoredTools.sort((a, b) => b.score - a.score);
+  
+  return scoredTools.map(({ tool }) => tool.name);
 }
 
+/**
+ * Get tools that are specifically relevant to the user's query
+ * Useful for determining if a tool should be emphasized in the prompt
+ */
+export function getRelevantTools(args: {
+  userText: string;
+  dataSources: DataSources;
+}): ToolName[] {
+  const { userText, dataSources } = args;
 
+  return TOOL_REGISTRY
+    .filter((tool) => {
+      // Must have required data sources
+      if (tool.requires.length > 0) {
+        const hasRequiredSource = tool.requires.some((source) => dataSources[source]);
+        if (!hasRequiredSource) return false;
+      }
+      
+      // Must match query keywords
+      return matchesKeywords(userText, tool.keywords);
+    })
+    .map((tool) => tool.name);
+}
+
+/**
+ * Check if a specific tool is available given the data sources
+ */
+export function isToolAvailable(toolName: ToolName, dataSources: DataSources): boolean {
+  const tool = TOOL_REGISTRY.find((t) => t.name === toolName);
+  if (!tool) return false;
+  
+  if (tool.requires.length === 0) return true;
+  return tool.requires.some((source) => dataSources[source]);
+}

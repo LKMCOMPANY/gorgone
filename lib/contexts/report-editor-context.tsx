@@ -80,27 +80,9 @@ export function ReportEditorProvider({ children }: ReportEditorProviderProps) {
       }
 
       try {
-        // Debug: Log content before insert
-        console.log("[ReportEditorContext] Inserting content:", JSON.stringify(content).substring(0, 500));
-        
         editor.chain().focus().insertContent(content).run();
-        
-        // Debug: Log JSON after insert - specifically check opinionReportNode
-        const jsonAfter = editor.getJSON();
-        const opinionNodes = jsonAfter.content?.filter((n: JSONContent) => n.type === "opinionReportNode");
-        console.log("[ReportEditorContext] Opinion nodes in JSON:", JSON.stringify(opinionNodes));
-        
-        // Also check via NodePos API
-        const $opinionNodes = editor.$nodes("opinionReportNode");
-        console.log("[ReportEditorContext] NodePos count:", $opinionNodes?.length);
-        if ($opinionNodes && $opinionNodes.length > 0) {
-          console.log("[ReportEditorContext] NodePos[0] attributes:", JSON.stringify($opinionNodes[0].attributes));
-          console.log("[ReportEditorContext] NodePos[0] node.attrs:", JSON.stringify($opinionNodes[0].node.attrs));
-        }
-        
         return true;
-      } catch (error) {
-        console.error("[ReportEditorContext] Failed to insert content:", error);
+      } catch {
         return false;
       }
     },

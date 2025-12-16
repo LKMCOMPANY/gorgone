@@ -57,6 +57,24 @@ type ClusterData = {
   examples: TweetExample[];
 };
 
+/** Cluster info for evolution chart */
+interface ClusterChartInfo {
+  id: number;
+  label: string;
+  color: string;
+}
+
+/** Evolution chart data structure (stacked area) */
+interface EvolutionChartPayload {
+  _type?: "visualization";
+  chart_type: "stacked_area";
+  title: string;
+  description?: string;
+  data: Array<Record<string, string | number>>;
+  config: Record<string, { label: string; color: string }>;
+  clusters: ClusterChartInfo[];
+}
+
 /** Opinion report payload from generate_opinion_report tool */
 type OpinionReportPayload = {
   _type: "opinion_report";
@@ -67,17 +85,8 @@ type OpinionReportPayload = {
     total_clusters: number;
   };
   clusters: ClusterData[];
-  /** Sentiment evolution chart (optional - only if multiple sessions exist) */
-  sentiment_evolution_chart?: VisualizationPayload | null;
-  /** Raw sentiment evolution data */
-  sentiment_evolution?: Array<{
-    date: string;
-    avg_sentiment: number;
-    positive: number;
-    neutral: number;
-    negative: number;
-    total_tweets: number;
-  }>;
+  /** Evolution chart (stacked area showing cluster trends over time) */
+  evolution_chart?: EvolutionChartPayload | null;
 };
 
 /** Top content result from get_top_content tool */
@@ -362,64 +371,12 @@ function isValidTrendingTopics(obj: Record<string, unknown> | null): obj is Tren
 }
 
 /**
- * Extract minimal intro text when opinion report is rendered
- * This prevents the AI's verbose markdown from overriding the structured UI
+ * Clean up text when structured UI is displayed
+ * The prompt tells the AI not to repeat data, so we just clean whitespace
  */
 function extractMinimalIntro(text: string): string {
   if (!text) return "";
-  
-  // Remove markdown headers that repeat report content
-  const lines = text.split("\n");
-  const filteredLines: string[] = [];
-  let skipSection = false;
-  
-  for (const line of lines) {
-    const trimmed = line.trim();
-    
-    // Skip empty lines at the start
-    if (filteredLines.length === 0 && !trimmed) continue;
-    
-    // Skip lines that look like they're repeating cluster data
-    if (trimmed.match(/^#+\s*(Cluster|Opinion|Report|Overview|Breakdown)/i)) {
-      skipSection = true;
-      continue;
-    }
-    
-    // Skip numbered cluster items
-    if (trimmed.match(/^\d+\.\s+\*\*/)) {
-      skipSection = true;
-      continue;
-    }
-    
-    // Skip description/sentiment/example lines
-    if (trimmed.match(/^-\s+\*\*(Description|Sentiment|Examples|Keywords)/i)) {
-      continue;
-    }
-    
-    // Stop skipping when we hit a synthesis/conclusion section
-    if (trimmed.match(/^#+\s*(Synthesis|Conclusion|Key Takeaways|Strategic|Recommendations)/i)) {
-      skipSection = false;
-      filteredLines.push(line);
-      continue;
-    }
-    
-    if (!skipSection) {
-      filteredLines.push(line);
-    }
-  }
-  
-  // Return only the cleaned text (intro + conclusion, no cluster details)
-  const result = filteredLines.join("\n").trim();
-  
-  // If too long, truncate to first and last sections
-  if (result.length > 1500) {
-    const paragraphs = result.split(/\n\n+/);
-    if (paragraphs.length > 3) {
-      return [paragraphs[0], "...", paragraphs[paragraphs.length - 1]].join("\n\n");
-    }
-  }
-  
-  return result;
+  return text.trim();
 }
 
 /**
@@ -984,7 +941,7 @@ function collectResponseContent(
         available: parsed.available,
         session: parsed.session,
         clusters: parsed.clusters,
-        sentiment_evolution_chart: parsed.sentiment_evolution_chart,
+        evolution_chart: parsed.evolution_chart,
       };
     }
   }

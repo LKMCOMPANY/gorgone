@@ -10,19 +10,17 @@
  * 
  * Displays:
  * - Header with stats (tweets analyzed, clusters, period)
- * - Sentiment evolution chart (optional)
+ * - Opinion evolution chart (stacked area showing cluster trends)
  * - Cluster cards with labels, percentages, descriptions, keywords
  * - Representative tweets per cluster
  * 
  * Supports i18n via optional `language` prop for static UI labels.
- * Dynamic content (cluster labels, descriptions) are generated in the zone's
- * configured language during Opinion Map creation.
  */
 
 import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { TweetCardList, type TweetData } from "@/components/ui/tweet-card";
-import { ChatChart } from "@/components/dashboard/chat/chat-chart";
+import { ChatOpinionEvolutionChart } from "@/components/dashboard/chat/chat-opinion-evolution-chart";
 import {
   type SupportedLanguage,
   getOpinionReportLabels,
@@ -32,13 +30,22 @@ import {
 // Types
 // ============================================================================
 
-/** Visualization/Chart data structure */
-export interface VisualizationData {
+/** Cluster info for evolution chart */
+interface ClusterChartInfo {
+  id: number;
+  label: string;
+  color: string;
+}
+
+/** Evolution chart data structure */
+export interface EvolutionChartData {
   _type?: "visualization";
-  chart_type: "line" | "bar" | "area";
+  chart_type: "stacked_area";
   title: string;
-  data: Array<{ timestamp: string; value: number; label: string }>;
-  config: Record<string, { label: string; color?: string }>;
+  description?: string;
+  data: Array<Record<string, string | number>>;
+  config: Record<string, { label: string; color: string }>;
+  clusters: ClusterChartInfo[];
 }
 
 /** Tweet example from opinion report */
@@ -65,6 +72,7 @@ export interface OpinionClusterData {
   percentage: string;
   sentiment_label: string;
   keywords: string[];
+  color?: string;
   examples: OpinionTweetExample[];
 }
 
@@ -78,8 +86,10 @@ export interface OpinionReportData {
     total_clusters: number;
   };
   clusters: OpinionClusterData[];
-  /** Sentiment evolution chart (optional) */
-  sentiment_evolution_chart?: VisualizationData | null;
+  /** Evolution chart (stacked area showing cluster trends over time) */
+  evolution_chart?: EvolutionChartData | null;
+  /** Legacy: Sentiment evolution chart (for backwards compatibility) */
+  sentiment_evolution_chart?: any;
 }
 
 // ============================================================================
@@ -102,8 +112,6 @@ function toTweetData(tweet: OpinionTweetExample): TweetData {
 
 /**
  * Get translated sentiment label
- * The sentiment_label in data is in English (positive/neutral/negative)
- * We translate it to the display language
  */
 function getTranslatedSentimentLabel(
   sentimentLabel: string,
@@ -116,6 +124,20 @@ function getTranslatedSentimentLabel(
       return labels.negative;
     default:
       return labels.neutral;
+  }
+}
+
+/**
+ * Get sentiment badge styling
+ */
+function getSentimentBadgeClass(sentimentLabel: string): string {
+  switch (sentimentLabel.toLowerCase()) {
+    case "positive":
+      return "border-green-500/50 text-green-600 bg-green-500/10";
+    case "negative":
+      return "border-red-500/50 text-red-600 bg-red-500/10";
+    default:
+      return "border-gray-500/50 text-gray-600 bg-gray-500/10";
   }
 }
 
@@ -184,16 +206,15 @@ export function OpinionReportView({
           </div>
         )}
 
-        {/* Sentiment Evolution Chart (if available) */}
-        {report.sentiment_evolution_chart && (
-          <div className="rounded-xl border bg-card p-5">
-            <ChatChart
-              type={report.sentiment_evolution_chart.chart_type}
-              title={labels.sentimentEvolution}
-              data={report.sentiment_evolution_chart.data}
-              config={report.sentiment_evolution_chart.config}
-            />
-          </div>
+        {/* Opinion Evolution Chart (stacked area - same as Analysis page) */}
+        {report.evolution_chart && report.evolution_chart.data?.length > 1 && (
+          <ChatOpinionEvolutionChart
+            title={report.evolution_chart.title || "Opinion Evolution"}
+            description={report.evolution_chart.description}
+            data={report.evolution_chart.data}
+            clusters={report.evolution_chart.clusters}
+            config={report.evolution_chart.config}
+          />
         )}
 
         {/* Clusters */}
@@ -203,19 +224,20 @@ export function OpinionReportView({
             <div className="flex items-start justify-between gap-3">
               <div className="flex-1">
                 <div className="flex items-center gap-2 flex-wrap">
+                  {/* Color indicator */}
+                  {cluster.color && (
+                    <div
+                      className="size-3 rounded-full flex-shrink-0"
+                      style={{ backgroundColor: cluster.color }}
+                    />
+                  )}
                   <h4 className="text-base font-semibold">{cluster.label}</h4>
                   <Badge variant="secondary" className="text-xs">
                     {cluster.percentage}%
                   </Badge>
                   <Badge
                     variant="outline"
-                    className={
-                      cluster.sentiment_label === "positive"
-                        ? "border-green-500/50 text-green-600 bg-green-500/10"
-                        : cluster.sentiment_label === "negative"
-                          ? "border-red-500/50 text-red-600 bg-red-500/10"
-                          : "border-gray-500/50 text-gray-600 bg-gray-500/10"
-                    }
+                    className={getSentimentBadgeClass(cluster.sentiment_label)}
                   >
                     {getTranslatedSentimentLabel(cluster.sentiment_label, labels)}
                   </Badge>

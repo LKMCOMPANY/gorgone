@@ -1,9 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { useChat as useAIChat } from "@ai-sdk/react";
+import { useChat as useAIChat, type UIMessage } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
-import { Sparkles, Newspaper, Users } from "lucide-react";
+import { Sparkles, Newspaper, Users, History } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -12,8 +12,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { useCurrentZone } from "@/hooks/use-current-zone";
 import { useGlobalChatSafe } from "@/lib/contexts/global-chat-context";
+import { useChatPersistence } from "@/hooks/use-chat-persistence";
 import { ChatMessages } from "./chat-messages";
 import { ChatInput } from "./chat-input";
 import { cn } from "@/lib/utils";
@@ -21,6 +29,7 @@ import type { Zone } from "@/types";
 import { getZoneLanguage } from "@/lib/ai/chat/language";
 import { Conversation, ConversationEmpty } from "@/components/ai/conversation";
 import { Suggestion } from "@/components/ai/suggestion";
+import { ConversationHistory } from "@/components/ai/conversation-history";
 
 interface DashboardChatProps {
   zones: Zone[];
@@ -40,25 +49,44 @@ export function DashboardChat({ zones, variant = "full" }: DashboardChatProps) {
     [zones, selectedZoneId]
   );
 
-  const chatId = `dashboard-chat-${activeZone?.id}`;
+  // Conversation persistence
+  const {
+    conversations,
+    currentConversationId,
+    isLoading: isLoadingConversations,
+    loadConversation,
+    startNewConversation,
+    deleteConversation,
+    setCurrentConversationId,
+    fetchConversations,
+  } = useChatPersistence({
+    zoneId: activeZone?.id || "",
+    enabled: !!activeZone,
+  });
 
-  // Default chat transport with UI message support (server returns toUIMessageStreamResponse())
-  // This enables tool results (OpinionReportView, TweetCards, etc.) to be rendered
+  const chatId = React.useMemo(
+    () => `dashboard-chat-${activeZone?.id}-${currentConversationId || "new"}`,
+    [activeZone?.id, currentConversationId]
+  );
+
+  // Chat transport with conversation ID support
   const transport = React.useMemo(() => {
     return new DefaultChatTransport({
       api: "/api/chat",
       body: {
         zoneId: activeZone?.id,
+        conversationId: currentConversationId,
       },
     });
-  }, [activeZone?.id]);
+  }, [activeZone?.id, currentConversationId]);
 
   const {
     messages,
+    setMessages,
     sendMessage,
     regenerate,
     status,
-    error: _error, // Used for error handling below
+    error: _error,
     clearError,
   } = useAIChat({
     id: chatId,
@@ -69,43 +97,63 @@ export function DashboardChat({ zones, variant = "full" }: DashboardChatProps) {
   });
 
   const [input, setInput] = React.useState("");
+  const [historyOpen, setHistoryOpen] = React.useState(false);
 
   // Get pending prompt from global chat context (if available)
   const globalChat = useGlobalChatSafe();
 
   const isLoading = status === "submitted" || status === "streaming";
 
-  // Track if we've already processed the current pending prompt (prevents double-send)
+  // Track if we've already processed the current pending prompt
   const pendingPromptHandledRef = React.useRef(false);
 
-  // Reset input when switching zones (fresh context).
+  // Reset when switching zones
   React.useEffect(() => {
     setInput("");
-    // Clear any lingering error state on zone switch.
     clearError();
-  }, [chatId, clearError]);
+    startNewConversation();
+  }, [activeZone?.id, clearError, startNewConversation]);
 
-  // Handle pending prompts from the global chat context
-  // This allows other components to open the chat with a pre-filled prompt
+  // Handle loading a conversation
+  const handleLoadConversation = React.useCallback(async (conversationId: string) => {
+    const data = await loadConversation(conversationId);
+    if (data) {
+      // Convert stored messages to UI format
+      const uiMessages = data.messages.map((m) => ({
+        id: m.id,
+        role: m.role as "user" | "assistant" | "system",
+        content: m.content,
+        parts: (m.parts as Array<{ type: string; text?: string }>) || [{ type: "text", text: m.content }],
+      }));
+      setMessages(uiMessages as UIMessage[]);
+      setHistoryOpen(false);
+    }
+  }, [loadConversation, setMessages]);
+
+  // Handle starting new conversation
+  const handleNewConversation = React.useCallback(() => {
+    startNewConversation();
+    setMessages([]);
+    setHistoryOpen(false);
+  }, [startNewConversation, setMessages]);
+
+  // Handle pending prompts from global context
   React.useEffect(() => {
     const pendingPrompt = globalChat?.pendingPrompt;
     
-    // Only process once per prompt - use ref to prevent Strict Mode double-firing
     if (pendingPrompt && !pendingPromptHandledRef.current) {
       pendingPromptHandledRef.current = true;
-      
-      // Clear the prompt from context immediately
       globalChat?.clearPendingPrompt();
       
-      // Send the message
+      // Start fresh conversation for pending prompts
+      handleNewConversation();
       void sendMessage({ text: pendingPrompt });
     }
     
-    // Reset the ref when there's no pending prompt (ready for next one)
     if (!pendingPrompt) {
       pendingPromptHandledRef.current = false;
     }
-  }, [globalChat?.pendingPrompt, globalChat, sendMessage]);
+  }, [globalChat?.pendingPrompt, globalChat, sendMessage, handleNewConversation]);
 
   // X (Twitter) icon component
   const XIcon = ({ className }: { className?: string }) => (
@@ -114,7 +162,7 @@ export function DashboardChat({ zones, variant = "full" }: DashboardChatProps) {
     </svg>
   );
 
-  // Common suggestions (English only - UI language)
+  // Common suggestions
   type SuggestionItem = { text: string; icon?: React.ReactNode };
   const suggestions: SuggestionItem[] = [
     { text: "Generate a complete opinion report", icon: <XIcon className="size-4" /> },
@@ -143,6 +191,8 @@ export function DashboardChat({ zones, variant = "full" }: DashboardChatProps) {
     void regenerate();
   };
 
+  const zoneLanguage = activeZone ? getZoneLanguage(activeZone) : "en";
+
   if (!activeZone) {
     return (
       <div className="flex h-full items-center justify-center text-muted-foreground">
@@ -166,14 +216,14 @@ export function DashboardChat({ zones, variant = "full" }: DashboardChatProps) {
               `
             }}
           />
-          {/* Radial mask for focus */}
           <div className="absolute inset-0 bg-gradient-to-b from-background/50 via-transparent to-background" />
         </div>
       )}
 
-      {/* Floating Zone Selector (Top Left) - Minimal & Integrated */}
-      {zones.length > 1 && (
-        <div className="absolute top-4 left-4 z-20">
+      {/* Top Bar with Zone Selector & History */}
+      <div className="absolute top-4 left-4 right-4 z-20 flex items-center justify-between">
+        {/* Zone Selector */}
+        {zones.length > 1 && (
           <Select value={activeZone.id} onValueChange={setSelectedZoneId}>
             <SelectTrigger className="h-8 w-auto min-w-[120px] border-none bg-background/50 backdrop-blur-sm hover:bg-accent/50 transition-colors shadow-sm gap-2 rounded-full px-3">
               <span className="text-xs font-medium text-muted-foreground">Zone:</span>
@@ -187,16 +237,52 @@ export function DashboardChat({ zones, variant = "full" }: DashboardChatProps) {
               ))}
             </SelectContent>
           </Select>
-        </div>
-      )}
+        )}
+        
+        {/* Spacer if no zone selector */}
+        {zones.length <= 1 && <div />}
 
-      {/* Main Conversation Area - Full Height & Scrollable */}
-      <div className="flex-1 overflow-hidden relative z-10">
+        {/* Conversation History Button */}
+        <Sheet open={historyOpen} onOpenChange={setHistoryOpen}>
+          <SheetTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 gap-2 bg-background/50 backdrop-blur-sm hover:bg-accent/50 rounded-full px-3"
+            >
+              <History className="h-4 w-4" />
+              <span className="text-xs">History</span>
+              {conversations.length > 0 && (
+                <span className="text-xs text-muted-foreground">
+                  ({conversations.length})
+                </span>
+              )}
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="right" className="w-80 p-0">
+            <SheetHeader className="p-4 pb-0">
+              <SheetTitle>Conversations</SheetTitle>
+            </SheetHeader>
+            <ConversationHistory
+              conversations={conversations}
+              currentConversationId={currentConversationId}
+              onSelectConversation={handleLoadConversation}
+              onNewConversation={handleNewConversation}
+              onDeleteConversation={deleteConversation}
+              isLoading={isLoadingConversations}
+              locale={zoneLanguage === "fr" ? "fr" : "en"}
+            />
+          </SheetContent>
+        </Sheet>
+      </div>
+
+      {/* Main Conversation Area */}
+      <div className="flex-1 overflow-hidden relative z-10 pt-16">
         <Conversation className="h-full">
           {messages.length === 0 ? (
             <ConversationEmpty 
-              title="" // Removed title as requested
-              description="" // Removed description as requested
+              title=""
+              description=""
               className="bg-transparent"
             >
               <div className="flex flex-col items-center justify-center h-full p-4">
@@ -232,13 +318,13 @@ export function DashboardChat({ zones, variant = "full" }: DashboardChatProps) {
               isLoading={isLoading}
               reload={reload}
               onQuickAction={(q) => void sendMessage({ text: q })}
-              language={getZoneLanguage(activeZone)}
+              language={zoneLanguage}
             />
           )}
         </Conversation>
       </div>
 
-      {/* Input Area - Floating/Glassmorphism at bottom */}
+      {/* Input Area */}
       <div className="shrink-0 p-4 sm:p-6 bg-transparent relative z-20">
         <div className="mx-auto max-w-3xl w-full relative">
           {/* Contextual Suggestions */}

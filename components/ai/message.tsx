@@ -53,7 +53,7 @@ export function Message({ from, children, className }: MessageProps) {
       </Avatar>
 
       {/* Content */}
-      <div className="flex-1 min-w-0" style={{ maxWidth: '100%', overflow: 'hidden' }}>
+      <div className="flex-1 min-w-0 overflow-x-hidden">
         {children}
       </div>
     </div>
@@ -68,7 +68,7 @@ interface MessageContentProps {
 export function MessageContent({ children, className }: MessageContentProps) {
   return (
     <div 
-      className={cn("space-y-3 w-full max-w-full overflow-hidden break-words", className)}
+      className={cn("space-y-3 w-full max-w-full overflow-x-hidden break-words", className)}
       style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}
     >
       {children}

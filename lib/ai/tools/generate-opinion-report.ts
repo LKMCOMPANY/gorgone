@@ -4,22 +4,22 @@
  *
  * Key features:
  * - Uses ACTUAL session date range (not hardcoded period)
- * - Returns structured data for AI to format (no embedded visualizations)
+ * - Returns cluster evolution chart (same as Analysis page)
  * - All labels in English (AI adapts response language)
  * - Tweet examples with full metadata for tweet card display
  */
 
 import { type Tool, type ToolCallOptions, zodSchema } from "ai";
 import { z } from "zod";
-import { 
-  getLatestCompletedSession, 
-  getSentimentEvolution,
-} from "@/lib/data/twitter/opinion-map/sessions";
+import { getLatestCompletedSession } from "@/lib/data/twitter/opinion-map/sessions";
 import { getClusters } from "@/lib/data/twitter/opinion-map/clusters";
+import { getEnrichedProjections } from "@/lib/data/twitter/opinion-map/projections";
+import { generateTimeSeriesData } from "@/lib/data/twitter/opinion-map/time-series";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logger } from "@/lib/logger";
 import { getToolContext } from "@/lib/ai/types";
 import { buildResultMetadata } from "@/lib/ai/utils";
+import { getOpinionClusterColor } from "@/types";
 
 const parametersSchema = z.object({
   include_examples: z
@@ -72,6 +72,7 @@ interface ClusterAnalysis {
   sentiment: number | null;
   sentiment_label: "positive" | "neutral" | "negative";
   coherence_score: number | null;
+  color: string;
   examples: TweetExample[];
 }
 
@@ -104,7 +105,7 @@ function getSessionAge(sessionDate: Date): string {
 
 export const generateOpinionReportTool: Tool<Parameters, Output> = {
   description:
-    "Generate a complete Opinion Report from the latest Opinion Map analysis. Returns cluster breakdown with AI-generated labels, percentage distribution, sentiment, and representative tweet examples. Uses the ACTUAL date range of the generated map. Use for 'opinion report', 'rapport d'opinion', 'opinion analysis', or 'narrative analysis'.",
+    "Generate a complete Opinion Report from the latest Opinion Map analysis. Returns cluster breakdown with AI-generated labels, percentage distribution, sentiment, evolution chart over time, and representative tweet examples. Uses the ACTUAL date range of the generated map. Use for 'opinion report', 'rapport d'opinion', 'opinion analysis', or 'narrative analysis'.",
 
   inputSchema: zodSchema(parametersSchema),
 
@@ -125,7 +126,6 @@ export const generateOpinionReportTool: Tool<Parameters, Output> = {
 
       // ========================================
       // STEP 1: Get latest COMPLETED session
-      // (This ignores pending/failed sessions)
       // ========================================
       const session = await getLatestCompletedSession(zoneId);
 
@@ -145,7 +145,6 @@ export const generateOpinionReportTool: Tool<Parameters, Output> = {
       // ========================================
       const sessionCreatedAt = new Date(session.created_at);
 
-      // Get the actual tweet date range from the session config if available
       const sessionConfig = session.config as {
         startDate?: string;
         endDate?: string;
@@ -153,7 +152,7 @@ export const generateOpinionReportTool: Tool<Parameters, Output> = {
 
       const dataStartDate = sessionConfig?.startDate
         ? new Date(sessionConfig.startDate)
-        : new Date(sessionCreatedAt.getTime() - 7 * 24 * 60 * 60 * 1000); // Default 7 days before
+        : new Date(sessionCreatedAt.getTime() - 7 * 24 * 60 * 60 * 1000);
 
       const dataEndDate = sessionConfig?.endDate
         ? new Date(sessionConfig.endDate)
@@ -179,7 +178,55 @@ export const generateOpinionReportTool: Tool<Parameters, Output> = {
       const topClusters = allClusters.slice(0, max_clusters);
 
       // ========================================
-      // STEP 4: Get tweet examples per cluster
+      // STEP 4: Get enriched projections for evolution chart
+      // ========================================
+      const enrichedProjections = await getEnrichedProjections(
+        zoneId,
+        session.session_id
+      );
+
+      // Generate time series data (same as Analysis page)
+      const evolutionData = generateTimeSeriesData(
+        enrichedProjections,
+        topClusters,
+        dataStartDate,
+        dataEndDate
+      );
+
+      logger.info(`[AI Tool] Evolution data generated`, {
+        data_points: evolutionData.length,
+        clusters: topClusters.length,
+      });
+
+      // ========================================
+      // STEP 5: Build evolution chart config
+      // ========================================
+      const evolutionChartConfig: Record<string, { label: string; color: string }> = {};
+      topClusters.forEach((cluster) => {
+        evolutionChartConfig[`cluster_${cluster.cluster_id}`] = {
+          label: cluster.label || `Cluster ${cluster.cluster_id}`,
+          color: getOpinionClusterColor(cluster.cluster_id),
+        };
+      });
+
+      const evolutionChart = evolutionData.length > 1
+        ? {
+            _type: "visualization" as const,
+            chart_type: "stacked_area" as const,
+            title: "Opinion Evolution Over Time",
+            description: "Distribution of opinion clusters over time",
+            data: evolutionData,
+            config: evolutionChartConfig,
+            clusters: topClusters.map((c) => ({
+              id: c.cluster_id,
+              label: c.label,
+              color: getOpinionClusterColor(c.cluster_id),
+            })),
+          }
+        : null;
+
+      // ========================================
+      // STEP 6: Get tweet examples per cluster
       // ========================================
       const clusterAnalyses: ClusterAnalysis[] = [];
 
@@ -187,7 +234,6 @@ export const generateOpinionReportTool: Tool<Parameters, Output> = {
         let examples: TweetExample[] = [];
 
         if (include_examples) {
-          // Get top tweets for this cluster by engagement
           const { data: projections } = await supabase
             .from("twitter_tweet_projections")
             .select(
@@ -249,7 +295,7 @@ export const generateOpinionReportTool: Tool<Parameters, Output> = {
           }
         }
 
-        // Determine sentiment label (English only)
+        // Determine sentiment label
         const sentiment = cluster.avg_sentiment;
         let sentimentLabel: "positive" | "neutral" | "negative" = "neutral";
         if (sentiment !== null) {
@@ -270,47 +316,23 @@ export const generateOpinionReportTool: Tool<Parameters, Output> = {
           sentiment,
           sentiment_label: sentimentLabel,
           coherence_score: cluster.coherence_score,
+          color: getOpinionClusterColor(cluster.cluster_id),
           examples,
         });
       }
 
       // ========================================
-      // STEP 5: Calculate distribution data
+      // STEP 7: Calculate distribution data
       // ========================================
       const distributionData = clusterAnalyses.map((c) => ({
         name: c.label,
         value: c.tweet_count,
         percentage: parseFloat(c.percentage),
+        color: c.color,
       }));
 
       // ========================================
-      // STEP 6: Get sentiment evolution for chart
-      // ========================================
-      const sentimentEvolution = await getSentimentEvolution(zoneId, 10);
-      
-      // Build chart data for sentiment evolution
-      const sentimentEvolutionChart = sentimentEvolution.length > 1
-        ? {
-            _type: "visualization" as const,
-            chart_type: "line" as const,
-            title: "Sentiment Evolution Over Time",
-            data: sentimentEvolution.map((point) => ({
-              timestamp: new Date(point.created_at).toLocaleDateString("en-US", {
-                month: "short",
-                day: "numeric",
-              }),
-              value: Math.round(point.avg_sentiment * 100) / 100,
-              label: "Sentiment",
-            })),
-            config: {
-              timestamp: { label: "Date" },
-              value: { label: "Avg Sentiment", color: "var(--chart-1)" },
-            },
-          }
-        : null;
-
-      // ========================================
-      // STEP 7: Build structured report
+      // STEP 8: Build structured report
       // ========================================
       const report: Output = {
         _type: "opinion_report",
@@ -358,27 +380,18 @@ export const generateOpinionReportTool: Tool<Parameters, Output> = {
         // Cluster analysis (main content)
         clusters: clusterAnalyses,
 
-        // Distribution data (for AI to describe, NOT as embedded visualization)
+        // Distribution data for pie/bar chart
         distribution: distributionData,
 
-        // Sentiment evolution chart (if multiple sessions exist)
-        sentiment_evolution_chart: sentimentEvolutionChart,
+        // Evolution chart (stacked area - same as Analysis page)
+        evolution_chart: evolutionChart,
 
-        // Raw evolution data for additional analysis
-        sentiment_evolution: sentimentEvolution.map((point) => ({
-          date: point.created_at,
-          avg_sentiment: point.avg_sentiment,
-          positive: point.positive_tweets,
-          neutral: point.neutral_tweets,
-          negative: point.negative_tweets,
-          total_tweets: point.total_tweets,
-        })),
-
-        // Formatting hints for AI (English)
+        // Formatting hints for AI
         formatting_hints: {
           note: "Format as structured report. Adapt language to user but use English labels from data.",
           sections: [
             "Introduction with session date range and tweet count",
+            "Evolution chart showing narrative trends over time",
             "Cluster breakdown with percentages and descriptions",
             "Tweet examples formatted as cards with engagement stats",
             "Synthesis and key takeaways",
